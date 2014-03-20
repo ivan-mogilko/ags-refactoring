@@ -632,6 +632,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Common\util\ptr.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Common\util\stream.h"
 					>
 				</File>

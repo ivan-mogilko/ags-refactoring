@@ -1057,6 +1057,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\Engine\test\test_ptr.cpp"
+					>
+				</File>
+				<File
 					RelativePath="..\..\Engine\test\test_sprintf.cpp"
 					>
 				</File>
@@ -2016,14 +2020,6 @@
 				>
 				<File
 					RelativePath="..\..\Engine\test\test_all.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\test\test_file.h"
-					>
-				</File>
-				<File
-					RelativePath="..\..\Engine\test\test_string.h"
 					>
 				</File>
 			</Filter>
