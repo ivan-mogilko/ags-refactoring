@@ -23,7 +23,6 @@
 using AGS::Engine::AudioChannel;
 
 extern GameSetupStruct game;
-extern ScriptAudioChannel scrAudioChannel[MAX_SOUND_CHANNELS + 1];
 extern CCAudioChannel ccDynamicAudio;
 
 int AudioClip_GetFileType(ScriptAudioClip *clip)
@@ -50,7 +49,7 @@ void AudioClip_Stop(ScriptAudioClip *clip)
         SoundClipRef chan_clip = channels[i].GetClip();
         if (chan_clip && chan_clip->is_playing() && chan_clip->sourceClip == clip)
         {
-            AudioChannel_Stop(&scrAudioChannel[i]);
+            AudioChannel_Stop(&channels[i]);
         }
     }
 }

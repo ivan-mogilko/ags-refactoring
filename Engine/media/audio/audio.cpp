@@ -53,7 +53,6 @@ extern volatile int switching_away_from_game;
 volatile int psp_audio_multithreaded = 0;
 #endif
 
-ScriptAudioChannel scrAudioChannel[MAX_SOUND_CHANNELS + 1];
 char acaudio_buffer[256];
 int reserved_channel_count = 0;
 AGS::Engine::AudioChannel channels[MAX_SOUND_CHANNELS+1];
@@ -110,7 +109,7 @@ void move_track_to_crossfade_channel(int currentChannel, int crossfadeSpeed, int
 
 void stop_or_fade_out_channel(int fadeOutChannel, int fadeInChannel, ScriptAudioClip *newSound)
 {
-    ScriptAudioClip *sourceClip = AudioChannel_GetPlayingClip(&scrAudioChannel[fadeOutChannel]);
+    ScriptAudioClip *sourceClip = AudioChannel_GetPlayingClip(&channels[fadeOutChannel]);
     if ((sourceClip != NULL) && (game.audioClipTypes[sourceClip->type].crossfadeSpeed > 0))
     {
         move_track_to_crossfade_channel(fadeOutChannel, game.audioClipTypes[sourceClip->type].crossfadeSpeed, fadeInChannel, newSound);
@@ -271,7 +270,7 @@ void audio_update_polled_stuff()
         int newVolume = clip->get_volume() - play.crossfade_out_volume_per_step;
         if (newVolume > 0)
         {
-            AudioChannel_SetVolume(&scrAudioChannel[play.crossfading_out_channel], newVolume);
+            AudioChannel_SetVolume(&channels[play.crossfading_out_channel], newVolume);
         }
         else
         {
@@ -289,7 +288,7 @@ void audio_update_polled_stuff()
             newVolume = play.crossfade_final_volume_in;
         }
 
-        AudioChannel_SetVolume(&scrAudioChannel[play.crossfading_in_channel], newVolume);
+        AudioChannel_SetVolume(&channels[play.crossfading_in_channel], newVolume);
 
         if (newVolume >= play.crossfade_final_volume_in)
         {
@@ -386,7 +385,7 @@ ScriptAudioChannel* play_audio_clip_on_channel(int channel, ScriptAudioClip *cli
     }
 
     channels[channel].SetClip(soundfx);
-    return &scrAudioChannel[channel];
+    return &channels[channel];
 }
 
 void remove_clips_of_type_from_queue(int audioType) 

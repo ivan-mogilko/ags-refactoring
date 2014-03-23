@@ -18,7 +18,6 @@
 #include "media/audio/audiodefines.h"
 #include "ac/audiochannel.h"
 #include "ac/dynobj/scriptaudioclip.h"
-#include "ac/dynobj/scriptaudiochannel.h"
 #include "media/audio/ambientsound.h"
 #include "util/mutex.h"
 #include "util/mutex_lock.h"

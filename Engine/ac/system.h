@@ -18,8 +18,6 @@
 #ifndef __AGS_EE_AC__SYSTEMAUDIO_H
 #define __AGS_EE_AC__SYSTEMAUDIO_H
 
-#include "ac/dynobj/scriptaudiochannel.h"
-
 int     System_GetColorDepth();
 int     System_GetOS();
 int     System_GetScreenWidth();

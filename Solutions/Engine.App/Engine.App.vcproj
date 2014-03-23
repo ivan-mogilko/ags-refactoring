@@ -1550,10 +1550,6 @@
 						>
 					</File>
 					<File
-						RelativePath="..\..\Engine\ac\dynobj\scriptaudiochannel.h"
-						>
-					</File>
-					<File
 						RelativePath="..\..\Engine\ac\dynobj\scriptdatetime.h"
 						>
 					</File>

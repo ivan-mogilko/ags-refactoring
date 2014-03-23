@@ -19,7 +19,6 @@
 #define __AGS_EE_AC__AUDIOCHANNEL_H
 
 #include "ac/dynobj/scriptaudioclip.h"
-#include "ac/dynobj/scriptaudiochannel.h"
 #include "core/types.h"
 #include "media/audio/audiodefines.h"
 #include "media/audio/soundclip.h"
@@ -33,13 +32,19 @@ class AudioChannel
 {
 public:
     AudioChannel()
-        : _lastSoundPlayed(-1)
+        : _id(-1)
+        , _lastSoundPlayed(-1)
     {
     }
 
     inline SoundClipRef GetClip() const
     {
         return _clip;
+    }
+
+    inline int GetId() const
+    {
+        return _id;
     }
 
     inline int GetLastSoundPlayed() const
@@ -69,7 +74,13 @@ public:
         SetClip(channel._clip);
     }
 
+    void SetId(int id)
+    {
+        _id = id;
+    }
+
 private:
+    int                 _id;
     SoundClipUPtr       _clip;
     int                 _lastSoundPlayed;
 private:
@@ -80,6 +91,8 @@ private:
 
 } // namespace Engine
 } // namespace AGS
+
+typedef AGS::Engine::AudioChannel ScriptAudioChannel;
 
 int     AudioChannel_GetID(ScriptAudioChannel *channel);
 int     AudioChannel_GetIsPlaying(ScriptAudioChannel *channel);

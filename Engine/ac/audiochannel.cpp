@@ -29,7 +29,7 @@ extern CCAudioClip ccDynamicAudioClip;
 
 int AudioChannel_GetID(ScriptAudioChannel *channel)
 {
-    return channel->id;
+    return channel->GetId();
 }
 
 int AudioChannel_GetIsPlaying(ScriptAudioChannel *channel)
@@ -39,13 +39,13 @@ int AudioChannel_GetIsPlaying(ScriptAudioChannel *channel)
         return 0;
     }
 
-    SoundClipRef clip = channels[channel->id].GetClip();
+    SoundClipRef clip = channel->GetClip();
     return clip && clip->is_playing() ? 1 : 0;
 }
 
 int AudioChannel_GetPanning(ScriptAudioChannel *channel)
 {
-    SoundClipRef clip = channels[channel->id].GetClip();
+    SoundClipRef clip = channel->GetClip();
     return clip && clip->is_playing() ? clip->panningAsPercentage : 0;
 }
 
@@ -54,7 +54,7 @@ void AudioChannel_SetPanning(ScriptAudioChannel *channel, int newPanning)
     if ((newPanning < -100) || (newPanning > 100))
         quitprintf("!AudioChannel.Panning: panning value must be between -100 and 100 (passed=%d)", newPanning);
 
-    SoundClipRef clip = channels[channel->id].GetClip();
+    SoundClipRef clip = channel->GetClip();
     if (clip && clip->is_playing())
     {
         clip->set_panning(((newPanning + 100) * 255) / 200);
@@ -64,13 +64,13 @@ void AudioChannel_SetPanning(ScriptAudioChannel *channel, int newPanning)
 
 ScriptAudioClip* AudioChannel_GetPlayingClip(ScriptAudioChannel *channel)
 {
-    SoundClipRef clip = channels[channel->id].GetClip();
+    SoundClipRef clip = channel->GetClip();
     return clip && clip->is_playing() ? (ScriptAudioClip*)clip->sourceClip : NULL;
 }
 
 int AudioChannel_GetPosition(ScriptAudioChannel *channel)
 {
-    SoundClipRef clip = channels[channel->id].GetClip();
+    SoundClipRef clip = channel->GetClip();
     if (clip && clip->is_playing())
     {
         if (play.fast_forward)
@@ -83,7 +83,7 @@ int AudioChannel_GetPosition(ScriptAudioChannel *channel)
 
 int AudioChannel_GetPositionMs(ScriptAudioChannel *channel)
 {
-    SoundClipRef clip = channels[channel->id].GetClip();
+    SoundClipRef clip = channel->GetClip();
     if (clip && clip->is_playing())
     {
         if (play.fast_forward)
@@ -96,13 +96,13 @@ int AudioChannel_GetPositionMs(ScriptAudioChannel *channel)
 
 int AudioChannel_GetLengthMs(ScriptAudioChannel *channel)
 {
-    SoundClipRef clip = channels[channel->id].GetClip();
+    SoundClipRef clip = channel->GetClip();
     return clip && clip->is_playing() ? clip->get_length_ms() : 0;
 }
 
 int AudioChannel_GetVolume(ScriptAudioChannel *channel)
 {
-    SoundClipRef clip = channels[channel->id].GetClip();
+    SoundClipRef clip = channel->GetClip();
     return clip && clip->is_playing() ? clip->get_volume() : 0;
 }
 
@@ -111,7 +111,7 @@ int AudioChannel_SetVolume(ScriptAudioChannel *channel, int newVolume)
     if ((newVolume < 0) || (newVolume > 100))
         quitprintf("!AudioChannel.Volume: new value out of range (supplied: %d, range: 0..100)", newVolume);
 
-    SoundClipRef clip = channels[channel->id].GetClip();
+    SoundClipRef clip = channel->GetClip();
     if (clip && clip->is_playing())
     {
         clip->set_volume_origin(newVolume);
@@ -122,7 +122,7 @@ int AudioChannel_SetVolume(ScriptAudioChannel *channel, int newVolume)
 
 void AudioChannel_Stop(ScriptAudioChannel *channel)
 {
-    stop_or_fade_out_channel(channel->id, -1, NULL);
+    stop_or_fade_out_channel(channel->GetId(), -1, NULL);
 }
 
 void AudioChannel_Seek(ScriptAudioChannel *channel, int newPosition)
@@ -130,7 +130,7 @@ void AudioChannel_Seek(ScriptAudioChannel *channel, int newPosition)
     if (newPosition < 0)
         quitprintf("!AudioChannel.Seek: invalid seek position %d", newPosition);
 
-    SoundClipRef clip = channels[channel->id].GetClip();
+    SoundClipRef clip = channel->GetClip();
     if (clip && clip->is_playing())
     {
         clip->seek(newPosition);
@@ -139,7 +139,7 @@ void AudioChannel_Seek(ScriptAudioChannel *channel, int newPosition)
 
 void AudioChannel_SetRoomLocation(ScriptAudioChannel *channel, int xPos, int yPos)
 {
-    SoundClipRef clip = channels[channel->id].GetClip();
+    SoundClipRef clip = channel->GetClip();
     if (clip && clip->is_playing())
     {
         int maxDist = ((xPos > thisroom.width / 2) ? xPos : (thisroom.width - xPos)) - AMBIENCE_FULL_DIST;

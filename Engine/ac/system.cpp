@@ -15,6 +15,7 @@
 #include "ac/common.h"
 #include "gfx/ali3d.h"
 #include "media/audio/audiodefines.h"
+#include "ac/audiochannel.h"
 #include "ac/draw.h"
 #include "ac/gamesetup.h"
 #include "ac/gamestate.h"
@@ -31,7 +32,6 @@
 
 extern GameSetup usetup;
 extern GameState play;
-extern ScriptAudioChannel scrAudioChannel[MAX_SOUND_CHANNELS + 1];
 extern int final_scrn_wid,final_scrn_hit,final_col_dep;
 extern ScriptSystem scsystem;
 extern int scrnwid,scrnhit;
@@ -144,7 +144,7 @@ ScriptAudioChannel* System_GetAudioChannels(int index)
     if ((index < 0) || (index >= MAX_SOUND_CHANNELS))
         quit("!System.AudioChannels: invalid sound channel index");
 
-    return &scrAudioChannel[index];
+    return &channels[index];
 }
 
 int System_GetVolume() 

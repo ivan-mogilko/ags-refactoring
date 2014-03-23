@@ -88,7 +88,6 @@ using AGS::Common::Stream;
 using AGS::Common::Bitmap;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 
-extern ScriptAudioChannel scrAudioChannel[MAX_SOUND_CHANNELS + 1];
 extern int time_between_timers;
 extern Bitmap *virtual_screen;
 extern int cur_mode,cur_cursor;
@@ -231,7 +230,7 @@ void Game_StopAudio(int audioType)
         }
         else
         {
-            ScriptAudioClip *clip = AudioChannel_GetPlayingClip(&scrAudioChannel[aa]);
+            ScriptAudioClip *clip = AudioChannel_GetPlayingClip(&channels[aa]);
             if ((clip != NULL) && (clip->type == audioType))
                 stop_or_fade_out_channel(aa);
         }
@@ -250,7 +249,7 @@ int Game_IsAudioPlaying(int audioType)
 
     for (int aa = 0; aa < MAX_SOUND_CHANNELS; aa++)
     {
-        ScriptAudioClip *clip = AudioChannel_GetPlayingClip(&scrAudioChannel[aa]);
+        ScriptAudioClip *clip = AudioChannel_GetPlayingClip(&channels[aa]);
         if (clip != NULL)
         {
             if ((clip->type == audioType) || (audioType == SCR_NO_VALUE))
@@ -283,7 +282,7 @@ void Game_SetAudioTypeVolume(int audioType, int volume, int changeType)
     {
         for (aa = 0; aa < MAX_SOUND_CHANNELS; aa++)
         {
-            ScriptAudioClip *clip = AudioChannel_GetPlayingClip(&scrAudioChannel[aa]);
+            ScriptAudioClip *clip = AudioChannel_GetPlayingClip(&channels[aa]);
             if ((clip != NULL) && (clip->type == audioType))
             {
                 channels[aa].GetClip()->set_volume_origin(volume);
@@ -2868,8 +2867,8 @@ void register_audio_script_objects()
     int ee;
     for (ee = 0; ee <= MAX_SOUND_CHANNELS; ee++) 
     {
-        scrAudioChannel[ee].id = ee;
-        ccRegisterManagedObject(&scrAudioChannel[ee], &ccDynamicAudio);
+        channels[ee].SetId(ee);
+        ccRegisterManagedObject(&channels[ee], &ccDynamicAudio);
     }
 
     for (ee = 0; ee < game.audioClipCount; ee++)
