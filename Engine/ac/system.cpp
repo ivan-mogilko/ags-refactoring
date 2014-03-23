@@ -167,9 +167,10 @@ void System_SetVolume(int newvol)
     // if it was previously set low; so restore them
     for (int i = 0; i <= MAX_SOUND_CHANNELS; i++) 
     {
-        if ((channels[i] != NULL) && (channels[i]->done == 0)) 
+        SoundClipRef clip = channels[i].GetClip();
+        if (clip && clip->is_playing()) 
         {
-            channels[i]->set_volume(channels[i]->vol);
+            clip->set_volume(clip->vol);
         }
     }
 }

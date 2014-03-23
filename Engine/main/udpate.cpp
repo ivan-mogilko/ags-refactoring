@@ -250,7 +250,7 @@ void update_overlay_timers()
 
 void update_speech_and_messages()
 {
-  const bool is_voice = channels[SCHAN_SPEECH] != NULL;
+  const bool is_voice = channels[SCHAN_SPEECH].HasClip();
 
   // determine if speech text should be removed
   if (play.messagetime>=0) {
@@ -293,7 +293,8 @@ void update_speech_and_messages()
 
 void update_sierra_speech()
 {
-  const bool is_voice = channels[SCHAN_SPEECH] != NULL;
+  SoundClipRef clip = channels[SCHAN_SPEECH].GetClip();
+  const bool is_voice = clip != NULL;
 	// update sierra-style speech
   if ((face_talking >= 0) && (play.fast_forward == 0)) 
   {
@@ -330,7 +331,7 @@ void update_sierra_speech()
 
     if (curLipLine >= 0) {
       // check voice lip sync
-      int spchOffs = channels[SCHAN_SPEECH]->get_pos_ms ();
+      int spchOffs = clip->get_pos_ms ();
       if (curLipLinePhenome >= splipsync[curLipLine].numPhenomes) {
         // the lip-sync has finished, so just stay idle
       }

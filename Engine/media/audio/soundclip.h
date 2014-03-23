@@ -110,6 +110,11 @@ struct SOUNDCLIP
         set_volume(vol);
     }
 
+    inline bool is_playing() const
+    {
+        return done == 0;
+    }
+
     SOUNDCLIP();
     ~SOUNDCLIP();
 };

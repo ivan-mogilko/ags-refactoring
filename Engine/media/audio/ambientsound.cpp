@@ -23,7 +23,7 @@ using AGS::Common::Stream;
 bool AmbientSound::IsPlaying () {
     if (channel <= 0)
         return false;
-    return (channels[channel] != NULL) ? true : false;
+    return channels[channel].HasClip();
 }
 
 void AmbientSound::ReadFromFile(Stream *in)

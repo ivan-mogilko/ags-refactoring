@@ -268,7 +268,7 @@ int CharacterInfo::update_character_animating(int &aa, int &doing_nothing)
         ((walking == 0) || ((flags & CHF_MOVENOTWALK) != 0)) &&
         (room == displayed_room)) 
     {
-      const bool is_voice = channels[SCHAN_SPEECH] != NULL;
+      const bool is_voice = channels[SCHAN_SPEECH].HasClip();
 
       doing_nothing = 0;
       // idle anim doesn't count as doing something

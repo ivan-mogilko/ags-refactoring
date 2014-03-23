@@ -33,27 +33,45 @@ class AudioChannel
 {
 public:
     AudioChannel()
-        : LastSoundPlayed(-1)
+        : _lastSoundPlayed(-1)
     {
     }
 
-    // Two operators that allow smooth transition to the new
-    // channel objects without changing too much code at once
-    inline SOUNDCLIP *operator->() const
+    inline SoundClipRef GetClip() const
     {
-        return Clip.Get();
+        return _clip;
     }
 
-    inline operator bool() const
+    inline int GetLastSoundPlayed() const
     {
-        return Clip != NULL;
+        return _lastSoundPlayed;
     }
 
-    // All contents are public for now
-public:
-    SoundClipUPtr       Clip;
-    int                 LastSoundPlayed;
+    inline bool HasClip() const
+    {
+        return _clip != NULL;
+    }
 
+    void RemoveClip()
+    {
+        _clip.Reset();
+        _lastSoundPlayed = -1;
+    }
+
+    void SetClip(SoundClipUPtr &clip, int audio_id = -1)
+    {
+        _clip = clip;
+        _lastSoundPlayed = audio_id;
+    }
+
+    void SetClip(AudioChannel &channel)
+    {
+        SetClip(channel._clip);
+    }
+
+private:
+    SoundClipUPtr       _clip;
+    int                 _lastSoundPlayed;
 private:
     // AudioChannel should not be copied
     AudioChannel(const AudioChannel &); // non-copyable

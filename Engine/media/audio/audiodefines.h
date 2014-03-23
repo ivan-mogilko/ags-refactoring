@@ -43,5 +43,6 @@
 #include "util/ptr.h"
 struct SOUNDCLIP;
 typedef AGS::Common::UniquePtr<SOUNDCLIP> SoundClipUPtr;
+typedef const SoundClipUPtr&              SoundClipRef;
 
 #endif // __AC_AUDIODEFINES_H

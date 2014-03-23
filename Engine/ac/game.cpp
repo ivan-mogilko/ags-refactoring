@@ -286,7 +286,7 @@ void Game_SetAudioTypeVolume(int audioType, int volume, int changeType)
             ScriptAudioClip *clip = AudioChannel_GetPlayingClip(&scrAudioChannel[aa]);
             if ((clip != NULL) && (clip->type == audioType))
             {
-                channels[aa]->set_volume_origin(volume);
+                channels[aa].GetClip()->set_volume_origin(volume);
             }
         }
     }
@@ -300,8 +300,9 @@ void Game_SetAudioTypeVolume(int audioType, int volume, int changeType)
 }
 
 int Game_GetMODPattern() {
-    if (current_music_type == MUS_MOD && channels[SCHAN_MUSIC]) {
-        return channels[SCHAN_MUSIC]->get_pos();
+    SoundClipRef clip = channels[SCHAN_MUSIC].GetClip();
+    if (current_music_type == MUS_MOD && clip) {
+        return clip->get_pos();
     }
     return -1;
 }
@@ -1372,16 +1373,17 @@ void save_game_audioclips_and_crossfade(Stream *out)
     out->WriteInt32(game.audioClipCount);
     for (int bb = 0; bb <= MAX_SOUND_CHANNELS; bb++)
     {
-        if ((channels[bb] != NULL) && (channels[bb]->done == 0) && (channels[bb]->sourceClip != NULL))
+        SoundClipRef clip = channels[bb].GetClip();
+        if (clip && clip->is_playing() && clip->sourceClip != NULL)
         {
-            out->WriteInt32(((ScriptAudioClip*)channels[bb]->sourceClip)->id);
-            out->WriteInt32(channels[bb]->get_pos());
-            out->WriteInt32(channels[bb]->priority);
-            out->WriteInt32(channels[bb]->repeat ? 1 : 0);
-            out->WriteInt32(channels[bb]->vol);
-            out->WriteInt32(channels[bb]->panning);
-            out->WriteInt32(channels[bb]->volAsPercentage);
-            out->WriteInt32(channels[bb]->panningAsPercentage);
+            out->WriteInt32(((ScriptAudioClip*)clip->sourceClip)->id);
+            out->WriteInt32(clip->get_pos());
+            out->WriteInt32(clip->priority);
+            out->WriteInt32(clip->repeat ? 1 : 0);
+            out->WriteInt32(clip->vol);
+            out->WriteInt32(clip->panning);
+            out->WriteInt32(clip->volAsPercentage);
+            out->WriteInt32(clip->panningAsPercentage);
         }
         else
         {
@@ -2080,26 +2082,28 @@ void restore_game_audioclips_and_crossfade(Stream *in, int crossfadeInChannelWas
             int volAsPercent = in->ReadInt32();
             int panAsPercent = in->ReadInt32();
             play_audio_clip_on_channel(bb, &game.audioClips[audioClipIndex], priority, repeat, channelPositions[bb]);
-            if (channels[bb] != NULL)
+            SoundClipRef clip = channels[bb].GetClip();
+            if (clip)
             {
-                channels[bb]->set_panning(pan);
-                channels[bb]->set_volume_alternate(volAsPercent, vol);
-                channels[bb]->panningAsPercentage = panAsPercent;
+                clip->set_panning(pan);
+                clip->set_volume_alternate(volAsPercent, vol);
+                clip->panningAsPercentage = panAsPercent;
             }
         }
     }
-    if ((crossfadeInChannelWas > 0) && (channels[crossfadeInChannelWas] != NULL))
+    if ((crossfadeInChannelWas > 0) && (channels[crossfadeInChannelWas].HasClip()))
         play.crossfading_in_channel = crossfadeInChannelWas;
-    if ((crossfadeOutChannelWas > 0) && (channels[crossfadeOutChannelWas] != NULL))
+    if ((crossfadeOutChannelWas > 0) && (channels[crossfadeOutChannelWas].HasClip()))
         play.crossfading_out_channel = crossfadeOutChannelWas;
 
     // If there were synced audio tracks, the time taken to load in the
     // different channels will have thrown them out of sync, so re-time it
     for (bb = 0; bb <= MAX_SOUND_CHANNELS; bb++)
     {
-        if ((channelPositions[bb] > 0) && (channels[bb] != NULL) && (channels[bb]->done == 0))
+        SoundClipRef clip = channels[bb].GetClip();
+        if ((channelPositions[bb] > 0) && clip && clip->is_playing())
         {
-            channels[bb]->seek(channelPositions[bb]);
+            clip->seek(channelPositions[bb]);
         }
     }
     crossFading = in->ReadInt32();
@@ -2249,8 +2253,8 @@ int restore_game_data (Stream *in, const char *nametouse, SavedGameVersion svg_v
     // test if the playing music was properly loaded
     if (current_music_type > 0)
     {
-        if (crossFading > 0 && !channels[crossFading] ||
-            crossFading <= 0 && !channels[SCHAN_MUSIC])
+        if (crossFading > 0 && !channels[crossFading].HasClip() ||
+            crossFading <= 0 && !channels[SCHAN_MUSIC].HasClip())
         {
             current_music_type = 0;
         }
@@ -2627,11 +2631,12 @@ void stop_fast_forwarding() {
     // Restore actual volume of sounds
     for (int aa = 0; aa < MAX_SOUND_CHANNELS; aa++)
     {
-        if ((channels[aa] != NULL) && (!channels[aa]->done) &&
-            (channels[aa]->volAsPercentage == 0) &&
-            (channels[aa]->originalVolAsPercentage > 0))
+        SoundClipRef clip = channels[aa].GetClip();
+        if (clip && clip->is_playing() &&
+            (clip->volAsPercentage == 0) &&
+            (clip->originalVolAsPercentage > 0))
         {
-            channels[aa]->reset_volume_to_origin();
+            clip->reset_volume_to_origin();
         }
     }
 
@@ -2726,8 +2731,9 @@ void display_switch_out() {
 
     // stop the sound stuttering
     for (int i = 0; i <= MAX_SOUND_CHANNELS; i++) {
-        if ((channels[i] != NULL) && (channels[i]->done == 0)) {
-            channels[i]->pause();
+        SoundClipRef clip = channels[i].GetClip();
+        if (clip && clip->is_playing()) {
+            clip->pause();
         }
     }
 
@@ -2741,8 +2747,9 @@ void display_switch_out() {
 
 void display_switch_in() {
     for (int i = 0; i <= MAX_SOUND_CHANNELS; i++) {
-        if ((channels[i] != NULL) && (channels[i]->done == 0)) {
-            channels[i]->resume();
+        SoundClipRef clip = channels[i].GetClip();
+        if (clip && clip->is_playing()) {
+            clip->resume();
         }
     }
 

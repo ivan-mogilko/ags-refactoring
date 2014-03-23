@@ -301,7 +301,7 @@ int _display_main(int xx,int yy,int wii,char*todis,int blocking,int usingfont,in
             }
             countdown--;
 
-            if (channels[SCHAN_SPEECH] != NULL) {
+            if (channels[SCHAN_SPEECH].HasClip()) {
                 // extend life of text if the voice hasn't finished yet
                 if ((!rec_isSpeechFinished()) && (play.fast_forward == 0)) {
                     if (countdown <= 1)

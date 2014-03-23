@@ -27,6 +27,8 @@
 #include "media/audio/audio.h"
 #include "media/audio/sound.h"
 
+using AGS::Engine::AudioChannel;
+
 extern GameSetup usetup;
 extern GameState play;
 extern GameSetupStruct game;
@@ -57,8 +59,10 @@ void PlayAmbientSound (int channel, int sndnum, int vol, int x, int y) {
         return;
 
     // only play the sound if it's not already playing
-    if ((ambient[channel].channel < 1) || (channels[ambient[channel].channel] == NULL) ||
-        (channels[ambient[channel].channel]->done == 1) ||
+    AudioChannel &ch_ambient = channels[channel];
+    SoundClipRef clip = ch_ambient.GetClip();
+    if ((ambient[channel].channel < 1) || (clip == NULL) ||
+        (clip->done == 1) ||
         (ambient[channel].num != sndnum)) {
 
             StopAmbientSound(channel);
@@ -75,8 +79,8 @@ void PlayAmbientSound (int channel, int sndnum, int vol, int x, int y) {
 
             DEBUG_CONSOLE("Playing ambient sound %d on channel %d", sndnum, channel);
             ambient[channel].channel = channel;
-            channels[channel].Clip = asound;
-            channels[channel]->priority = 15;  // ambient sound higher priority than normal sfx
+            ch_ambient.SetClip(asound);
+            clip->priority = 15;  // ambient sound higher priority than normal sfx
     }
     // calculate the maximum distance away the player can be, using X
     // only (since X centred is still more-or-less total Y)
@@ -95,10 +99,8 @@ int IsChannelPlaying(int chan) {
     if ((chan < 0) || (chan >= MAX_SOUND_CHANNELS))
         quit("!IsChannelPlaying: invalid sound channel");
 
-    if ((channels[chan] != NULL) && (channels[chan]->done == 0))
-        return 1;
-
-    return 0;
+    SoundClipRef clip = channels[chan].GetClip();
+    return clip && clip->is_playing() ? 1 : 0;
 }
 
 int IsSoundPlaying() {
@@ -107,7 +109,8 @@ int IsSoundPlaying() {
 
     // find if there's a sound playing
     for (int i = SCHAN_NORMAL; i < numSoundChannels; i++) {
-        if ((channels[i] != NULL) && (channels[i]->done == 0))
+        SoundClipRef clip = channels[i].GetClip();
+        if (clip && clip->is_playing())
             return 1;
     }
 
@@ -138,13 +141,15 @@ int PlaySoundEx(int val1, int channel) {
     if (play.fast_forward)
         return -1;
 
+    AudioChannel &ch = channels[channel];
     // that sound is already in memory, play it
     if (!psp_audio_multithreaded)
     {
-        if ((channels[channel].LastSoundPlayed == val1) && (channels[channel] != NULL)) {
+        if ((ch.GetLastSoundPlayed() == val1) && (ch.HasClip())) {
             DEBUG_CONSOLE("Playing sound %d on channel %d; cached", val1, channel);
-            channels[channel]->restart();
-            channels[channel]->set_volume (play.sound_volume);
+            SoundClipRef clip = ch.GetClip();
+            clip->restart();
+            clip->set_volume (play.sound_volume);
             return channel;
         }
     }
@@ -152,8 +157,6 @@ int PlaySoundEx(int val1, int channel) {
     // free the old sound
     stop_and_destroy_channel (channel);
     DEBUG_CONSOLE("Playing sound %d on channel %d", val1, channel);
-
-    channels[channel].LastSoundPlayed = val1;
 
     SoundClipUPtr soundfx = load_sound_from_path(val1, play.sound_volume, 0);
 
@@ -163,9 +166,9 @@ int PlaySoundEx(int val1, int channel) {
         return -1;
     }
 
-    channels[channel].Clip = soundfx;
-    channels[channel]->priority = 10;
-    channels[channel]->set_volume (play.sound_volume);
+    soundfx->priority = 10;
+    soundfx->set_volume(play.sound_volume);
+    ch.SetClip(soundfx, val1);
     return channel;
 }
 
@@ -211,15 +214,15 @@ int IsMusicPlaying() {
         return 0;
 
     if (current_music_type != 0) {
-        if (channels[SCHAN_MUSIC] == NULL)
-            current_music_type = 0;
-        else if (channels[SCHAN_MUSIC]->done == 0)
+        SoundClipRef clip_mus = channels[SCHAN_MUSIC].GetClip();
+        if (clip_mus == NULL)
+            current_music_type = 0; // CHECKME: why there's assignment in "test" function?
+        else if (clip_mus->done == 0)
             return 1;
-        else if ((crossFading > 0) && (channels[crossFading] != NULL))
+        else if ((crossFading > 0) && (channels[crossFading].HasClip()))
             return 1;
         return 0;
     }
-
     return 0;
 }
 
@@ -271,18 +274,21 @@ void scr_StopMusic() {
 }
 
 void SeekMODPattern(int patnum) {
-    if (current_music_type == MUS_MOD && channels[SCHAN_MUSIC]) {
-        channels[SCHAN_MUSIC]->seek (patnum);
+    SoundClipRef clip = channels[SCHAN_MUSIC].GetClip();
+    if (current_music_type == MUS_MOD && clip) {
+        clip->seek(patnum);
         DEBUG_CONSOLE("Seek MOD/XM to pattern %d", patnum);
     }
 }
 void SeekMP3PosMillis (int posn) {
     if (current_music_type) {
         DEBUG_CONSOLE("Seek MP3/OGG to %d ms", posn);
-        if (crossFading && channels[crossFading])
-            channels[crossFading]->seek (posn);
-        else if (channels[SCHAN_MUSIC])
-            channels[SCHAN_MUSIC]->seek (posn);
+        SoundClipRef cf_clip  = crossFading > 0 ? channels[crossFading].GetClip() : NULL;
+        SoundClipRef mus_clip = channels[SCHAN_MUSIC].GetClip();
+        if (cf_clip)
+            cf_clip->seek(posn);
+        else if (mus_clip)
+            mus_clip->seek(posn);
     }
 }
 
@@ -291,12 +297,13 @@ int GetMP3PosMillis () {
     if (play.fast_forward)
         return 999999;
 
-    if (current_music_type && channels[SCHAN_MUSIC]) {
-        int result = channels[SCHAN_MUSIC]->get_pos_ms();
+    SoundClipRef clip = channels[SCHAN_MUSIC].GetClip();
+    if (current_music_type && clip) {
+        int result = clip->get_pos_ms();
         if (result >= 0)
             return result;
 
-        return channels[SCHAN_MUSIC]->get_pos ();
+        return clip->get_pos ();
     }
 
     return 0;
@@ -333,13 +340,14 @@ void SetChannelVolume(int chan, int newvol) {
     if ((chan < 0) || (chan >= MAX_SOUND_CHANNELS))
         quit("!SetChannelVolume: invalid channel id");
 
-    if ((channels[chan] != NULL) && (channels[chan]->done == 0)) {
+    SoundClipRef clip = channels[chan].GetClip();
+    if (clip && clip->is_playing()) {
         if (chan == ambient[chan].channel) {
             ambient[chan].vol = newvol;
             update_ambient_sound_vol();
         }
         else
-            channels[chan]->set_volume (newvol);
+            clip->set_volume (newvol);
     }
 }
 
@@ -370,17 +378,19 @@ void PlayMP3File (const char *filename) {
     int useChan = prepare_for_new_music ();
     bool doLoop = (play.music_repeat > 0);
 
-    if ((channels[useChan].Clip = my_load_static_ogg(pathToFile, 150, doLoop)) != NULL) {
-        channels[useChan]->play();
+    SoundClipUPtr clip = my_load_static_ogg(pathToFile, 150, doLoop);
+    if (clip)
         current_music_type = MUS_OGG;
-        play.cur_music_number = 1000;
-        // save the filename (if it's not what we were supplied with)
-        if (filename != &play.playmp3file_name[0])
-            strcpy (play.playmp3file_name, filename);
+    else
+    {
+        clip = my_load_static_mp3(pathToFile, 150, doLoop);
+        if (clip)
+            current_music_type = MUS_MP3;
     }
-    else if ((channels[useChan].Clip = my_load_static_mp3(pathToFile, 150, doLoop)) != NULL) {
-        channels[useChan]->play();
-        current_music_type = MUS_MP3;
+
+    if (clip)
+    {
+        channels[useChan].SetClip(clip);
         play.cur_music_number = 1000;
         // save the filename (if it's not what we were supplied with)
         if (filename != &play.playmp3file_name[0])
@@ -402,21 +412,24 @@ void PlaySilentMIDI (int mnum) {
     play.silent_midi = mnum;
     play.silent_midi_channel = SCHAN_SPEECH;
     stop_and_destroy_channel(play.silent_midi_channel);
-    channels[play.silent_midi_channel].Clip = load_sound_clip_from_old_style_number(true, mnum, false);
-    if (channels[play.silent_midi_channel] == NULL)
+    
+    SoundClipUPtr clip = load_sound_clip_from_old_style_number(true, mnum, false);
+    if (clip == NULL)
     {
         quitprintf("!PlaySilentMIDI: failed to load aMusic%d", mnum);
     }
-    channels[play.silent_midi_channel]->play();
-    channels[play.silent_midi_channel]->set_volume_origin(0);
+    clip->play();
+    clip->set_volume_origin(0);
+    channels[play.silent_midi_channel].SetClip(clip);
 }
 
 void SetSpeechVolume(int newvol) {
     if ((newvol<0) | (newvol>255))
         quit("!SetSpeechVolume: invalid volume - must be from 0-255");
 
-    if (channels[SCHAN_SPEECH])
-        channels[SCHAN_SPEECH]->set_volume (newvol);
+    SoundClipRef clip = channels[SCHAN_SPEECH].GetClip();
+    if (clip)
+        clip->set_volume (newvol);
 
     play.speech_volume = newvol;
 }
@@ -529,7 +542,7 @@ int play_speech(int charid,int sndid) {
         return 0;
     }
 
-    channels[SCHAN_SPEECH].Clip = speechmp3;
+    channels[SCHAN_SPEECH].SetClip(speechmp3);
     play.music_vol_was = play.music_master_volume;
 
     // Negative value means set exactly; positive means drop that amount
@@ -556,7 +569,7 @@ int play_speech(int charid,int sndid) {
 }
 
 void stop_speech() {
-    if (channels[SCHAN_SPEECH] != NULL) {
+    if (channels[SCHAN_SPEECH].HasClip()) {
         play.music_master_volume = play.music_vol_was;
         // update the music in a bit (fixes two speeches follow each other
         // and music going up-then-down)

@@ -33,6 +33,7 @@
 
 using AGS::Common::Stream;
 using AGS::Common::String;
+using AGS::Engine::AudioChannel;
 
 extern GameSetupStruct game;
 extern GameState play;
@@ -173,7 +174,8 @@ int rec_isSpeechFinished () {
         return 0;
     }
 
-    if (!channels[SCHAN_SPEECH]->done) {
+    SoundClipRef clip = channels[SCHAN_SPEECH].GetClip();
+    if (clip && clip->is_playing()) {
         return 0;
     }
     if (play.recording)
