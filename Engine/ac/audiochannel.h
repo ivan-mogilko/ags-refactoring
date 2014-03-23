@@ -20,6 +20,7 @@
 
 #include "ac/dynobj/scriptaudioclip.h"
 #include "core/types.h"
+#include "media/audio/ambientsound.h"
 #include "media/audio/audiodefines.h"
 #include "media/audio/soundclip.h"
 
@@ -35,6 +36,11 @@ public:
         : _id(-1)
         , _lastSoundPlayed(-1)
     {
+    }
+
+    inline AmbientSound &GetAmbient()
+    {
+        return _ambient;
     }
 
     inline SoundClipRef GetClip() const
@@ -59,14 +65,14 @@ public:
 
     void RemoveClip()
     {
-        _clip.Reset();
-        _lastSoundPlayed = -1;
+        SetClip(SoundClipUPtr());
     }
 
     void SetClip(SoundClipUPtr &clip, int audio_id = -1)
     {
         _clip = clip;
         _lastSoundPlayed = audio_id;
+        _ambient.channel = 0;
     }
 
     void SetClip(AudioChannel &channel)
@@ -82,6 +88,7 @@ public:
 private:
     int                 _id;
     SoundClipUPtr       _clip;
+    AmbientSound        _ambient;
     int                 _lastSoundPlayed;
 private:
     // AudioChannel should not be copied

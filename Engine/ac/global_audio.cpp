@@ -41,11 +41,12 @@ void StopAmbientSound (int channel) {
     if ((channel < 0) || (channel >= MAX_SOUND_CHANNELS))
         quit("!StopAmbientSound: invalid channel");
 
-    if (ambient[channel].channel == 0)
+    AmbientSound &ambient = channels[channel].GetAmbient();
+    if (ambient.channel == 0)
         return;
 
     stop_and_destroy_channel(channel);
-    ambient[channel].channel = 0;
+    ambient.channel = 0;
 }
 
 void PlayAmbientSound (int channel, int sndnum, int vol, int x, int y) {
@@ -61,9 +62,10 @@ void PlayAmbientSound (int channel, int sndnum, int vol, int x, int y) {
     // only play the sound if it's not already playing
     AudioChannel &ch_ambient = channels[channel];
     SoundClipRef clip = ch_ambient.GetClip();
-    if ((ambient[channel].channel < 1) || (clip == NULL) ||
+    AmbientSound &ambient = ch_ambient.GetAmbient();
+    if ((ambient.channel < 1) || (clip == NULL) ||
         (clip->done == 1) ||
-        (ambient[channel].num != sndnum)) {
+        (ambient.num != sndnum)) {
 
             StopAmbientSound(channel);
             // in case a normal non-ambient sound was playing, stop it too
@@ -78,17 +80,17 @@ void PlayAmbientSound (int channel, int sndnum, int vol, int x, int y) {
             }
 
             DEBUG_CONSOLE("Playing ambient sound %d on channel %d", sndnum, channel);
-            ambient[channel].channel = channel;
+            ambient.channel = channel;
             ch_ambient.SetClip(asound);
             clip->priority = 15;  // ambient sound higher priority than normal sfx
     }
     // calculate the maximum distance away the player can be, using X
     // only (since X centred is still more-or-less total Y)
-    ambient[channel].maxdist = ((x > thisroom.width / 2) ? x : (thisroom.width - x)) - AMBIENCE_FULL_DIST;
-    ambient[channel].num = sndnum;
-    ambient[channel].x = x;
-    ambient[channel].y = y;
-    ambient[channel].vol = vol;
+    ambient.maxdist = ((x > thisroom.width / 2) ? x : (thisroom.width - x)) - AMBIENCE_FULL_DIST;
+    ambient.num = sndnum;
+    ambient.x = x;
+    ambient.y = y;
+    ambient.vol = vol;
     update_ambient_sound_vol();
 }
 
@@ -342,8 +344,9 @@ void SetChannelVolume(int chan, int newvol) {
 
     SoundClipRef clip = channels[chan].GetClip();
     if (clip && clip->is_playing()) {
-        if (chan == ambient[chan].channel) {
-            ambient[chan].vol = newvol;
+        AmbientSound &ambient = channels[chan].GetAmbient();
+        if (chan == ambient.channel) {
+            ambient.vol = newvol;
             update_ambient_sound_vol();
         }
         else

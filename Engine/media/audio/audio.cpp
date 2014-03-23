@@ -468,10 +468,6 @@ void stop_and_destroy_channel_ex(int chid, bool resetLegacyMusicSettings) {
     if (play.crossfading_out_channel == chid)
         play.crossfading_out_channel = 0;
 
-    // destroyed an ambient sound channel
-    if (ambient[chid].channel > 0)
-        ambient[chid].channel = 0;
-
     if ((chid == SCHAN_MUSIC) && (resetLegacyMusicSettings))
     {
         play.cur_music_number = -1;
@@ -537,8 +533,6 @@ void force_audiostream_include() {
     stop_audio_stream(NULL);
 }
 
-AmbientSound ambient[MAX_SOUND_CHANNELS + 1];  // + 1 just for safety on array iterations
-
 int get_volume_adjusted_for_distance(int volume, int sndX, int sndY, int sndMaxDist)
 {
     int distx = playerchar->x - sndX;
@@ -585,7 +579,7 @@ void update_ambient_sound_vol () {
     SoundClipRef clip_speech = channels[SCHAN_SPEECH].GetClip();
     for (int chan = 1; chan < MAX_SOUND_CHANNELS; chan++) {
 
-        AmbientSound *thisSound = &ambient[chan];
+        AmbientSound *thisSound = &channels[chan].GetAmbient();
 
         if (thisSound->channel == 0)
             continue;

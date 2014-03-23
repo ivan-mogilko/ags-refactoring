@@ -1282,9 +1282,8 @@ void save_game_ambientsounds(Stream *out)
 {
     for (int i = 0; i < MAX_SOUND_CHANNELS; ++i)
     {
-        ambient[i].WriteToFile(out);
+        channels[i].GetAmbient().WriteToFile(out);
     }
-    //out->WriteArray (&ambient[0], sizeof(AmbientSound), MAX_SOUND_CHANNELS);
 }
 
 void WriteOverlays_Aligned(Stream *out)
@@ -1936,15 +1935,16 @@ void restore_game_ambientsounds(Stream *in, int crossfadeInChannelWas, int cross
 
     for (int i = 0; i < MAX_SOUND_CHANNELS; ++i)
     {
-        ambient[i].ReadFromFile(in);
+        channels[i].GetAmbient().ReadFromFile(in);
     }
 
     for (bb = 1; bb < MAX_SOUND_CHANNELS; bb++) {
-        if (ambient[bb].channel == 0)
+        AmbientSound &ambient = channels[bb].GetAmbient();
+        if (ambient.channel == 0)
             doAmbient[bb] = 0;
         else {
-            doAmbient[bb] = ambient[bb].num;
-            ambient[bb].channel = 0;
+            doAmbient[bb] = ambient.num;
+            ambient.channel = 0;
         }
     }
 }
@@ -2388,7 +2388,10 @@ int restore_game_data (Stream *in, const char *nametouse, SavedGameVersion svg_v
 
     for (vv = 1; vv < MAX_SOUND_CHANNELS; vv++) {
         if (doAmbient[vv])
-            PlayAmbientSound(vv, doAmbient[vv], ambient[vv].vol, ambient[vv].x, ambient[vv].y);
+        {
+            AmbientSound &ambient = channels[vv].GetAmbient();
+            PlayAmbientSound(vv, doAmbient[vv], ambient.vol, ambient.x, ambient.y);
+        }
     }
 
     for (vv = 0; vv < game.numgui; vv++) {
