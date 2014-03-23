@@ -75,7 +75,7 @@ void PlayAmbientSound (int channel, int sndnum, int vol, int x, int y) {
 
             DEBUG_CONSOLE("Playing ambient sound %d on channel %d", sndnum, channel);
             ambient[channel].channel = channel;
-            channels[channel] = asound;
+            channels[channel].Clip = asound;
             channels[channel]->priority = 15;  // ambient sound higher priority than normal sfx
     }
     // calculate the maximum distance away the player can be, using X
@@ -141,7 +141,7 @@ int PlaySoundEx(int val1, int channel) {
     // that sound is already in memory, play it
     if (!psp_audio_multithreaded)
     {
-        if ((last_sound_played[channel] == val1) && (channels[channel] != NULL)) {
+        if ((channels[channel].LastSoundPlayed == val1) && (channels[channel] != NULL)) {
             DEBUG_CONSOLE("Playing sound %d on channel %d; cached", val1, channel);
             channels[channel]->restart();
             channels[channel]->set_volume (play.sound_volume);
@@ -153,7 +153,7 @@ int PlaySoundEx(int val1, int channel) {
     stop_and_destroy_channel (channel);
     DEBUG_CONSOLE("Playing sound %d on channel %d", val1, channel);
 
-    last_sound_played[channel] = val1;
+    channels[channel].LastSoundPlayed = val1;
 
     SOUNDCLIP *soundfx = load_sound_from_path(val1, play.sound_volume, 0);
 
@@ -163,7 +163,7 @@ int PlaySoundEx(int val1, int channel) {
         return -1;
     }
 
-    channels[channel] = soundfx;
+    channels[channel].Clip = soundfx;
     channels[channel]->priority = 10;
     channels[channel]->set_volume (play.sound_volume);
     return channel;
@@ -370,7 +370,7 @@ void PlayMP3File (const char *filename) {
     int useChan = prepare_for_new_music ();
     bool doLoop = (play.music_repeat > 0);
 
-    if ((channels[useChan] = my_load_static_ogg(pathToFile, 150, doLoop)) != NULL) {
+    if ((channels[useChan].Clip = my_load_static_ogg(pathToFile, 150, doLoop)) != NULL) {
         channels[useChan]->play();
         current_music_type = MUS_OGG;
         play.cur_music_number = 1000;
@@ -378,7 +378,7 @@ void PlayMP3File (const char *filename) {
         if (filename != &play.playmp3file_name[0])
             strcpy (play.playmp3file_name, filename);
     }
-    else if ((channels[useChan] = my_load_static_mp3(pathToFile, 150, doLoop)) != NULL) {
+    else if ((channels[useChan].Clip = my_load_static_mp3(pathToFile, 150, doLoop)) != NULL) {
         channels[useChan]->play();
         current_music_type = MUS_MP3;
         play.cur_music_number = 1000;
@@ -402,7 +402,7 @@ void PlaySilentMIDI (int mnum) {
     play.silent_midi = mnum;
     play.silent_midi_channel = SCHAN_SPEECH;
     stop_and_destroy_channel(play.silent_midi_channel);
-    channels[play.silent_midi_channel] = load_sound_clip_from_old_style_number(true, mnum, false);
+    channels[play.silent_midi_channel].Clip = load_sound_clip_from_old_style_number(true, mnum, false);
     if (channels[play.silent_midi_channel] == NULL)
     {
         quitprintf("!PlaySilentMIDI: failed to load aMusic%d", mnum);
@@ -529,7 +529,7 @@ int play_speech(int charid,int sndid) {
         return 0;
     }
 
-    channels[SCHAN_SPEECH] = speechmp3;
+    channels[SCHAN_SPEECH].Clip = speechmp3;
     play.music_vol_was = play.music_master_volume;
 
     // Negative value means set exactly; positive means drop that amount

@@ -55,6 +55,7 @@ volatile int psp_audio_multithreaded = 0;
 ScriptAudioChannel scrAudioChannel[MAX_SOUND_CHANNELS + 1];
 char acaudio_buffer[256];
 int reserved_channel_count = 0;
+AGS::Engine::AudioChannel channels[MAX_SOUND_CHANNELS+1];
 
 AGS::Engine::Thread audioThread;
 
@@ -91,8 +92,8 @@ void start_fading_in_new_track_if_applicable(int fadeInChannel, ScriptAudioClip 
 void move_track_to_crossfade_channel(int currentChannel, int crossfadeSpeed, int fadeInChannel, ScriptAudioClip *newSound)
 {
     stop_and_destroy_channel(SPECIAL_CROSSFADE_CHANNEL);
-    channels[SPECIAL_CROSSFADE_CHANNEL] = channels[currentChannel];
-    channels[currentChannel] = NULL;
+    channels[SPECIAL_CROSSFADE_CHANNEL].Clip = channels[currentChannel].Clip;
+    channels[currentChannel].Clip = NULL;
 
     play.crossfading_out_channel = SPECIAL_CROSSFADE_CHANNEL;
     play.crossfade_step = 0;
@@ -380,8 +381,8 @@ ScriptAudioChannel* play_audio_clip_on_channel(int channel, ScriptAudioClip *cli
         return NULL;
     }
 
-    last_sound_played[channel] = -1;
-    channels[channel] = soundfx;
+    channels[channel].LastSoundPlayed = -1;
+    channels[channel].Clip = soundfx;
     return &scrAudioChannel[channel];
 }
 
@@ -456,8 +457,8 @@ void stop_and_destroy_channel_ex(int chid, bool resetLegacyMusicSettings) {
 
     if (channels[chid] != NULL) {
         channels[chid]->destroy();
-        delete channels[chid];
-        channels[chid] = NULL;
+        delete channels[chid].Clip;
+        channels[chid].Clip = NULL;
     }
 
     if (play.crossfading_in_channel == chid)
@@ -527,8 +528,6 @@ SOUNDCLIP *load_sound_clip_from_old_style_number(bool isMusic, int indexNumber, 
 }
 
 //=============================================================================
-
-int last_sound_played[MAX_SOUND_CHANNELS + 1];
 
 void force_audiostream_include() {
     // This should never happen, but the call is here to make it
@@ -960,8 +959,8 @@ void update_music_volume() {
                 newvol = targetVol;
                 stop_and_destroy_channel_ex(SCHAN_MUSIC, false);
                 if (crossFading > 0) {
-                    channels[SCHAN_MUSIC] = channels[crossFading];
-                    channels[crossFading] = NULL;
+                    channels[SCHAN_MUSIC].Clip = channels[crossFading].Clip;
+                    channels[crossFading].Clip = NULL;
                 }
                 crossFading = 0;
             }
@@ -1006,8 +1005,8 @@ int prepare_for_new_music () {
             if (crossFading > 0) {
                 // It's still crossfading to the previous track
                 stop_and_destroy_channel_ex(SCHAN_MUSIC, false);
-                channels[SCHAN_MUSIC] = channels[crossFading];
-                channels[crossFading] = NULL;
+                channels[SCHAN_MUSIC].Clip = channels[crossFading].Clip;
+                channels[crossFading].Clip = NULL;
                 crossFading = 0;
                 update_music_volume();
             }
@@ -1087,23 +1086,23 @@ void play_new_music(int mnum, SOUNDCLIP *music) {
 
     play.cur_music_number=mnum;
     current_music_type = 0;
-    channels[useChannel] = NULL;
+    channels[useChannel].Clip = NULL;
 
     play.current_music_repeating = play.music_repeat;
     // now that all the previous music is unloaded, load in the new one
 
     if (music != NULL) {
-        channels[useChannel] = music;
+        channels[useChannel].Clip = music;
         music = NULL;
     }
     else {
-        channels[useChannel] = load_music_from_disk(mnum, (play.music_repeat > 0));
+        channels[useChannel].Clip = load_music_from_disk(mnum, (play.music_repeat > 0));
     }
 
     if (channels[useChannel] != NULL) {
 
         if (channels[useChannel]->play() == 0)
-            channels[useChannel] = NULL;
+            channels[useChannel].Clip = NULL;
         else
             current_music_type = channels[useChannel]->get_sound_type();
     }

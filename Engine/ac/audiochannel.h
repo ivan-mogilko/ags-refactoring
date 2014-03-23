@@ -20,6 +20,49 @@
 
 #include "ac/dynobj/scriptaudioclip.h"
 #include "ac/dynobj/scriptaudiochannel.h"
+#include "core/types.h"
+
+struct SOUNDCLIP;
+
+namespace AGS
+{
+namespace Engine
+{
+
+class AudioChannel
+{
+public:
+    AudioChannel()
+        : Clip(NULL)
+        , LastSoundPlayed(-1)
+    {
+    }
+
+    // Two operators that allow smooth transition to the new
+    // channel objects without changing too much code at once
+    inline SOUNDCLIP *operator->() const
+    {
+        return Clip;
+    }
+
+    inline operator bool() const
+    {
+        return Clip != NULL;
+    }
+
+    // All contents are public for now
+public:
+    SOUNDCLIP          *Clip;
+    int                 LastSoundPlayed;
+
+private:
+    // AudioChannel should not be copied
+    AudioChannel(const AudioChannel &); // non-copyable
+    AudioChannel& operator=(const AudioChannel &); // not copy-assignable
+};
+
+} // namespace Engine
+} // namespace AGS
 
 int     AudioChannel_GetID(ScriptAudioChannel *channel);
 int     AudioChannel_GetIsPlaying(ScriptAudioChannel *channel);

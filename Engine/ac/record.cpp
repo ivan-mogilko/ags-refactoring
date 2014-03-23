@@ -29,6 +29,7 @@
 #include "gfx/gfxfilter.h"
 #include "device/mousew32.h"
 #include "util/filestream.h"
+#include "media/audio/audio.h"
 
 using AGS::Common::Stream;
 using AGS::Common::String;
@@ -39,7 +40,6 @@ extern int disable_mgetgraphpos;
 extern int mousex,mousey;
 extern unsigned int loopcounter,lastcounter;
 extern volatile unsigned long globalTimerCounter;
-extern SOUNDCLIP *channels[MAX_SOUND_CHANNELS+1];
 extern GFXFilter *filter;
 extern int pluginSimulatedClick;
 extern int displayed_room;

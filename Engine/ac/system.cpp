@@ -25,12 +25,12 @@
 #include "debug/debug_log.h"
 #include "main/main.h"
 #include "media/audio/soundclip.h"
+#include "media/audio/audio.h"
 #include "gfx/graphicsdriver.h"
 #include "ac/dynobj/cc_audiochannel.h"
 
 extern GameSetup usetup;
 extern GameState play;
-extern SOUNDCLIP *channels[MAX_SOUND_CHANNELS+1];
 extern ScriptAudioChannel scrAudioChannel[MAX_SOUND_CHANNELS + 1];
 extern int final_scrn_wid,final_scrn_hit,final_col_dep;
 extern ScriptSystem scsystem;

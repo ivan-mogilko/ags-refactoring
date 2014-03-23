@@ -1194,9 +1194,6 @@ void init_game_settings() {
     for (ee = 0; ee < MAXGLOBALSTRINGS; ee++)
         play.globalstrings[ee][0] = 0;
 
-    for (ee = 0; ee < MAX_SOUND_CHANNELS; ee++)
-        last_sound_played[ee] = -1;
-
     if (usetup.translation)
         init_translation (usetup.translation, "", true);
 

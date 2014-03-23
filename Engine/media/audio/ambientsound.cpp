@@ -13,13 +13,12 @@
 //=============================================================================
 
 #include "media/audio/ambientsound.h"
+#include "media/audio/audio.h"
 #include "media/audio/audiodefines.h"
 #include "media/audio/soundclip.h"
 #include "util/stream.h"
 
 using AGS::Common::Stream;
-
-extern SOUNDCLIP *channels[MAX_SOUND_CHANNELS+1];
 
 bool AmbientSound::IsPlaying () {
     if (channel <= 0)

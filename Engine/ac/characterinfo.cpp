@@ -29,6 +29,7 @@
 #include "main/maindefines_ex.h"	// RETURN_CONTINUE
 #include "main/update.h"
 #include "util/stream.h"
+#include "media/audio/audio.h"
 
 using AGS::Common::Stream;
 
@@ -38,7 +39,6 @@ extern int displayed_room;
 extern GameState play;
 extern int char_speaking;
 extern roomstruct thisroom;
-extern SOUNDCLIP *channels[MAX_SOUND_CHANNELS+1];
 extern unsigned int loopcounter;
 
 #define Random __Rand
