@@ -19,7 +19,6 @@
 #ifndef __AC_SOUNDCLIP_H
 #define __AC_SOUNDCLIP_H
 
-#undef BITMAP
 #include "util/mutex.h"
 
 // JJS: This is needed for the derieved classes

@@ -59,7 +59,7 @@ int use_extra_sound_offset = 0;
 
 
 MYWAVE *thiswave;
-SOUNDCLIP *my_load_wave(const char *filename, int voll, int loop)
+SoundClipUPtr my_load_wave(const char *filename, int voll, int loop)
 {
 #ifdef MAC_VERSION
     SAMPLE *new_sample = NULL;
@@ -91,7 +91,7 @@ PACKFILE *mp3in;
 #ifndef NO_MP3_PLAYER
 
 MYMP3 *thistune;
-SOUNDCLIP *my_load_mp3(const char *filname, int voll)
+SoundClipUPtr my_load_mp3(const char *filname, int voll)
 {
     mp3in = pack_fopen(filname, "rb");
     if (mp3in == NULL)
@@ -133,7 +133,7 @@ SOUNDCLIP *my_load_mp3(const char *filname, int voll)
 
 
 MYSTATICMP3 *thismp3;
-SOUNDCLIP *my_load_static_mp3(const char *filname, int voll, bool loop)
+SoundClipUPtr my_load_static_mp3(const char *filname, int voll, bool loop)
 {
     // Load via soundcache.
     long muslen = 0;
@@ -170,12 +170,12 @@ SOUNDCLIP *my_load_static_mp3(const char *filname, int voll, bool loop)
 
 #else // NO_MP3_PLAYER
 
-SOUNDCLIP *my_load_mp3(const char *filname, int voll)
+SoundClipUPtr my_load_mp3(const char *filname, int voll)
 {
     return NULL;
 }
 
-SOUNDCLIP *my_load_static_mp3(const char *filname, int voll, bool loop)
+SoundClipUPtr my_load_static_mp3(const char *filname, int voll, bool loop)
 {
     return NULL;
 }
@@ -185,7 +185,7 @@ SOUNDCLIP *my_load_static_mp3(const char *filname, int voll, bool loop)
 
 
 MYSTATICOGG *thissogg;
-SOUNDCLIP *my_load_static_ogg(const char *filname, int voll, bool loop)
+SoundClipUPtr my_load_static_ogg(const char *filname, int voll, bool loop)
 {
     // Load via soundcache.
     long muslen = 0;
@@ -214,7 +214,7 @@ SOUNDCLIP *my_load_static_ogg(const char *filname, int voll, bool loop)
 }
 
 MYOGG *thisogg;
-SOUNDCLIP *my_load_ogg(const char *filname, int voll)
+SoundClipUPtr my_load_ogg(const char *filname, int voll)
 {
 
     mp3in = pack_fopen(filname, "rb");
@@ -257,7 +257,7 @@ SOUNDCLIP *my_load_ogg(const char *filname, int voll)
 
 
 MYMIDI *thismidi;
-SOUNDCLIP *my_load_midi(const char *filname, int repet)
+SoundClipUPtr my_load_midi(const char *filname, int repet)
 {
     // The first a midi is played, preload all patches.
     if (!thismidi && psp_midi_preload_patches)
@@ -281,7 +281,7 @@ SOUNDCLIP *my_load_midi(const char *filname, int repet)
 #ifdef JGMOD_MOD_PLAYER
 
 MYMOD *thismod = NULL;
-SOUNDCLIP *my_load_mod(const char *filname, int repet)
+SoundClipUPtr my_load_mod(const char *filname, int repet)
 {
 
     JGMOD *modPtr = load_mod((char *)filname);
@@ -308,7 +308,7 @@ void remove_mod_player() {
 #elif defined DUMB_MOD_PLAYER
 
 MYMOD *thismod = NULL;
-SOUNDCLIP *my_load_mod(const char *filname, int repet)
+SoundClipUPtr my_load_mod(const char *filname, int repet)
 {
 
     DUH *modPtr = NULL;

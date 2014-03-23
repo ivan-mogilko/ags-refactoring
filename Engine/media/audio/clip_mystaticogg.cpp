@@ -208,7 +208,6 @@ int MYSTATICOGG::play_from(int position)
 
     if (alogg_play_ex_ogg(tune, 16384, vol, panning, 1000, repeat) != ALOGG_OK) {
         destroy();
-        delete this;
         return 0;
     }
 

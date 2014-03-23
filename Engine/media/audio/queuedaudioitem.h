@@ -15,7 +15,7 @@
 #ifndef __AC_QUEUEDAUDIOITEM_H
 #define __AC_QUEUEDAUDIOITEM_H
 
-struct SOUNDCLIP;
+#include "media/audio/audiodefines.h"
 
 namespace AGS { namespace Common { class Stream; } }
 using namespace AGS; // FIXME later
@@ -24,7 +24,7 @@ struct QueuedAudioItem {
     short audioClipIndex;
     short priority;
     bool  repeat;
-    SOUNDCLIP *cachedClip;
+    SoundClipUPtr cachedClip;
 
     void ReadFromFile(Common::Stream *in);
     void WriteToFile(Common::Stream *out);

@@ -40,4 +40,8 @@
 #define AUDIOTYPE_LEGACY_MUSIC 2
 #define AUDIOTYPE_LEGACY_SOUND 3
 
+#include "util/ptr.h"
+struct SOUNDCLIP;
+typedef AGS::Common::UniquePtr<SOUNDCLIP> SoundClipUPtr;
+
 #endif // __AC_AUDIODEFINES_H

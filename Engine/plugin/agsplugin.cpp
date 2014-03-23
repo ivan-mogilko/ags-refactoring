@@ -491,7 +491,7 @@ int IAGSEngine::IsChannelPlaying (int32 channel) {
 }
 void IAGSEngine::PlaySoundChannel (int32 channel, int32 soundType, int32 volume, int32 loop, const char *filename) {
     stop_and_destroy_channel (channel);
-    SOUNDCLIP *newcha = NULL;
+    SoundClipUPtr newcha;
 
     if (((soundType == PSND_MP3STREAM) || (soundType == PSND_OGGSTREAM)) 
         && (loop != 0))

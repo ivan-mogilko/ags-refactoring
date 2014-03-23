@@ -96,7 +96,6 @@ int MYMIDI::get_sound_type() {
 int MYMIDI::play() {
     lengthInSeconds = get_midi_length(tune);
     if (::play_midi(tune, repeat)) {
-        delete this;
         return 0;
     }
     initializing = false;

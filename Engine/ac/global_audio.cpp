@@ -65,7 +65,7 @@ void PlayAmbientSound (int channel, int sndnum, int vol, int x, int y) {
             // in case a normal non-ambient sound was playing, stop it too
             stop_and_destroy_channel(channel);
 
-            SOUNDCLIP *asound = load_sound_from_path(sndnum, vol, true);
+            SoundClipUPtr asound = load_sound_from_path(sndnum, vol, true);
 
             if (asound == NULL) {
                 debug_log ("Cannot load ambient sound %d", sndnum);
@@ -155,7 +155,7 @@ int PlaySoundEx(int val1, int channel) {
 
     channels[channel].LastSoundPlayed = val1;
 
-    SOUNDCLIP *soundfx = load_sound_from_path(val1, play.sound_volume, 0);
+    SoundClipUPtr soundfx = load_sound_from_path(val1, play.sound_volume, 0);
 
     if (soundfx == NULL) {
         debug_log("Sound sample load failure: cannot load sound %d", val1);
@@ -465,7 +465,7 @@ int play_speech(int charid,int sndid) {
     if ((play.want_speech < 1) || (speech_file == NULL))
         return 0;
 
-    SOUNDCLIP *speechmp3;
+    SoundClipUPtr speechmp3;
     /*  char finame[40]="~SPEECH.VOX~NARR";
     if (charid >= 0)
     strncpy(&finame[12],game.chars[charid].scrname,4);*/
@@ -520,7 +520,7 @@ int play_speech(int charid,int sndid) {
 
     if (speechmp3 != NULL) {
         if (speechmp3->play() == 0)
-            speechmp3 = NULL;
+            speechmp3.Reset();
     }
 
     if (speechmp3 == NULL) {

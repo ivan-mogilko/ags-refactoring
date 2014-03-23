@@ -21,8 +21,8 @@
 #include "ac/dynobj/scriptaudioclip.h"
 #include "ac/dynobj/scriptaudiochannel.h"
 #include "core/types.h"
-
-struct SOUNDCLIP;
+#include "media/audio/audiodefines.h"
+#include "media/audio/soundclip.h"
 
 namespace AGS
 {
@@ -33,8 +33,7 @@ class AudioChannel
 {
 public:
     AudioChannel()
-        : Clip(NULL)
-        , LastSoundPlayed(-1)
+        : LastSoundPlayed(-1)
     {
     }
 
@@ -42,7 +41,7 @@ public:
     // channel objects without changing too much code at once
     inline SOUNDCLIP *operator->() const
     {
-        return Clip;
+        return Clip.Get();
     }
 
     inline operator bool() const
@@ -52,7 +51,7 @@ public:
 
     // All contents are public for now
 public:
-    SOUNDCLIP          *Clip;
+    SoundClipUPtr       Clip;
     int                 LastSoundPlayed;
 
 private:

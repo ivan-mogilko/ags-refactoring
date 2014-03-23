@@ -93,7 +93,6 @@ void move_track_to_crossfade_channel(int currentChannel, int crossfadeSpeed, int
 {
     stop_and_destroy_channel(SPECIAL_CROSSFADE_CHANNEL);
     channels[SPECIAL_CROSSFADE_CHANNEL].Clip = channels[currentChannel].Clip;
-    channels[currentChannel].Clip = NULL;
 
     play.crossfading_out_channel = SPECIAL_CROSSFADE_CHANNEL;
     play.crossfade_step = 0;
@@ -203,7 +202,7 @@ int find_free_audio_channel(ScriptAudioClip *clip, int priority, bool interruptE
     return channelToUse;
 }
 
-SOUNDCLIP *load_sound_clip(ScriptAudioClip *audioClip, bool repeat)
+SoundClipUPtr load_sound_clip(ScriptAudioClip *audioClip, bool repeat)
 {
     const char *clipFileName = get_audio_clip_file_name(audioClip);
     if ((clipFileName == NULL) || (usetup.digicard == DIGI_NONE))
@@ -213,7 +212,7 @@ SOUNDCLIP *load_sound_clip(ScriptAudioClip *audioClip, bool repeat)
 
     update_clip_default_volume(audioClip);
 
-    SOUNDCLIP *soundClip = NULL;
+    SoundClipUPtr soundClip;
     switch (audioClip->fileType)
     {
     case eAudioFileOGG:
@@ -252,7 +251,7 @@ void recache_queued_clips_after_loading_save_game()
 {
     for (int i = 0; i < play.new_music_queue_size; i++)
     {
-        play.new_music_queue[i].cachedClip = NULL;
+        play.new_music_queue[i].cachedClip.Reset();
     }
 }
 
@@ -323,7 +322,7 @@ void queue_audio_clip_to_play(ScriptAudioClip *clip, int priority, int repeat)
         return;
     }
 
-    SOUNDCLIP *cachedClip = load_sound_clip(clip, (repeat != 0));
+    SoundClipUPtr cachedClip = load_sound_clip(clip, (repeat != 0));
     if (cachedClip != NULL) 
     {
         play.new_music_queue[play.new_music_queue_size].audioClipIndex = clip->id;
@@ -337,7 +336,7 @@ void queue_audio_clip_to_play(ScriptAudioClip *clip, int priority, int repeat)
       update_polled_mp3();
 }
 
-ScriptAudioChannel* play_audio_clip_on_channel(int channel, ScriptAudioClip *clip, int priority, int repeat, int fromOffset, SOUNDCLIP *soundfx)
+ScriptAudioChannel* play_audio_clip_on_channel(int channel, ScriptAudioClip *clip, int priority, int repeat, int fromOffset, SoundClipUPtr &soundfx)
 {
     if (soundfx == NULL)
     {
@@ -457,8 +456,7 @@ void stop_and_destroy_channel_ex(int chid, bool resetLegacyMusicSettings) {
 
     if (channels[chid] != NULL) {
         channels[chid]->destroy();
-        delete channels[chid].Clip;
-        channels[chid].Clip = NULL;
+        channels[chid].Clip.Reset();
     }
 
     if (play.crossfading_in_channel == chid)
@@ -515,7 +513,7 @@ int get_old_style_number_for_sound(int sound_number)
     return 0;
 }
 
-SOUNDCLIP *load_sound_clip_from_old_style_number(bool isMusic, int indexNumber, bool repeat)
+SoundClipUPtr load_sound_clip_from_old_style_number(bool isMusic, int indexNumber, bool repeat)
 {
     ScriptAudioClip* audioClip = get_audio_clip_for_old_style_number(isMusic, indexNumber);
 
@@ -620,13 +618,13 @@ void update_ambient_sound_vol () {
     }
 }
 
-SOUNDCLIP *load_sound_from_path(int soundNumber, int volume, bool repeat) 
+SoundClipUPtr load_sound_from_path(int soundNumber, int volume, bool repeat) 
 {
-    SOUNDCLIP *soundfx = load_sound_clip_from_old_style_number(false, soundNumber, repeat);
+    SoundClipUPtr soundfx = load_sound_clip_from_old_style_number(false, soundNumber, repeat);
 
     if (soundfx != NULL) {
         if (soundfx->play() == 0)
-            soundfx = NULL;
+            soundfx.Reset();
     }
 
     return soundfx;
@@ -705,7 +703,7 @@ int current_music_type = 0;
 // track fading out, no new track)
 int crossFading = 0, crossFadeVolumePerStep = 0, crossFadeStep = 0;
 int crossFadeVolumeAtStart = 0;
-SOUNDCLIP *cachedQueuedMusic = NULL;
+SoundClipUPtr cachedQueuedMusic;
 
 int musicPollIterator; // long name so it doesn't interfere with anything else
 
@@ -751,8 +749,7 @@ void clear_music_cache() {
 
     if (cachedQueuedMusic != NULL) {
         cachedQueuedMusic->destroy();
-        delete cachedQueuedMusic;
-        cachedQueuedMusic = NULL;
+        cachedQueuedMusic.Reset();
     }
 
 }
@@ -776,10 +773,6 @@ void play_next_queued() {
             play_new_music(tuneToPlay, cachedQueuedMusic);
             play.music_repeat = repeatWas;
         }
-
-        // don't free the memory, as it has been transferred onto the
-        // main music channel
-        cachedQueuedMusic = NULL;
 
         play.music_queue_size--;
         for (int i = 0; i < play.music_queue_size; i++)
@@ -960,7 +953,6 @@ void update_music_volume() {
                 stop_and_destroy_channel_ex(SCHAN_MUSIC, false);
                 if (crossFading > 0) {
                     channels[SCHAN_MUSIC].Clip = channels[crossFading].Clip;
-                    channels[crossFading].Clip = NULL;
                 }
                 crossFading = 0;
             }
@@ -1006,7 +998,6 @@ int prepare_for_new_music () {
                 // It's still crossfading to the previous track
                 stop_and_destroy_channel_ex(SCHAN_MUSIC, false);
                 channels[SCHAN_MUSIC].Clip = channels[crossFading].Clip;
-                channels[crossFading].Clip = NULL;
                 crossFading = 0;
                 update_music_volume();
             }
@@ -1038,14 +1029,14 @@ int prepare_for_new_music () {
     return useChannel;
 }
 
-SOUNDCLIP *load_music_from_disk(int mnum, bool doRepeat) {
+SoundClipUPtr load_music_from_disk(int mnum, bool doRepeat) {
 
     if (mnum >= QUEUED_MUSIC_REPEAT) {
         mnum -= QUEUED_MUSIC_REPEAT;
         doRepeat = true;
     }
 
-    SOUNDCLIP *loaded = load_sound_clip_from_old_style_number(true, mnum, doRepeat);
+    SoundClipUPtr loaded = load_sound_clip_from_old_style_number(true, mnum, doRepeat);
 
     if ((loaded == NULL) && (mnum > 0)) 
     {
@@ -1057,7 +1048,7 @@ SOUNDCLIP *load_music_from_disk(int mnum, bool doRepeat) {
 }
 
 
-void play_new_music(int mnum, SOUNDCLIP *music) {
+void play_new_music(int mnum, SoundClipUPtr &music) {
     if (debug_flags & DBG_NOMUSIC)
         return;
     if (usetup.midicard == MIDI_NONE)
@@ -1086,14 +1077,13 @@ void play_new_music(int mnum, SOUNDCLIP *music) {
 
     play.cur_music_number=mnum;
     current_music_type = 0;
-    channels[useChannel].Clip = NULL;
+    channels[useChannel].Clip.Reset();
 
     play.current_music_repeating = play.music_repeat;
     // now that all the previous music is unloaded, load in the new one
 
     if (music != NULL) {
         channels[useChannel].Clip = music;
-        music = NULL;
     }
     else {
         channels[useChannel].Clip = load_music_from_disk(mnum, (play.music_repeat > 0));
@@ -1102,7 +1092,7 @@ void play_new_music(int mnum, SOUNDCLIP *music) {
     if (channels[useChannel] != NULL) {
 
         if (channels[useChannel]->play() == 0)
-            channels[useChannel].Clip = NULL;
+            channels[useChannel].Clip.Reset();
         else
             current_music_type = channels[useChannel]->get_sound_type();
     }
@@ -1114,5 +1104,5 @@ void play_new_music(int mnum, SOUNDCLIP *music) {
 }
 
 void newmusic(int mnum) {
-    play_new_music(mnum, NULL);
+    play_new_music(mnum);
 }

@@ -17,8 +17,10 @@
 
 // FIXME: This is a horrible hack to avoid conflicts between Allegro and Windows
 #define BITMAP WINDOWS_BITMAP
+#define WinMain WINDOWS_WINMAIN
 #include <windows.h>
 #undef BITMAP
+#undef WinMain
 
 #include <crtdbg.h>
 

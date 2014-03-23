@@ -171,7 +171,6 @@ int MYSTATICMP3::play() {
 
     if (result != ALMP3_OK) {
         destroy();
-        delete this;
         return 0;
     }
 

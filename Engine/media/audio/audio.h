@@ -33,11 +33,11 @@ void        move_track_to_crossfade_channel(int currentChannel, int crossfadeSpe
 void        stop_or_fade_out_channel(int fadeOutChannel, int fadeInChannel = -1, ScriptAudioClip *newSound = NULL);
 const char *get_audio_clip_file_name(ScriptAudioClip *clip);
 int         find_free_audio_channel(ScriptAudioClip *clip, int priority, bool interruptEqualPriority);
-SOUNDCLIP*  load_sound_clip(ScriptAudioClip *audioClip, bool repeat);
+SoundClipUPtr load_sound_clip(ScriptAudioClip *audioClip, bool repeat);
 void        recache_queued_clips_after_loading_save_game();
 void        audio_update_polled_stuff();
 void        queue_audio_clip_to_play(ScriptAudioClip *clip, int priority, int repeat);
-ScriptAudioChannel* play_audio_clip_on_channel(int channel, ScriptAudioClip *clip, int priority, int repeat, int fromOffset, SOUNDCLIP *cachedClip = NULL);
+ScriptAudioChannel* play_audio_clip_on_channel(int channel, ScriptAudioClip *clip, int priority, int repeat, int fromOffset, SoundClipUPtr &cachedClip = SoundClipUPtr());
 void        remove_clips_of_type_from_queue(int audioType);
 ScriptAudioChannel* play_audio_clip(ScriptAudioClip *clip, int priority, int repeat, int fromOffset, bool queueIfNoChannel);
 void        play_audio_clip_by_index(int audioClipIndex);
@@ -47,7 +47,7 @@ void        stop_and_destroy_channel (int chid);
 
 // ***** BACKWARDS COMPATIBILITY WITH OLD AUDIO SYSTEM ***** //
 int         get_old_style_number_for_sound(int sound_number);
-SOUNDCLIP * load_sound_clip_from_old_style_number(bool isMusic, int indexNumber, bool repeat);
+SoundClipUPtr load_sound_clip_from_old_style_number(bool isMusic, int indexNumber, bool repeat);
 
 //=============================================================================
 
@@ -57,7 +57,7 @@ void        force_audiostream_include();
 int         get_volume_adjusted_for_distance(int volume, int sndX, int sndY, int sndMaxDist);
 void        update_directional_sound_vol();
 void        update_ambient_sound_vol ();
-SOUNDCLIP *load_sound_from_path(int soundNumber, int volume, bool repeat);
+SoundClipUPtr load_sound_from_path(int soundNumber, int volume, bool repeat);
 void        stop_all_sound_and_music();
 void        shutdown_sound();
 int         play_sound_priority (int val1, int priority);
@@ -80,8 +80,8 @@ void        stopmusic();
 void        update_music_volume();
 void        post_new_music_check (int newchannel);
 int         prepare_for_new_music ();
-SOUNDCLIP * load_music_from_disk(int mnum, bool doRepeat);
-void        play_new_music(int mnum, SOUNDCLIP *music);
+SoundClipUPtr load_music_from_disk(int mnum, bool doRepeat);
+void        play_new_music(int mnum, SoundClipUPtr &music = SoundClipUPtr());
 void        newmusic(int mnum);
 
 extern AGS::Engine::Thread audioThread;
@@ -101,7 +101,7 @@ extern int update_music_at;
 extern int crossFading, crossFadeVolumePerStep, crossFadeStep;
 extern int crossFadeVolumeAtStart;
 
-extern SOUNDCLIP *cachedQueuedMusic;
+extern SoundClipUPtr cachedQueuedMusic;
 
 extern AmbientSound ambient[MAX_SOUND_CHANNELS + 1];  // + 1 just for safety on array iterations
 
