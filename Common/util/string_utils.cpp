@@ -13,6 +13,7 @@
 //=============================================================================
 
 #include <errno.h>
+#include <float.h>
 #include <stdlib.h>
 #include "gui/guidefines.h"
 #include "util/string_utils.h"
@@ -184,6 +185,22 @@ StrUtil::ConversionError StrUtil::StringToInt(const String &s, int &val, int def
     if (lval > INT_MAX || lval < INT_MIN || errno == ERANGE)
         return StrUtil::kOutOfRange;
     val = (int)lval;
+    return StrUtil::kNoError;
+}
+
+StrUtil::ConversionError StrUtil::StringToFloat(const String &s, float &val, float def_val)
+{
+    val = def_val;
+    if (!s.GetCStr())
+        return StrUtil::kFailed;
+    char *stop_ptr;
+    errno = 0;
+    double dval = strtod(s.GetCStr(), &stop_ptr);
+    if (stop_ptr != s.GetCStr() + s.GetLength())
+        return StrUtil::kFailed;
+    if (dval > FLT_MAX || dval < -FLT_MAX || errno == ERANGE)
+        return StrUtil::kOutOfRange;
+    val = (float)dval;
     return StrUtil::kNoError;
 }
 

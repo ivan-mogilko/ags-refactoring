@@ -68,6 +68,7 @@ namespace AGS
 {
 namespace Common
 {
+
 namespace StrUtil
 {
     enum ConversionError
@@ -87,7 +88,14 @@ namespace StrUtil
     // of range; the 'val' variable will be set with resulting integer, or
     // def_val on failure
     ConversionError StringToInt(const String &s, int &val, int def_val);
+
+    // Tries to convert whole string into float value;
+    // Returns error code if any non-digit character was met or if value is out
+    // of range; the 'val' variable will be set with resulting float, or
+    // def_val on failure
+    ConversionError StringToFloat(const String &s, float &val, float def_val);
 }
+
 } // namespace Common
 } // namespace AGS
 

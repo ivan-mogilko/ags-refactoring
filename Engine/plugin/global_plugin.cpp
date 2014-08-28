@@ -19,6 +19,12 @@
 #include <string.h>
 #include "ac/global_plugin.h"
 #include "ac/mouse.h"
+#include "core/assetmanager.h"
+#include "debug/out.h"
+#include "util/string_utils.h"
+#include "util/textstreamreader.h"
+
+using namespace AGS::Common;
 
 int pluginSimulatedClick = NONE;
 
@@ -49,8 +55,75 @@ RuntimeScriptValue Sc_PluginStub_IntNeg1(const RuntimeScriptValue *params, int32
     return RuntimeScriptValue().SetInt32(-1);
 }
 
+// Stub file format defines the text file consisting of any number of lines.
+// Every line declares a stub function and its return value; the return value
+// may be either numeric value or 'nil' that defines either null-pointer or
+// 'void', depending on how the function is used by script interpreter.
+// If no value is provided, 'nil' is used by default.
+//
+//     function_name [numeric_literal | nil]
+//
+// Numeric value is first tested as integer, then as float, therefore to force
+// floating-point type of value one should always include the decimal
+// separator, e.g. write "1." or "1.0" instead of just "1".
+//
+bool ReadStubsFromFile(const char* name)
+{
+    // Read the requested stub from the text file
+    String stub_filename = String::FromFormat("%s.stub", name);
+    Stream *stub_in = AssetManager::OpenAsset(stub_filename);
+    if (!stub_in) {
+        Out::FPrint("Stub file not found: %s", stub_filename.GetCStr());
+        return false;
+    }
+
+    Out::FPrint("Stub file found: %s", stub_filename.GetCStr());
+    TextStreamReader reader(stub_in);
+    while (!reader.EOS())
+    {
+        String line = reader.ReadLine();
+        line.Trim();
+        if (line.IsEmpty())
+            continue;
+        String function_name = line.LeftSection(' ');
+        String return_value  = line.Section(' ', 1, 1);
+
+        RuntimeScriptValue rval;
+        if (!return_value.IsEmpty() && return_value.CompareNoCase("nil") != 0)
+        {
+            int32_t ival;
+            StrUtil::ConversionError err = StrUtil::StringToInt(return_value, ival, 0);
+            if (err != StrUtil::kFailed)
+            {
+                if (err == StrUtil::kOutOfRange)
+                    Out::FPrint("WARNING: stub declaration %s has integer return value that is too large: %s", function_name.GetCStr(), return_value.GetCStr());
+                rval.SetInt32(ival);
+            }
+            else
+            {
+                float fval;
+                err = StrUtil::StringToFloat(return_value, fval, 0.f);
+                if (err != StrUtil::kFailed)
+                {
+                    if (err == StrUtil::kOutOfRange)
+                        Out::FPrint("WARNING: stub declaration %s has floating-point return value that is too large: %s", function_name.GetCStr(), return_value.GetCStr());
+                    rval.SetFloat(fval);
+                }
+                else
+                    Out::FPrint("WARNING: stub declaration %s has invalid return value: %s", function_name.GetCStr(), return_value.GetCStr());
+            }
+        }
+        rval.SetPluginArgument(rval.IValue);
+        ccAddExternalScriptSymbol(function_name, rval, NULL);
+    }
+    return true;
+}
+
 bool RegisterPluginStubs(const char* name)
 {
+  if (ReadStubsFromFile(name))
+    return true;
+
   // Stubs for plugin functions.
 
   if (strncmp(name, "ags_shell", strlen("ags_shell")) == 0)
