@@ -1175,6 +1175,11 @@ int ccInstance::Run(int32_t curpc)
           {
             cc_error("unexpected object function pointer on SCMD_CALLEXT");
           }
+          // Check for the symbol stub
+          else if (reg1.Type == kScValPluginArg)
+          {
+            return_value = reg1;
+          }
           else
           {
             cc_error("invalid pointer type for function call: %d", reg1.Type);
