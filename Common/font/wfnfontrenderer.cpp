@@ -12,11 +12,6 @@
 //
 //=============================================================================
 
-#ifndef USE_ALFONT
-#define USE_ALFONT
-#endif
-
-#include "alfont.h"
 #include "ac/common.h"
 #include "core/assetmanager.h"
 #include "debug/out.h"

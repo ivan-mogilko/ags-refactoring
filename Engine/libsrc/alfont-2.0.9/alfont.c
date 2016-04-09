@@ -1,3 +1,26 @@
+/*
+ * Modified Alfont 2.0.9
+ *
+ * The original AllegroFont v2.0.9 has a few problems.
+ * This modification solves them.
+ *
+ * Modification by: Alexandre Martins (thanks to http://allegro.cc forums)
+ * Modification date: 2010-10-30
+ *
+ * Original Alfont website: http://chernsha.sitesled.com/
+ * AllegroFont (c) 2001, 2002 Javier Gonzalez
+ * Enhanced by Chernsha since 2004 year
+ */
+
+#if defined(__GNUC__) && !defined(__MINGW32__)
+#define _msize malloc_usable_size
+#endif
+
+#ifdef IOS_VERSION
+// Defined in libc.c as a stub method
+size_t malloc_usable_size (void *ptr);
+#endif
+
 /* AllegroFont - a wrapper for FreeType 2 */
 /* to render TTF and other font formats with Allegro */
 
@@ -29,12 +52,6 @@
 #include FT_FREETYPE_H
 #include FT_GLYPH_H
 
-#define _msize malloc_usable_size
-
-#ifdef IOS_VERSION
-// Defined in libc.c as a stub method
-size_t malloc_usable_size (void *ptr);
-#endif
 
 /* structs */
 
