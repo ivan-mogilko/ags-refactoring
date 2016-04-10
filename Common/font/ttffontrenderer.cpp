@@ -113,7 +113,9 @@ bool TTFFontRenderer::LoadFromDisk(int fontNumber, int fontSize)
 #endif
 
   if (fontSize > 0)
-    alfont_set_font_size(alfptr, fontSize);
+  {
+    alfont_set_font_size_ex(alfptr, fontSize, ALFONT_SIZE_BASELINE_AT_BOTTOM);
+  }
 
   _fontData[fontNumber] = alfptr;
   return true;

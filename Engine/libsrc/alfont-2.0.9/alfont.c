@@ -431,6 +431,10 @@ static void _alfont_new_cache_glyph(ALFONT_FONT *f) {
 /* API */
 
 int alfont_set_font_size(ALFONT_FONT *f, int h) {
+  return alfont_set_font_size_ex(f, h, ALFONT_SIZE_FLAGS_DEFAULT);
+}
+
+int alfont_set_font_size_ex(ALFONT_FONT *f, int h, int flags) {
   int error, test_h, direction;
   /* check the font doesn't already use that w and h */
   if (h == f->face_h)
@@ -448,12 +452,13 @@ int alfont_set_font_size(ALFONT_FONT *f, int h) {
     if (error)
       break;
 
+    /* if not asked to search for the nearest possible size, */
+    /* accept the one we've got */
+    if ((flags & ALFONT_SIZE_FIND_NEAREST) == 0)
+      break;
+
     /* compare real height with asked height */
     real_height = abs(f->face->size->metrics.ascender >> 6) + abs(f->face->size->metrics.descender >> 6);
-
-    // The first test is always right
-    break;
-
     if (real_height == h) {
       /* we found the wanted height */
       break;
@@ -494,12 +499,11 @@ int alfont_set_font_size(ALFONT_FONT *f, int h) {
   if (!error) {
     _alfont_uncache_glyphs(f);
     f->face_h = h;
-
-    // The ascender is somehow wrong. Use the font height to produce the same visual
-    // result as on the Windows version.
-    f->real_face_h = h; //test_h;
-    f->face_ascender = h; //f->face->size->metrics.ascender >> 6;
-
+    f->real_face_h = test_h;
+    if (flags & ALFONT_SIZE_BASELINE_AT_BOTTOM)
+      f->face_ascender = h;
+    else
+      f->face_ascender = f->face->size->metrics.ascender >> 6;
     return ALFONT_OK;
   }
   else {

@@ -58,7 +58,23 @@ ALFONT_DLL_DECLSPEC ALFONT_FONT *alfont_load_font(const char *filepathname);
 ALFONT_DLL_DECLSPEC ALFONT_FONT *alfont_load_font_from_mem(const char *data, int data_len);
 ALFONT_DLL_DECLSPEC void alfont_destroy_font(ALFONT_FONT *f);
 
+/* Set-size flags provided for compatibility with older/custom */
+/* versions of the library */
+
+/* If FreeType failed to scale font precisely to the requested height, */
+/* empirically find the setting that make font's height match user's request */
+/* as close as possible */
+#define ALFONT_SIZE_FIND_NEAREST            0x1000
+/* Increases font ascender to match the user-provided height parameter; */
+/* if the font has actual descender, it will be positioned even below */
+/* font's bottom line. This does not stretch glyph image above baseline, */
+/* but rather moves whole text down */
+#define ALFONT_SIZE_BASELINE_AT_BOTTOM      0x2000
+/* Default set-size mode */
+#define ALFONT_SIZE_FLAGS_DEFAULT           ALFONT_SIZE_FIND_NEAREST
+
 ALFONT_DLL_DECLSPEC int alfont_set_font_size(ALFONT_FONT *f, int h);
+ALFONT_DLL_DECLSPEC int alfont_set_font_size_ex(ALFONT_FONT *f, int h, int flags);
 ALFONT_DLL_DECLSPEC int alfont_get_font_height(ALFONT_FONT *f);
 
 ALFONT_DLL_DECLSPEC int alfont_text_mode(int mode);
