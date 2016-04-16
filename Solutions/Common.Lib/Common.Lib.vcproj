@@ -62,6 +62,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
+				AdditionalDependencies="freetypeMT.lib"
 				OutputFile="$(OutDir)\Common_d.lib"
 			/>
 			<Tool
@@ -127,6 +128,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
+				AdditionalDependencies="freetypeMT.lib"
 				OutputFile="$(OutDir)\Common.lib"
 			/>
 			<Tool
@@ -192,6 +194,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
+				AdditionalDependencies="freetype.lib"
 				OutputFile="$(OutDir)\Common.lib"
 			/>
 			<Tool
@@ -257,6 +260,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
+				AdditionalDependencies="freetype.lib"
 				OutputFile="$(OutDir)\Common_md.lib"
 			/>
 			<Tool
@@ -321,6 +325,7 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
+				AdditionalDependencies="freetype_D.lib"
 				OutputFile="$(OutDir)\Common_md_d.lib"
 			/>
 			<Tool
@@ -987,6 +992,14 @@
 				</File>
 				<File
 					RelativePath="..\..\Common\libsrc\aastr-0.1.1\aautil.c"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="alfont"
+				>
+				<File
+					RelativePath="..\..\Common\libsrc\alfont-2.0.9\alfont.c"
 					>
 				</File>
 			</Filter>

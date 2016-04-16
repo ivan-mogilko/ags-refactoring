@@ -67,6 +67,11 @@ int get_eip_guiobj()
   return 0;
 }
 
+void set_font_outline(int font_number, int outline_type)
+{
+    // do nothing (function related to engine hack, and will be removed/fixed later)
+}
+
 int wgettextwidth_compensate(const char *tex, int font)
 {
   return wgettextwidth(tex, font);

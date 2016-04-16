@@ -13,11 +13,11 @@ include Makefile-defs.linux
 endif
 
 include Makefile-objs
-OBJS_C_CPP = $(ALFONT) $(ALMP3) $(ALOGG) $(APEG) $(AASTR) $(HQ2X3X) $(CDA) $(PLUGINS) $(BASE) $(BASE_PLATFORM)
+OBJS_C_CPP = $(ALMP3) $(ALOGG) $(APEG) $(AASTR) $(HQ2X3X) $(CDA) $(PLUGINS) $(BASE) $(BASE_PLATFORM)
 OBJS_C = $(OBJS_C_CPP:.cpp=.o)
 OBJS = $(OBJS_C:.c=.o)
 
-OBJS_COMMON_CPP = $(COMMON)
+OBJS_COMMON_CPP = $(ALFONT) $(COMMON)
 OBJS_COMMON = $(OBJS_COMMON_CPP:.cpp=.o)
 DEPFILES = $(OBJS:.o=.d) $(OBJS_COMMON:.o=.d)
 

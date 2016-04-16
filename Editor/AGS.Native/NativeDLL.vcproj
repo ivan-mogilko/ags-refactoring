@@ -451,18 +451,6 @@
 				Name="Debug"
 				>
 				<File
-					RelativePath="..\..\Windows\lib.native\alfont_md_d.lib"
-					>
-					<FileConfiguration
-						Name="Release|Win32"
-						ExcludedFromBuild="true"
-						>
-						<Tool
-							Name="VCCustomBuildTool"
-						/>
-					</FileConfiguration>
-				</File>
-				<File
 					RelativePath="..\..\Windows\lib.native\alld_s.lib"
 					>
 					<FileConfiguration
@@ -478,18 +466,6 @@
 			<Filter
 				Name="Release"
 				>
-				<File
-					RelativePath="..\..\Windows\lib.native\alfont_md.lib"
-					>
-					<FileConfiguration
-						Name="Debug|Win32"
-						ExcludedFromBuild="true"
-						>
-						<Tool
-							Name="VCCustomBuildTool"
-						/>
-					</FileConfiguration>
-				</File>
 				<File
 					RelativePath="..\..\Windows\lib.native\alleg_s.lib"
 					>
