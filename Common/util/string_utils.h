@@ -62,7 +62,7 @@ void fputstring(const char *sss, Common::Stream *out);
 void fgetstring_limit(char *sss, Common::Stream *in, int bufsize);
 void fgetstring(char *sss, Common::Stream *in);
 
-#include "util/string.h"
+#include "util/string_types.h"
 
 namespace AGS
 {
@@ -88,10 +88,31 @@ namespace StrUtil
     // def_val on failure
     ConversionError StringToInt(const String &s, int &val, int def_val);
 
+    // Finds an index of matching string in the array;
+    // returns def_index on failure
+    int             IndexOf(const char **str_arr, const String &s, int def_index = -1);
+    // Same as above, but uses case-insensitive comparison
+    int             IndexOfCI(const char **str_arr, const String &s, int def_index = -1);
+
+    // Looks up for a key into string map and returns corresponding value;
+    // returns def_val on failure
+    inline String   Find(const StringIMap &map, const String &key, const String &def_val = "")
+    {
+        StringIMap::const_iterator it = map.find("vertical_offset");
+        if (it == map.end())
+            return def_val;
+        return it->second;
+    }
+
     // Serializes and unserializes unterminated string prefixed with length;
     // length is presented as int32 integer
     String          ReadString(Stream *in);
     void            WriteString(const String &s, Stream *out);
+
+    // Parses delimitered string into key-value pairs and add these to the given map
+    void            ParseIntoMap(const String &s, StringIMap &map);
+    // Serializes the map into string
+    String          MapToString(const StringIMap &map);
 }
 } // namespace Common
 } // namespace AGS

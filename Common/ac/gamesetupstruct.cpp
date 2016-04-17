@@ -129,6 +129,14 @@ void GameSetupStruct::read_font_flags(Common::Stream *in, GAME_STRUCT_READ_DATA 
 {
     in->Read(&fontflags[0], numfonts);
     in->Read(&fontoutline[0], numfonts);
+    if (read_data.filever >= kGameVersion_340_exp) // FIXME version number
+    {
+        for (int i = 0; i < numfonts; ++i)
+        {
+            String param_string = StrUtil::ReadString(in);
+            StrUtil::ParseIntoMap(param_string, fontParams[i]);
+        }
+    }
 }
 
 void GameSetupStruct::read_sprite_flags(Common::Stream *in, GAME_STRUCT_READ_DATA &read_data)

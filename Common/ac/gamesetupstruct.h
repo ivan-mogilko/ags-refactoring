@@ -26,13 +26,16 @@
 #include "ac/dynobj/scriptaudioclip.h" // ScriptAudioClip
 #include "game/customproperties.h"
 #include "game/interactions.h"
+#include "util/string_types.h"
 
 using AGS::Common::Interaction;
 using AGS::Common::InteractionScripts;
+using AGS::Common::StringIMap;
 
 struct GameSetupStruct: public GameSetupStructBase {
     unsigned char     fontflags[MAX_FONTS];
     char              fontoutline[MAX_FONTS];
+    StringIMap        fontParams[MAX_FONTS]; // advanced font settings
     unsigned char     spriteflags[MAX_SPRITES];
     InventoryItemInfo invinfo[MAX_INV];
     MouseCursor       mcurs[MAX_CURSOR];

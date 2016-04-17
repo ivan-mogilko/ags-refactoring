@@ -511,7 +511,7 @@ void init_and_register_fonts()
         if ((game.options[OPT_NOSCALEFNT] == 0) && game.IsHiRes())
             fontsize *= 2;
 
-        if (!wloadfont_size(ee, fontsize))
+        if (!wloadfont_size(ee, fontsize, &game.fontParams[ee]))
             quitprintf("Unable to load font %d, no renderer could load a matching file", ee);
     }
 }

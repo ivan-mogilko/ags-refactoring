@@ -16,6 +16,7 @@
 #define __AC_FONT_H
 
 #include "gfx/bitmap.h"
+#include "util/string_types.h"
 
 using namespace AGS;
 
@@ -32,7 +33,7 @@ int wgettextwidth(const char *texx, int fontNumber);
 int wgettextheight(const char *text, int fontNumber);
 void wouttextxy(Common::Bitmap *ds, int xxx, int yyy, int fontNumber, color_t text_color, const char *texx);
 // Loads a font from disk
-bool wloadfont_size(int fontNumber, int fsize);
+bool wloadfont_size(int fontNumber, int fsize, const Common::StringIMap *params);
 void wgtprintf(Common::Bitmap *ds, int xxx, int yyy, int fontNumber, color_t text_color, char *fmt, ...);
 void wfreefont(int fontNumber);
 

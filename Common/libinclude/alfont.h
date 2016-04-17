@@ -121,6 +121,11 @@ ALFONT_DLL_DECLSPEC int alfont_get_nof_available_fixed_sizes(ALFONT_FONT *f);
 ALFONT_DLL_DECLSPEC int alfont_get_char_extra_spacing(ALFONT_FONT *f);
 ALFONT_DLL_DECLSPEC void alfont_set_char_extra_spacing(ALFONT_FONT *f, int spacing);
 
+/* The glyph load flags are combination of FreeType's FT_LOAD_ flags, */
+/* which are used when loading glyphs. Default value is FT_LOAD_DEFAULT. */
+ALFONT_DLL_DECLSPEC int alfont_get_glyph_load_flags(ALFONT_FONT *f);
+ALFONT_DLL_DECLSPEC void alfont_set_glyph_load_flags(ALFONT_FONT *f, int flags);
+
 #ifdef __cplusplus
 }
 #endif

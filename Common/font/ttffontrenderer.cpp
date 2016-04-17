@@ -17,16 +17,17 @@
 #endif
 
 #include <stdio.h>
+#include <ft2build.h>
+#include FT_FREETYPE_H
+
 #include "alfont.h"
 #include "ac/gamestructdefines.h" //FONT_OUTLINE_AUTO
 #include "core/assetmanager.h"
 #include "font/ttffontrenderer.h"
 #include "util/stream.h"
-#include "util/string.h"
+#include "util/string_utils.h"
 
-using AGS::Common::AssetManager;
-using AGS::Common::Stream;
-using AGS::Common::String;
+using namespace AGS::Common;
 
 // project-specific implementation
 extern bool ShouldAntiAliasText();
@@ -47,6 +48,20 @@ ALFONT_FONT *get_ttf_block(unsigned char* fontptr)
 // ***** TTF RENDERER *****
 #ifdef USE_ALFONT	// declaration was not under USE_ALFONT though
 
+
+TTFFontRenderer::TTFRenderParams::TTFRenderParams()
+: VerticalOffset(0)
+, Baseline(kFontBaselineDefault)
+, Hinting(kFontHintDefault)
+{
+}
+
+TTFFontRenderer::FontData::FontData()
+    : AlFont(NULL)
+{
+}
+
+
 void TTFFontRenderer::AdjustYCoordinateForFont(int *ycoord, int fontNumber)
 {
   // TTF fonts already have space at the top, so try to remove the gap
@@ -60,12 +75,12 @@ void TTFFontRenderer::EnsureTextValidForFont(char *text, int fontNumber)
 
 int TTFFontRenderer::GetTextWidth(const char *text, int fontNumber)
 {
-  return alfont_text_length(_fontData[fontNumber], text);
+  return alfont_text_length(_fontData[fontNumber].AlFont, text);
 }
 
 int TTFFontRenderer::GetTextHeight(const char *text, int fontNumber)
 {
-  return alfont_text_height(_fontData[fontNumber]);
+  return alfont_text_height(_fontData[fontNumber].AlFont);
 }
 
 void TTFFontRenderer::RenderText(const char *text, int fontNumber, BITMAP *destination, int x, int y, int colour)
@@ -75,12 +90,17 @@ void TTFFontRenderer::RenderText(const char *text, int fontNumber, BITMAP *desti
 
   // Y - 1 because it seems to get drawn down a bit
   if ((ShouldAntiAliasText()) && (bitmap_color_depth(destination) > 8))
-    alfont_textout_aa(destination, _fontData[fontNumber], text, x, y - 1, colour);
+    alfont_textout_aa(destination, _fontData[fontNumber].AlFont, text, x, y - 1, colour);
   else
-    alfont_textout(destination, _fontData[fontNumber], text, x, y - 1, colour);
+    alfont_textout(destination, _fontData[fontNumber].AlFont, text, x, y - 1, colour);
 }
 
 bool TTFFontRenderer::LoadFromDisk(int fontNumber, int fontSize)
+{
+  return LoadFromDiskWithParams(fontNumber, fontSize, NULL);
+}
+
+bool TTFFontRenderer::LoadFromDiskWithParams(int fontNumber, int fontSize, const StringIMap *params)
 {
   String file_name = String::FromFormat("agsfnt%d.ttf", fontNumber);
   Stream *reader = AssetManager::OpenAsset(file_name);
@@ -101,27 +121,56 @@ bool TTFFontRenderer::LoadFromDisk(int fontNumber, int fontSize)
   if (alfptr == NULL)
     return false;
 
+  FontData font;
+  font.AlFont = alfptr;
+  if (params)
+  {
+    font.Params.VerticalOffset = StrUtil::StringToInt(StrUtil::Find(*params, "vertical_offset"));
+    const char *baseline_opt[] = { "default", "bottom", NULL };
+    font.Params.Baseline = (FontBaseline)StrUtil::IndexOf(baseline_opt, StrUtil::Find(*params, "baseline"), kFontBaselineDefault);
+    const char *hinting_opt[] = { "default", "none", "no_auto", "force_auto", NULL };
+    font.Params.Hinting = (FontHinting)StrUtil::IndexOf(hinting_opt, StrUtil::Find(*params, "hinting"), kFontHintDefault);
+  }
 
   // TODO: move this somewhere, should not be right here
+  // Backwards compatible setup for TTF fonts:
+  // font baseline aligned to the bottom of the text line
+  font.Params.Baseline = kFontBaselineAtBottom;
   // Check for the LucasFan font since it comes with an outline font that
   // is drawn incorrectly with Freetype versions > 2.1.3.
   // A simple workaround is to disable outline fonts for it and use
   // automatic outline drawing.
+  // Additionally, force auto hinting for this font, because otherwise many
+  // glyphs get broken.
   if (strcmp(alfont_get_name(alfptr), "LucasFan-Font") == 0)
+  {
+      font.Params.Hinting = kFontForceAutoHint;
       set_font_outline(fontNumber, FONT_OUTLINE_AUTO);
+  }
+
+  // Setup FreeType glyph load flags
+  int ft_load_flags = FT_LOAD_DEFAULT;
+  switch (font.Params.Hinting)
+  {
+  case kFontNoHint:        ft_load_flags |= FT_LOAD_NO_HINTING; break;
+  case kFontNoAutoHint:    ft_load_flags |= FT_LOAD_NO_AUTOHINT; break;
+  case kFontForceAutoHint: ft_load_flags |= FT_LOAD_FORCE_AUTOHINT; break;
+  }
+  alfont_set_glyph_load_flags(alfptr, ft_load_flags);
 
   if (fontSize > 0)
   {
-    alfont_set_font_size_ex(alfptr, fontSize, ALFONT_SIZE_BASELINE_AT_BOTTOM);
+    alfont_set_font_size_ex(alfptr, fontSize,
+      font.Params.Baseline == kFontBaselineAtBottom ? ALFONT_SIZE_BASELINE_AT_BOTTOM : 0);
   }
 
-  _fontData[fontNumber] = alfptr;
+  _fontData[fontNumber] = font;
   return true;
 }
 
 void TTFFontRenderer::FreeMemory(int fontNumber)
 {
-  alfont_destroy_font(_fontData[fontNumber]);
+  alfont_destroy_font(_fontData[fontNumber].AlFont);
   _fontData.erase(fontNumber);
 }
 

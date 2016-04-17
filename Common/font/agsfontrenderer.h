@@ -28,10 +28,6 @@ public:
   virtual bool SupportsExtendedCharacters(int fontNumber) = 0;
   virtual int GetTextWidth(const char *text, int fontNumber) = 0;
   virtual int GetTextHeight(const char *text, int fontNumber) = 0;
-  // [IKM] An important note: the AGS font renderers do not use 'destination' parameter at all, probably
-  // for simplicity (although that causes confusion): the parameter passed is always a global 'virtual screen'
-  // pointer therefore renderers address 'virtual screen' directly.
-  // Plugins, on other reason, act differently, since they are not aware of 'abuf'.
   virtual void RenderText(const char *text, int fontNumber, BITMAP *destination, int x, int y, int colour) = 0;
   virtual void AdjustYCoordinateForFont(int *ycoord, int fontNumber) = 0;
   virtual void EnsureTextValidForFont(char *text, int fontNumber) = 0;

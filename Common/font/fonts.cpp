@@ -103,9 +103,9 @@ void wouttextxy(Common::Bitmap *ds, int xxx, int yyy, int fontNumber, color_t te
 }
 
 // Loads a font from disk
-bool wloadfont_size(int fontNumber, int fsize)
+bool wloadfont_size(int fontNumber, int fsize, const StringIMap *params)
 {
-  if (ttfRenderer.LoadFromDisk(fontNumber, fsize))
+  if (ttfRenderer.LoadFromDiskWithParams(fontNumber, fsize, params))
   {
     fontRenderers[fontNumber] = &ttfRenderer;
     return true;

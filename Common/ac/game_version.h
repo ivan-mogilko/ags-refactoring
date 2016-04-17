@@ -121,7 +121,8 @@ enum GameDataVersion
     kGameVersion_340_1          = 45,
     kGameVersion_340_2          = 46,
     kGameVersion_340_4          = 47,
-    kGameVersion_Current        = kGameVersion_340_4
+    kGameVersion_340_exp        = 1000, // FIXME version number
+    kGameVersion_Current        = kGameVersion_340_exp
 };
 
 extern GameDataVersion loaded_game_file_version;

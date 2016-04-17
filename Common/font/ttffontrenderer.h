@@ -15,11 +15,13 @@
 #ifndef __AC_TTFFONTRENDERER_H
 #define __AC_TTFFONTRENDERER_H
 
-#include "font/agsfontrenderer.h"
-
 #include <map>
+#include "font/agsfontrenderer.h"
+#include "util/string_types.h"
 
 struct ALFONT_FONT;
+using AGS::Common::StringIMap;
+
 
 class TTFFontRenderer : public IAGSFontRenderer {
 public:
@@ -32,8 +34,43 @@ public:
   virtual void AdjustYCoordinateForFont(int *ycoord, int fontNumber);
   virtual void EnsureTextValidForFont(char *text, int fontNumber);
 
+  bool LoadFromDiskWithParams(int fontNumber, int fontSize, const StringIMap *params);
+
 private:
-    std::map<int, ALFONT_FONT*> _fontData;
+    enum FontBaseline
+    {
+        kFontBaselineDefault,     // font position not altered
+        kFontBaselineAtBottom,    // align baseline to the text line's bottom
+    };
+
+    enum FontHinting
+    {
+        kFontHintDefault,         // prefer native font hinter to auto-hint
+        kFontNoHint,              // disable hinting completely
+        kFontNoAutoHint,          // disable automatic hinting
+        kFontForceAutoHint        // prefer automatic hinting
+    };
+
+    // Advanced font rendering parameters
+    // Some of these are meant primarily for backwards compatibility.
+    struct TTFRenderParams
+    {
+        int             VerticalOffset; // vertical offset for the line of text (can be negative)
+        FontBaseline    Baseline;       // baseline alignment (optional)
+        FontHinting     Hinting;        // font hinting preference
+
+        TTFRenderParams();
+    };
+
+    struct FontData
+    {
+        ALFONT_FONT        *AlFont;
+        TTFRenderParams    Params;
+
+        FontData();
+    };
+
+    std::map<int, FontData> _fontData;
 };
 
 #endif // __AC_TTFFONTRENDERER_H

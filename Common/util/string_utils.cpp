@@ -187,6 +187,22 @@ StrUtil::ConversionError StrUtil::StringToInt(const String &s, int &val, int def
     return StrUtil::kNoError;
 }
 
+int StrUtil::IndexOf(const char **str_arr, const String &s, int def_index)
+{
+    for (const char **str_ptr = str_arr; *str_ptr; ++str_ptr)
+        if (s.Compare(*str_ptr) == 0)
+            return str_ptr - str_arr;
+    return def_index;
+}
+
+int StrUtil::IndexOfCI(const char **str_arr, const String &s, int def_index)
+{
+    for (const char **str_ptr = str_arr; *str_ptr; ++str_ptr)
+        if (s.CompareNoCase(*str_ptr) == 0)
+            return str_ptr - str_arr;
+    return def_index;
+}
+
 String StrUtil::ReadString(Stream *in)
 {
     int32_t len = in->ReadInt32();
@@ -201,6 +217,40 @@ void StrUtil::WriteString(const String &s, Stream *out)
     out->WriteInt32(len);
     if (len > 0)
         out->Write(s.GetCStr(), len);
+}
+
+void StrUtil::ParseIntoMap(const String &s, StringIMap &map)
+{
+    // FIXME: this is simplified parsing, should be replaced with proper one
+    // which deals with various errors and special cases
+    const char delim = ';';
+    for (int begin = 0, end = s.FindChar(delim); end >= 0; begin = end + 1, end = s.FindChar(delim, begin))
+    {
+        if (end - begin > 0)
+        {
+            String key_val = s.Mid(begin, end);
+            int split = key_val.FindChar('=');
+            if (split >= 0)
+                map[key_val.Left(split)] = key_val.Mid(split + 1);
+            else
+                map[key_val] = "";
+        }
+    }
+}
+
+String StrUtil::MapToString(const StringIMap &map)
+{
+    // FIXME: guard key and value into quotes
+    const char delim = ';';
+    String s;
+    for (StringIMap::const_iterator it = map.begin(); it != map.end(); ++it)
+    {
+        s.Append(it->first);
+        s.AppendChar('=');
+        s.Append(it->second);
+        s.AppendChar(delim);
+    }
+    return s;
 }
 
 } // namespace Common

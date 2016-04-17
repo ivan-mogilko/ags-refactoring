@@ -91,6 +91,7 @@ struct ALFONT_FONT {
   int autofix;			  /* Font autofix(TRUE/FALSE) */
   int precedingchar;      /* preceding character for autofix*/
   int fixed_width;		  /* Font fixed width(TRUE/FALSE) */
+  int glyph_load_flags;   /* FT_LOAD_XXX flags used when loading glyphs */
 };
 
 
@@ -261,7 +262,7 @@ static void _alfont_cache_glyph(ALFONT_FONT *f, int glyph_number) {
   if (!f->cached_glyphs[glyph_number].is_cached) {
     FT_Glyph new_glyph;
     /* load the font glyph */
-    FT_Load_Glyph(f->face, glyph_number, FT_LOAD_DEFAULT);
+    FT_Load_Glyph(f->face, glyph_number, f->glyph_load_flags);
     FT_Get_Glyph(f->face->glyph, &new_glyph);
 
     /* ok, this glyph is now cached */
@@ -543,6 +544,30 @@ int alfont_init(void) {
 }
 
 
+static void alfont_set_font_defaults(ALFONT_FONT *font) {
+  alfont_set_char_extra_spacing(font, 0);
+
+  //Initial Font attribute
+  font->language=NULL;		   /* Initial Language */
+  font->type=0;				   /* Initial Code Convert */
+  font->outline_top=0;		   /* Initial Font top outline width */
+  font->outline_bottom=0;	   /* Initial Font bottom outline width */
+  font->outline_left=0;		   /* Initial Font left outline width */
+  font->outline_right=0;	   /* Initial Font right outline width */
+  font->outline_color=0;	   /* Initial Font outline color */
+  font->outline_hollow=FALSE;  /* Initial Font hollow(TRUE/FALSE) */
+  font->style=0;			   /* Initial Font Style */
+  font->underline=FALSE;	   /* Initial Font underline(TRUE/FALSE) */
+  font->underline_right=FALSE; /* Initial Extend right underline(TRUE/FALSE) */
+  font->underline_left=FALSE;  /* Initial Extend left underline(TRUE/FALSE) */
+  font->background=FALSE;	   /* Initial Font Background Color(TRUE/FALSE) */
+  font->transparency=255;	   /* Initial Font transparency(0-255) */
+  font->autofix=FALSE;		   /* Initial Font autofix(TRUE/FALSE) */
+  font->precedingchar=0;	   /* Initial preceding character */
+  font->glyph_load_flags=FT_LOAD_DEFAULT; /* Initial glyph load flags */
+}
+
+
 ALFONT_FONT *alfont_load_font(const char *filepathname) {
   int error;
 
@@ -590,25 +615,7 @@ ALFONT_FONT *alfont_load_font(const char *filepathname) {
     alfont_set_font_size(font, font->fixed_sizes[0]);
   }
 
-  alfont_set_char_extra_spacing(font, 0);
-
-  //Initial Font attribute
-  font->language=NULL;		   /* Initial Language */
-  font->type=0;				   /* Initial Code Convert */
-  font->outline_top=0;		   /* Initial Font top outline width */
-  font->outline_bottom=0;	   /* Initial Font bottom outline width */
-  font->outline_left=0;		   /* Initial Font left outline width */
-  font->outline_right=0;	   /* Initial Font right outline width */
-  font->outline_color=0;	   /* Initial Font outline color */
-  font->outline_hollow=FALSE;  /* Initial Font hollow(TRUE/FALSE) */
-  font->style=0;			   /* Initial Font Style */
-  font->underline=FALSE;	   /* Initial Font underline(TRUE/FALSE) */
-  font->underline_right=FALSE; /* Initial Extend right underline(TRUE/FALSE) */
-  font->underline_left=FALSE;  /* Initial Extend left underline(TRUE/FALSE) */
-  font->background=FALSE;	   /* Initial Font Background Color(TRUE/FALSE) */
-  font->transparency=255;	   /* Initial Font transparency(0-255) */
-  font->autofix=FALSE;		   /* Initial Font autofix(TRUE/FALSE) */
-  font->precedingchar=0;	   /* Initial preceding character */
+  alfont_set_font_defaults(font);
 
   return font;
 }
@@ -670,25 +677,7 @@ ALFONT_FONT *alfont_load_font_from_mem(const char *data, int data_len) {
     alfont_set_font_size(font, font->fixed_sizes[0]);
   }
 
-  alfont_set_char_extra_spacing(font, 0);
-
-  //Initial Font attribute
-  font->language=NULL;		   /* Initial Language */
-  font->type=0;				   /* Initial Code Convert */
-  font->outline_top=0;		   /* Initial Font top outline width */
-  font->outline_bottom=0;	   /* Initial Font bottom outline width */
-  font->outline_left=0;		   /* Initial Font left outline width */
-  font->outline_right=0;	   /* Initial Font right outline width */
-  font->outline_color=0;	   /* Initial Font outline color */
-  font->outline_hollow=FALSE;  /* Initial Font hollow(TRUE/FALSE) */
-  font->style=0;			   /* Initial Font Style */
-  font->underline=FALSE;	   /* Initial Font underline(TRUE/FALSE) */
-  font->underline_right=FALSE; /* Initial Extend right underline(TRUE/FALSE) */
-  font->underline_left=FALSE;  /* Initial Extend left underline(TRUE/FALSE) */
-  font->background=FALSE;	   /* Initial Font Background Color(TRUE/FALSE) */
-  font->transparency=255;	   /* Initial Font transparency(0-255) */
-  font->autofix=FALSE;		   /* Initial Font autofix(TRUE/FALSE) */
-  font->precedingchar=0;	   /* Initial preceding character */
+  alfont_set_font_defaults(font);
 
   return font;
 }
@@ -5161,5 +5150,15 @@ ALFONT_DLL_DECLSPEC void alfont_set_font_fixed_width(ALFONT_FONT *f, int fixed_w
     f->fixed_width = FALSE;
   else
     f->fixed_width = TRUE;
+  _alfont_uncache_glyphs(f);
+}
+
+
+int alfont_get_glyph_load_flags(ALFONT_FONT *f) {
+  return f->glyph_load_flags;
+}
+
+ALFONT_DLL_DECLSPEC void alfont_set_glyph_load_flags(ALFONT_FONT *f, int flags) {
+  f->glyph_load_flags = flags;
   _alfont_uncache_glyphs(f);
 }
