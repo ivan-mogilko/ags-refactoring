@@ -15,6 +15,10 @@ namespace AGS.Types
         private int _outlineFont;
         private FontOutlineStyle _outlineStyle;
 		private string _sourceFilename = string.Empty;
+        // TTF-specific properties
+        private int _verticalOffset;
+        private FontBaseline _baseline;
+        private FontHinting _hinting;
 
         public Font()
         {
@@ -120,6 +124,35 @@ namespace AGS.Types
 		{
 			get { return "agsfnt" + _id + ".ttf"; }
 		}
+
+        // TTF-only properties
+        // FIXME: rewrite Editor's Font component to have separate classes for WFN and TTF fonts
+        [Description("")]
+        [Category("Advanced")]
+        [DisplayName("Vertical offset")]
+        public int VerticalOffset
+        {
+            get { return _verticalOffset; }
+            set { _verticalOffset = value; }
+        }
+
+        [Description("")]
+        [Category("Advanced")]
+        [DisplayName("Baseline")]
+        public FontBaseline Baseline
+        {
+            get { return _baseline; }
+            set { _baseline = value; }
+        }
+
+        [Description("")]
+        [Category("Advanced")]
+        [DisplayName("Hinting")]
+        public FontHinting Hinting
+        {
+            get { return _hinting; }
+            set { _hinting = value; }
+        }
 
         public Font(XmlNode node)
         {

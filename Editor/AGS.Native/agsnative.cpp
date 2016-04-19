@@ -39,6 +39,7 @@ using AGS::Common::Stream;
 namespace AGSProps = AGS::Common::Properties;
 namespace BitmapHelper = AGS::Common::BitmapHelper;
 namespace AGSProps = AGS::Common::Properties;
+namespace StrUtil = AGS::Common::StrUtil;
 using AGS::Common::GUIMain;
 using AGS::Common::Interaction;
 using AGS::Common::InteractionCommand;
@@ -1023,7 +1024,7 @@ const char* import_sci_font(const char*fnn,int fslot) {
   delete ooo;
   delete iii;
   wfreefont(fslot);
-  if (!wloadfont_size(fslot, 0))
+  if (!wloadfont_size(fslot, 0, NULL))
   {
     return "Unable to load converted WFN file";
   }
@@ -1199,7 +1200,7 @@ void NewInteractionCommand::remove ()
 */
 
 void new_font () {
-  wloadfont_size(thisgame.numfonts, 0);
+  wloadfont_size(thisgame.numfonts, 0, NULL);
   thisgame.fontflags[thisgame.numfonts] = 0;
   thisgame.fontoutline[thisgame.numfonts] = -1;
   thisgame.numfonts++;
@@ -1427,7 +1428,7 @@ bool reload_font(int curFont)
     // designed for 320x200, double it up
     fsize *= 2;
   }
-  return wloadfont_size(curFont, fsize);
+  return wloadfont_size(curFont, fsize, NULL);
 }
 
 void load_script_modules_compiled(Stream *inn) {
@@ -4720,6 +4721,12 @@ void save_thisgame_to_file(const char *fileName, Game ^game)
   ooo->Write(&thisgame.saveGameFolderName[0], MAX_SG_FOLDER_LEN);
   ooo->Write(&thisgame.fontflags[0], thisgame.numfonts);
   ooo->Write(&thisgame.fontoutline[0], thisgame.numfonts);
+  for (int i = 0; i < thisgame.numfonts; ++i)
+  {
+      Common::String param_string = StrUtil::MapToString(thisgame.fontParams[i]);
+      StrUtil::WriteString(param_string, ooo);
+  }
+
   ooo->WriteInt32 (MAX_SPRITES);
   ooo->Write(&thisgame.spriteflags[0], MAX_SPRITES);
   ooo->WriteArray(&thisgame.invinfo[0], sizeof(InventoryItemInfo), thisgame.numinvitems);
@@ -5163,6 +5170,18 @@ void save_game_to_dta_file(Game^ game, const char *fileName)
 		{
 			thisgame.fontoutline[i] = font->OutlineFont;
 		}
+
+        // TTF-related advanced settings
+        if (font->VerticalOffset != 0)
+            thisgame.fontParams[i]["vertical_offset"] = StrUtil::IntToString(font->VerticalOffset);
+        if (font->Baseline == FontBaseline::AlignToBottom)
+            thisgame.fontParams[i]["baseline"] = "bottom";
+        switch (font->Hinting)
+        {
+        case FontHinting::NoHint: thisgame.fontParams[i]["hinting"] = "none"; break;
+        case FontHinting::NoAutoHint: thisgame.fontParams[i]["hinting"] = "no_auto"; break;
+        case FontHinting::ForceAutoHint: thisgame.fontParams[i]["hinting"] = "force_auto"; break;
+        }
 	}
 
 	// ** Inventory items **
