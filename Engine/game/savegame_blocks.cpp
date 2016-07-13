@@ -1001,14 +1001,11 @@ SavegameError ReadThisRoom(Stream *in, int32_t blk_ver, const PreservedParams &p
     // modified room backgrounds
     for (int i = 0; i < MAX_BSCENE; ++i)
     {
-        r_data.RoomBkgScene[i] = NULL;
-        if (in->ReadBool() != (play.raw_modified[i] != 0))
-        {
-            Out::FPrint("Restore game error: raw_modified%d flag is not consistent with serialized room", i);
-            return kSvgErr_InconsistentData;
-        }
+        play.raw_modified[i] = in->ReadBool();
         if (play.raw_modified[i])
             r_data.RoomBkgScene[i] = read_serialized_bitmap(in);
+        else
+            r_data.RoomBkgScene[i] = NULL;
     }
     if (in->ReadBool())
         raw_saved_screen = read_serialized_bitmap(in);

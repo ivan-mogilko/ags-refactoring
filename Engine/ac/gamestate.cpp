@@ -163,7 +163,8 @@ void GameState::ReadFromSavegame(Common::Stream *in, bool old_save)
     in->ReadArrayOfInt16( parsed_words, MAX_PARSED_WORDS);
     in->Read( bad_parsed_word, 100);
     raw_color = in->ReadInt32();
-    in->ReadArrayOfInt32( raw_modified, MAX_BSCENE);
+    if (old_save)
+        in->ReadArrayOfInt32(raw_modified, MAX_BSCENE);
     in->ReadArrayOfInt16( filenumbers, MAXSAVEGAMES);
     if (old_save)
         in->ReadInt32(); // room_changes
@@ -366,7 +367,6 @@ void GameState::WriteForSavegame(Common::Stream *out)
     out->WriteArrayOfInt16( parsed_words, MAX_PARSED_WORDS);
     out->Write( bad_parsed_word, 100);
     out->WriteInt32( raw_color);
-    out->WriteArrayOfInt32( raw_modified, MAX_BSCENE);
     out->WriteArrayOfInt16( filenumbers, MAXSAVEGAMES);
     out->WriteInt32( mouse_cursor_hidden);
     out->WriteInt32( silent_midi);
