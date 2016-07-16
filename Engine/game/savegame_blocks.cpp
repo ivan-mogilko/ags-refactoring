@@ -257,9 +257,17 @@ inline bool AssertFormat(int original, int value, const char *test_name, int tes
     return true;
 }
 
-inline bool AssertGameContent(int original_val, int new_val, const char *content_name)
+inline bool AssertGameContent(int original_val, int new_val, bool strict = false)
 {
-    if (new_val != original_val)
+    return new_val == original_val ||
+        (!strict &&
+         ((game.options[OPT_SAVEGAMECOMPAT] & kSvgCompat_MissingContent) && new_val < original_val)
+        );
+}
+
+bool AssertGameContent(int original_val, int new_val, const char *content_name, bool strict = false)
+{
+    if (!AssertGameContent(original_val, new_val))
     {
         Out::FPrint("Restore game error: mismatching number of %s (game: %d, save: %d)",
             content_name, original_val, new_val);
@@ -268,10 +276,15 @@ inline bool AssertGameContent(int original_val, int new_val, const char *content
     return true;
 }
 
-inline bool AssertGameObjectContent(int original_val, int new_val, const char *content_name,
-                                    const char *obj_type, int obj_id)
+inline bool AssertGameContStrict(int original_val, int new_val, const char *content_name)
 {
-    if (new_val != original_val)
+    return AssertGameContent(original_val, new_val, content_name, true);
+}
+
+bool AssertGameObjectContent(int original_val, int new_val, const char *content_name,
+                                    const char *obj_type, int obj_id, bool strict = false)
+{
+    if (!AssertGameContent(original_val, new_val))
     {
         Out::FPrint("Restore game error: mismatching number of %s in %s #%d (game: %d, save: %d)",
             content_name, obj_type, obj_id, original_val, new_val);
@@ -280,10 +293,10 @@ inline bool AssertGameObjectContent(int original_val, int new_val, const char *c
     return true;
 }
 
-inline bool AssertGameObjectContent2(int original_val, int new_val, const char *content_name,
-                                    const char *obj1_type, int obj1_id, const char *obj2_type, int obj2_id)
+bool AssertGameObjectContent2(int original_val, int new_val, const char *content_name,
+                                    const char *obj1_type, int obj1_id, const char *obj2_type, int obj2_id, bool strict = false)
 {
-    if (new_val != original_val)
+    if (!AssertGameContent(original_val, new_val))
     {
         Out::FPrint("Restore game error: mismatching number of %s in %s #%d, %s #%d (game: %d, save: %d)",
             content_name, obj1_type, obj1_id, obj2_type, obj2_id, original_val, new_val);
@@ -353,7 +366,7 @@ SavegameError ReadGameState(Stream *in, int32_t blk_ver, const PreservedParams &
     if (loaded_game_file_version <= kGameVersion_272)
     {
         // Legacy interaction global variables
-        if (!AssertGameContent(numGlobalVars, in->ReadInt32(), "Global Variables"))
+        if (!AssertGameContStrict(numGlobalVars, in->ReadInt32(), "Global Variables"))
             return kSvgErr_GameContentAssertion;
         for (int i = 0; i < numGlobalVars; ++i)
             globalvars[i].Read(in);
@@ -425,13 +438,15 @@ SavegameError WriteAudio(Stream *out)
 SavegameError ReadAudio(Stream *in, int32_t blk_ver, const PreservedParams &pp, RestoredData &r_data)
 {
     // Game content assertion
-    if (!AssertGameContent(game.audioClipTypeCount, in->ReadInt32(), "Audio Clip Types"))
+    r_data.AudioTypeCount = in->ReadInt32();
+    r_data.AudioClipCount = in->ReadInt32();
+    if (!AssertGameContent(game.audioClipTypeCount, r_data.AudioTypeCount, "Audio Clip Types"))
         return kSvgErr_GameContentAssertion;
-    if (!AssertGameContent(game.audioClipCount, in->ReadInt32(), "Audio Clips"))
+    if (!AssertGameContent(game.audioClipCount, r_data.AudioClipCount, "Audio Clips"))
         return kSvgErr_GameContentAssertion;
 
     // Audio types
-    for (int i = 0; i < game.audioClipTypeCount; ++i)
+    for (int i = 0; i < r_data.AudioTypeCount; ++i)
     {
         game.audioClipTypes[i].ReadFromSavegame(in);
         play.default_audio_type_volumes[i] = in->ReadInt32();
@@ -501,9 +516,10 @@ SavegameError WriteCharacters(Stream *out)
 
 SavegameError ReadCharacters(Stream *in, int32_t blk_ver, const PreservedParams &pp, RestoredData &r_data)
 {
-    if (!AssertGameContent(game.numcharacters, in->ReadInt32(), "Characters"))
+    r_data.CharCount = in->ReadInt32();
+    if (!AssertGameContent(game.numcharacters, r_data.CharCount, "Characters"))
         return kSvgErr_GameContentAssertion;
-    for (int i = 0; i < game.numcharacters; ++i)
+    for (int i = 0; i < r_data.CharCount; ++i)
     {
         game.chars[i].ReadFromFile(in);
         charextra[i].ReadFromFile(in);
@@ -528,9 +544,10 @@ SavegameError WriteDialogs(Stream *out)
 
 SavegameError ReadDialogs(Stream *in, int32_t blk_ver, const PreservedParams &pp, RestoredData &r_data)
 {
-    if (!AssertGameContent(game.numdialog, in->ReadInt32(), "Dialogs"))
+    r_data.DialogCount = in->ReadInt32();
+    if (!AssertGameContent(game.numdialog, r_data.DialogCount, "Dialogs"))
         return kSvgErr_GameContentAssertion;
-    for (int i = 0; i < game.numdialog; ++i)
+    for (int i = 0; i < r_data.DialogCount; ++i)
     {
         dialog[i].ReadFromSavegame(in);
     }
@@ -594,57 +611,64 @@ SavegameError WriteGUI(Stream *out)
 SavegameError ReadGUI(Stream *in, int32_t blk_ver, const PreservedParams &pp, RestoredData &r_data)
 {
     // GUI state
-    if (!AssertGameContent(game.numgui, in->ReadInt32(), "GUIs"))
+    r_data.GUICount = in->ReadInt32();
+    if (!AssertGameContent(game.numgui, r_data.GUICount, "GUIs"))
         return kSvgErr_GameContentAssertion;
-    for (int i = 0; i < game.numgui; ++i)
+    for (int i = 0; i < r_data.GUICount; ++i)
         guis[i].ReadFromSavegame(in);
 
     if (!AssertFormat(FormatConsistencyCheck, in->ReadInt32(), "GUI Buttons"))
         return kSvgErr_InconsistentFormat;
 
-    if (!AssertGameContent(numguibuts, in->ReadInt32(), "GUI Buttons"))
+    r_data.GUIBtnCount = in->ReadInt32();
+    if (!AssertGameContent(numguibuts, r_data.GUIBtnCount, "GUI Buttons"))
         return kSvgErr_GameContentAssertion;
-    for (int i = 0; i < numguibuts; ++i)
+    for (int i = 0; i < r_data.GUIBtnCount; ++i)
         guibuts[i].ReadFromSavegame(in);
 
     if (!AssertFormat(FormatConsistencyCheck, in->ReadInt32(), "GUI Labels"))
         return kSvgErr_InconsistentFormat;
 
-    if (!AssertGameContent(numguilabels, in->ReadInt32(), "GUI Labels"))
+    r_data.GUILblCount = in->ReadInt32();
+    if (!AssertGameContent(numguilabels, r_data.GUILblCount, "GUI Labels"))
         return kSvgErr_GameContentAssertion;
-    for (int i = 0; i < numguilabels; ++i)
+    for (int i = 0; i < r_data.GUILblCount; ++i)
         guilabels[i].ReadFromSavegame(in);
 
     if (!AssertFormat(FormatConsistencyCheck, in->ReadInt32(), "GUI InvWindows"))
         return kSvgErr_InconsistentFormat;
 
-    if (!AssertGameContent(numguiinv, in->ReadInt32(), "GUI InvWindows"))
+    r_data.GUIInvCount = in->ReadInt32();
+    if (!AssertGameContent(numguiinv, r_data.GUIInvCount, "GUI InvWindows"))
         return kSvgErr_GameContentAssertion;
-    for (int i = 0; i < numguiinv; ++i)
+    for (int i = 0; i < r_data.GUIInvCount; ++i)
         guiinv[i].ReadFromSavegame(in);
 
     if (!AssertFormat(FormatConsistencyCheck, in->ReadInt32(), "GUI Sliders"))
         return kSvgErr_InconsistentFormat;
 
-    if (!AssertGameContent(numguislider, in->ReadInt32(), "GUI Sliders"))
+    r_data.GUISldCount = in->ReadInt32();
+    if (!AssertGameContent(numguislider, r_data.GUISldCount, "GUI Sliders"))
         return kSvgErr_GameContentAssertion;
-    for (int i = 0; i < numguislider; ++i)
+    for (int i = 0; i < r_data.GUISldCount; ++i)
         guislider[i].ReadFromSavegame(in);
 
     if (!AssertFormat(FormatConsistencyCheck, in->ReadInt32(), "GUI TextBoxes"))
         return kSvgErr_InconsistentFormat;
 
-    if (!AssertGameContent(numguitext, in->ReadInt32(), "GUI TextBoxes"))
+    r_data.GUITbxCount = in->ReadInt32();
+    if (!AssertGameContent(numguitext, r_data.GUITbxCount, "GUI TextBoxes"))
         return kSvgErr_GameContentAssertion;
-    for (int i = 0; i < numguitext; ++i)
+    for (int i = 0; i < r_data.GUITbxCount; ++i)
         guitext[i].ReadFromSavegame(in);
 
     if (!AssertFormat(FormatConsistencyCheck, in->ReadInt32(), "GUI ListBoxes"))
         return kSvgErr_InconsistentFormat;
 
-    if (!AssertGameContent(numguilist, in->ReadInt32(), "GUI ListBoxes"))
+    r_data.GUILbxCount = in->ReadInt32();
+    if (!AssertGameContent(numguilist, r_data.GUILbxCount, "GUI ListBoxes"))
         return kSvgErr_GameContentAssertion;
-    for (int i = 0; i < numguilist; ++i)
+    for (int i = 0; i < r_data.GUILbxCount; ++i)
         guilist[i].ReadFromSavegame(in);
 
     if (!AssertFormat(FormatConsistencyCheck, in->ReadInt32(), "Animated Buttons"))
@@ -679,9 +703,10 @@ SavegameError WriteInventory(Stream *out)
 
 SavegameError ReadInventory(Stream *in, int32_t blk_ver, const PreservedParams &pp, RestoredData &r_data)
 {
-    if (!AssertGameContent(game.numinvitems, in->ReadInt32(), "Inventory Items"))
+    r_data.InvItemCount = in->ReadInt32();
+    if (!AssertGameContent(game.numinvitems, r_data.InvItemCount, "Inventory Items"))
         return kSvgErr_GameContentAssertion;
-    for (int i = 0; i < game.numinvitems; ++i)
+    for (int i = 0; i < r_data.InvItemCount; ++i)
     {
         game.invinfo[i].ReadFromSavegame(in);
         Properties::ReadValues(play.invProps[i], in);
@@ -703,9 +728,10 @@ SavegameError WriteMouseCursors(Stream *out)
 
 SavegameError ReadMouseCursors(Stream *in, int32_t blk_ver, const PreservedParams &pp, RestoredData &r_data)
 {
-    if (!AssertGameContent(game.numcursors, in->ReadInt32(), "Mouse Cursors"))
+    r_data.MouseCurCount = in->ReadInt32();
+    if (!AssertGameContent(game.numcursors, r_data.MouseCurCount, "Mouse Cursors"))
         return kSvgErr_GameContentAssertion;
-    for (int i = 0; i < game.numcursors; ++i)
+    for (int i = 0; i < r_data.MouseCurCount; ++i)
     {
         game.mcurs[i].ReadFromSavegame(in);
     }
@@ -733,19 +759,24 @@ SavegameError WriteViews(Stream *out)
 
 SavegameError ReadViews(Stream *in, int32_t blk_ver, const PreservedParams &pp, RestoredData &r_data)
 {
-    if (!AssertGameContent(game.numviews, in->ReadInt32(), "Views"))
+    int view_count = in->ReadInt32();
+    if (!AssertGameContent(game.numviews, view_count, "Views"))
         return kSvgErr_GameContentAssertion;
-    for (int view = 0; view < game.numviews; ++view)
+    r_data.Views.resize(view_count);
+    for (int view = 0; view < view_count; ++view)
     {
-        if (!AssertGameObjectContent(views[view].numLoops, in->ReadInt32(),
-            "Loops", "View", view))
+        int loop_count = in->ReadInt32();
+        if (!AssertGameObjectContent(views[view].numLoops, loop_count, "Loops", "View", view))
             return kSvgErr_GameContentAssertion;
-        for (int loop = 0; loop < views[view].numLoops; ++loop)
+        r_data.Views[view].resize(loop_count);
+        for (int loop = 0; loop < loop_count; ++loop)
         {
-            if (!AssertGameObjectContent2(views[view].loops[loop].numFrames, in->ReadInt32(),
+            int frame_count = in->ReadInt32();
+            if (!AssertGameObjectContent2(views[view].loops[loop].numFrames, frame_count,
                 "Frame", "View", view, "Loop", loop))
                 return kSvgErr_GameContentAssertion;
-            for (int frame = 0; frame < views[view].loops[loop].numFrames; ++frame)
+            r_data.Views[view][loop] = frame_count;
+            for (int frame = 0; frame < frame_count; ++frame)
             {
                 views[view].loops[loop].frames[frame].sound = in->ReadInt32();
                 views[view].loops[loop].frames[frame].pic = in->ReadInt32();
@@ -897,7 +928,7 @@ SavegameError ReadScriptModules(Stream *in, int32_t blk_ver, const PreservedPara
 {
     // read the global script data segment
     int data_len = in->ReadInt32();
-    if (pp.GlScDataSize != data_len)
+    if (!AssertGameContent(pp.GlScDataSize, data_len))
     {
         Out::FPrint("Restore game error: mismatching size of global script data (game: %d, save: %d)",
             pp.GlScDataSize, data_len);
@@ -907,16 +938,17 @@ SavegameError ReadScriptModules(Stream *in, int32_t blk_ver, const PreservedPara
     r_data.GlobalScript.Data.reset(new char[data_len]);
     in->Read(r_data.GlobalScript.Data.get(), data_len);
 
-    if (!AssertGameContent(numScriptModules, in->ReadInt32(), "Script Modules"))
+    int module_count = in->ReadInt32();
+    if (!AssertGameContent(numScriptModules, module_count, "Script Modules"))
         return kSvgErr_GameContentAssertion;
-    r_data.ScriptModules.resize(numScriptModules);
-    for (int i = 0; i < numScriptModules; ++i)
+    r_data.ScriptModules.resize(module_count);
+    for (int i = 0; i < module_count; ++i)
     {
         data_len = in->ReadInt32();
-        if (pp.ScMdDataSize[i] != data_len)
+        if (!AssertGameContent(pp.ScMdDataSize[i], data_len))
         {
-            Out::FPrint("Restore game error: mismatching size of script module data, module #%d (game: %d, save: %d)",
-                i, r_data.ScriptModules[i].Len, data_len);
+            Out::FPrint("Restore game error: mismatching size of global script data (game: %d, save: %d)",
+                pp.ScMdDataSize[i], data_len);
             return kSvgErr_GameContentAssertion;
         }
         r_data.ScriptModules[i].Len = data_len;

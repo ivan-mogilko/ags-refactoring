@@ -74,7 +74,8 @@
 #define OPT_DIALOGOPTIONSAPI 42 // version of dialog options API (-1 for pre-3.4.0 API)
 #define OPT_BASESCRIPTAPI   43 // version of the Script API used to compile game script
 #define OPT_SCRIPTCOMPATLEV 44 // level of API compatibility used to compile game script
-#define OPT_HIGHESTOPTION   OPT_SCRIPTCOMPATLEV
+#define OPT_SAVEGAMECOMPAT  45 // savegame compatibility flags
+#define OPT_HIGHESTOPTION   OPT_SAVEGAMECOMPAT
 #define OPT_NOMODMUSIC      98
 #define OPT_LIPSYNCTEXT     99
 #define PORTRAIT_LEFT       0
@@ -139,6 +140,15 @@ enum DialogOptionNumbering
     kDlgOptNoNumbering = -1,
     kDlgOptKeysOnly    =  0, // implicit key shortcuts
     kDlgOptNumbering   =  1  // draw option indices and use key shortcuts
+};
+
+// Flags determining savegame compatibility mode (OPT_SAVEGAMECOMPAT)
+enum SavegameCompatFlags
+{
+    // refuse to load saves with different content
+    kSvgCompat_None = 0,
+    // allow to load saves with missing (less) content
+    kSvgCompat_MissingContent = 0x0001
 };
 
 #endif // __AGS_CN_AC__GAMESTRUCTDEFINES_H

@@ -49,6 +49,24 @@ struct PreservedParams
 // the restoration process
 struct RestoredData
 {
+    // Game content reference, used in cases when the number
+    // of entities is supposed to be constant at runtime
+    int                     AudioTypeCount;
+    int                     AudioClipCount;
+    int                     CharCount;
+    int                     DialogCount;
+    int                     GUICount;
+    int                     GUIBtnCount;
+    int                     GUILblCount;
+    int                     GUIInvCount;
+    int                     GUISldCount;
+    int                     GUITbxCount;
+    int                     GUILbxCount;
+    int                     InvItemCount;
+    int                     MouseCurCount;
+    std::vector< std::vector<int> > Views;
+
+    // Dynamic state
     int                     FPS;
     // Unserialized bitmaps for dynamic surfaces
     std::vector<Bitmap*>    DynamicSurfaces;
