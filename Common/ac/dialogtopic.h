@@ -61,7 +61,7 @@ struct DialogTopic {
     void ReadFromFile(Common::Stream *in);
 
     void ReadFromSavegame(Common::Stream *in);
-    void WriteToSavegame(Common::Stream *in);
+    void WriteToSavegame(Common::Stream *out) const;
 };
 
 

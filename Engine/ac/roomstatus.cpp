@@ -159,7 +159,7 @@ void RoomStatus::ReadFromSavegame(Stream *in)
     }
 }
 
-void RoomStatus::WriteToSavegame(Stream *out)
+void RoomStatus::WriteToSavegame(Stream *out) const
 {
     out->WriteInt8(beenhere);
     out->WriteInt32(numobj);

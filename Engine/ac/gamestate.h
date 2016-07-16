@@ -209,9 +209,9 @@ struct GameState {
 
     void ReadQueuedAudioItems_Aligned(Common::Stream *in);
     void ReadCustomProperties_v340(Common::Stream *in);
-    void WriteCustomProperties_v340(Common::Stream *out);
+    void WriteCustomProperties_v340(Common::Stream *out) const;
     void ReadFromSavegame(Common::Stream *in, bool old_save);
-    void WriteForSavegame(Common::Stream *out);
+    void WriteForSavegame(Common::Stream *out) const;
     void FreeProperties();
 };
 

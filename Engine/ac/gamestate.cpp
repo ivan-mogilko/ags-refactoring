@@ -242,7 +242,7 @@ void GameState::ReadFromSavegame(Common::Stream *in, bool old_save)
     in->ReadArrayOfInt32(default_audio_type_volumes, MAX_AUDIO_TYPES);
 }
 
-void GameState::WriteForSavegame(Common::Stream *out)
+void GameState::WriteForSavegame(Common::Stream *out) const
 {
     // NOTE: following parameters are never saved:
     // recording, playback, gamestep, screen_is_faded_out, room_changes
@@ -457,7 +457,7 @@ void GameState::ReadCustomProperties_v340(Common::Stream *in)
     }
 }
 
-void GameState::WriteCustomProperties_v340(Common::Stream *out)
+void GameState::WriteCustomProperties_v340(Common::Stream *out) const
 {
     if (loaded_game_file_version >= kGameVersion_340_4)
     {
