@@ -313,10 +313,14 @@ SavegameError WriteGameState(Stream *out)
     // Game palette
     // TODO: probably no need to save this for hi/true-res game
     out->WriteArray(palette, sizeof(color), 256);
-    // Global variables
-    out->WriteInt32(numGlobalVars);
-    for (int i = 0; i < numGlobalVars; ++i)
-        globalvars[i].Write(out);
+
+    if (loaded_game_file_version <= kGameVersion_272)
+    {
+        // Global variables
+        out->WriteInt32(numGlobalVars);
+        for (int i = 0; i < numGlobalVars; ++i)
+            globalvars[i].Write(out);
+    }
 
     // Game state
     play.WriteForSavegame(out);
@@ -345,11 +349,15 @@ SavegameError ReadGameState(Stream *in, int32_t blk_ver, const PreservedParams &
     game.ReadFromSavegame(in);
     // Game palette
     in->ReadArray(palette, sizeof(color), 256);
-    // Global variables
-    if (!AssertGameContent(numGlobalVars, in->ReadInt32(), "Global Variables"))
-        return kSvgErr_GameContentAssertion;
-    for (int i = 0; i < numGlobalVars; ++i)
-        globalvars[i].Read(in);
+
+    if (loaded_game_file_version <= kGameVersion_272)
+    {
+        // Legacy interaction global variables
+        if (!AssertGameContent(numGlobalVars, in->ReadInt32(), "Global Variables"))
+            return kSvgErr_GameContentAssertion;
+        for (int i = 0; i < numGlobalVars; ++i)
+            globalvars[i].Read(in);
+    }
 
     // Game state
     play.ReadFromSavegame(in, false);
@@ -476,9 +484,9 @@ SavegameError WriteCharacters(Stream *out)
     {
         game.chars[i].WriteToFile(out);
         charextra[i].WriteToFile(out);
-        if (game.intrChar)
-            game.intrChar[i]->WriteTimesRunToSavedgame(out);
         Properties::WriteValues(play.charProps[i], out);
+        if (loaded_game_file_version <= kGameVersion_272)
+            game.intrChar[i]->WriteTimesRunToSavedgame(out);
     }
     return kSvgErr_NoError;
 }
@@ -491,9 +499,9 @@ SavegameError ReadCharacters(Stream *in, int32_t blk_ver, const PreservedParams 
     {
         game.chars[i].ReadFromFile(in);
         charextra[i].ReadFromFile(in);
-        if (game.intrChar)
-            game.intrChar[i]->ReadTimesRunFromSavedgame(in);
         Properties::ReadValues(play.charProps[i], in);
+        if (loaded_game_file_version <= kGameVersion_272)
+            game.intrChar[i]->ReadTimesRunFromSavedgame(in);
     }
     return kSvgErr_NoError;
 }
@@ -652,7 +660,7 @@ SavegameError WriteInventory(Stream *out)
     {
         game.invinfo[i].WriteToSavegame(out);
         Properties::WriteValues(play.invProps[i], out);
-        if (game.intrInv[i])
+        if (loaded_game_file_version <= kGameVersion_272)
             game.intrInv[i]->WriteTimesRunToSavedgame(out);
     }
     return kSvgErr_NoError;
@@ -666,7 +674,7 @@ SavegameError ReadInventory(Stream *in, int32_t blk_ver, const PreservedParams &
     {
         game.invinfo[i].ReadFromSavegame(in);
         Properties::ReadValues(play.invProps[i], in);
-        if (game.intrInv[i])
+        if (loaded_game_file_version <= kGameVersion_272)
             game.intrInv[i]->ReadTimesRunFromSavedgame(in);
     }
     return kSvgErr_NoError;

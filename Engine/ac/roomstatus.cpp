@@ -122,28 +122,34 @@ void RoomStatus::ReadFromSavegame(Stream *in)
     for (int i = 0; i < numobj; ++i)
     {
         obj[i].ReadFromFile(in);
-        intrObject[i].ReadTimesRunFromSavedgame(in);
         Properties::ReadValues(objProps[i], in);
+        if (loaded_game_file_version <= kGameVersion_272)
+            intrObject[i].ReadTimesRunFromSavedgame(in);
     }
     for (int i = 0; i < MAX_HOTSPOTS; ++i)
     {
         hotspot_enabled[i] = in->ReadInt8();
-        intrHotspot[i].ReadTimesRunFromSavedgame(in);
         Properties::ReadValues(hsProps[i], in);
+        if (loaded_game_file_version <= kGameVersion_272)
+            intrHotspot[i].ReadTimesRunFromSavedgame(in);
     }
     for (int i = 0; i < MAX_REGIONS; ++i)
     {
         region_enabled[i] = in->ReadInt8();
-        intrRegion[i].ReadTimesRunFromSavedgame(in);
+        if (loaded_game_file_version <= kGameVersion_272)
+            intrRegion[i].ReadTimesRunFromSavedgame(in);
     }
     for (int i = 0; i < MAX_OBJ; ++i)
     {
         walkbehind_base[i] = in->ReadInt32();
     }
 
-    intrRoom.ReadTimesRunFromSavedgame(in);
-    in->ReadArrayOfInt32(interactionVariableValues, MAX_GLOBAL_VARIABLES);
     Properties::ReadValues(roomProps, in);
+    if (loaded_game_file_version <= kGameVersion_272)
+    {
+        intrRoom.ReadTimesRunFromSavedgame(in);
+        in->ReadArrayOfInt32(interactionVariableValues, MAX_GLOBAL_VARIABLES);
+    }
 
     tsdatasize = in->ReadInt32();
     if (tsdatasize)
@@ -160,28 +166,34 @@ void RoomStatus::WriteToSavegame(Stream *out)
     for (int i = 0; i < numobj; ++i)
     {
         obj[i].WriteToFile(out);
-        intrObject[i].WriteTimesRunToSavedgame(out);
         Properties::WriteValues(objProps[i], out);
+        if (loaded_game_file_version <= kGameVersion_272)
+            intrObject[i].WriteTimesRunToSavedgame(out);
     }
     for (int i = 0; i < MAX_HOTSPOTS; ++i)
     {
         out->WriteInt8(hotspot_enabled[i]);
-        intrHotspot[i].WriteTimesRunToSavedgame(out);
         Properties::WriteValues(hsProps[i], out);
+        if (loaded_game_file_version <= kGameVersion_272)
+            intrHotspot[i].WriteTimesRunToSavedgame(out);
     }
     for (int i = 0; i < MAX_REGIONS; ++i)
     {
         out->WriteInt8(region_enabled[i]);
-        intrRegion[i].WriteTimesRunToSavedgame(out);
+        if (loaded_game_file_version <= kGameVersion_272)
+            intrRegion[i].WriteTimesRunToSavedgame(out);
     }
     for (int i = 0; i < MAX_OBJ; ++i)
     {
         out->WriteInt32(walkbehind_base[i]);
     }
 
-    intrRoom.WriteTimesRunToSavedgame(out);
-    out->WriteArrayOfInt32(interactionVariableValues, MAX_GLOBAL_VARIABLES);
     Properties::WriteValues(roomProps, out);
+    if (loaded_game_file_version <= kGameVersion_272)
+    {
+        intrRoom.WriteTimesRunToSavedgame(out);
+        out->WriteArrayOfInt32(interactionVariableValues, MAX_GLOBAL_VARIABLES);
+    }
 
     out->WriteInt32(tsdatasize);
     if (tsdatasize)
