@@ -470,13 +470,10 @@ void free_do_once_tokens()
 {
     for (int i = 0; i < play.num_do_once_tokens; i++)
     {
-        free(play.do_once_tokens[i]);
+        delete [] play.do_once_tokens[i];
     }
-    if (play.do_once_tokens != NULL)
-    {
-        free(play.do_once_tokens);
-        play.do_once_tokens = NULL;
-    }
+    delete [] play.do_once_tokens;
+    play.do_once_tokens = NULL;
     play.num_do_once_tokens = 0;
 }
 
@@ -784,9 +781,12 @@ int Game_DoOnceOnly(const char *token)
             return 0;
         }
     }
-    play.do_once_tokens = (char**)realloc(play.do_once_tokens, sizeof(char*) * (play.num_do_once_tokens + 1));
-    play.do_once_tokens[play.num_do_once_tokens] = (char*)malloc(strlen(token) + 1);
-    strcpy(play.do_once_tokens[play.num_do_once_tokens], token);
+    char **new_tokens = new char*[play.num_do_once_tokens + 1];
+    memcpy(new_tokens, play.do_once_tokens, play.num_do_once_tokens * sizeof(char*));
+    play.do_once_tokens = new_tokens;
+    size_t token_sz = strlen(token) + 1;
+    play.do_once_tokens[play.num_do_once_tokens] = new char[token_sz];
+    memcpy(play.do_once_tokens[play.num_do_once_tokens], token, token_sz);
     play.num_do_once_tokens++;
     return 1;
 }
@@ -1270,12 +1270,13 @@ void restore_game_play_ex_data(Stream *in)
 {
     if (play.num_do_once_tokens > 0)
     {
-        play.do_once_tokens = (char**)malloc(sizeof(char*) * play.num_do_once_tokens);
+        play.do_once_tokens = new char*[play.num_do_once_tokens];
         for (int bb = 0; bb < play.num_do_once_tokens; bb++)
         {
             fgetstring_limit(rbuffer, in, 200);
-            play.do_once_tokens[bb] = (char*)malloc(strlen(rbuffer) + 1);
-            strcpy(play.do_once_tokens[bb], rbuffer);
+            size_t token_sz = strlen(rbuffer) + 1;
+            play.do_once_tokens[bb] = new char[token_sz];
+            memcpy(play.do_once_tokens[bb], rbuffer, token_sz);
         }
     }
 
