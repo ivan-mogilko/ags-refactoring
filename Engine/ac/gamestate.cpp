@@ -239,7 +239,8 @@ void GameState::ReadFromSavegame(Common::Stream *in, bool old_save)
     text_min_display_time_ms = in->ReadInt32();
     ignore_user_input_after_text_timeout_ms = in->ReadInt32();
     ignore_user_input_until_time = in->ReadInt32();
-    in->ReadArrayOfInt32(default_audio_type_volumes, MAX_AUDIO_TYPES);
+    if (old_save)
+        in->ReadArrayOfInt32(default_audio_type_volumes, MAX_AUDIO_TYPES);
 }
 
 void GameState::WriteForSavegame(Common::Stream *out) const
@@ -421,7 +422,6 @@ void GameState::WriteForSavegame(Common::Stream *out) const
     out->WriteInt32( text_min_display_time_ms);
     out->WriteInt32( ignore_user_input_after_text_timeout_ms);
     out->WriteInt32( ignore_user_input_until_time);
-    out->WriteArrayOfInt32(default_audio_type_volumes, MAX_AUDIO_TYPES);
 }
 
 void GameState::ReadQueuedAudioItems_Aligned(Common::Stream *in)

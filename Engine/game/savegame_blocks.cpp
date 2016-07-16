@@ -384,7 +384,10 @@ SavegameError WriteAudio(Stream *out)
     out->WriteInt32(game.audioClipCount);
     // Audio types
     for (int i = 0; i < game.audioClipTypeCount; ++i)
-        game.audioClipTypes[i].WriteToFile(out);
+    {
+        game.audioClipTypes[i].WriteToSavegame(out);
+        out->WriteInt32(play.default_audio_type_volumes[i]);
+    }
 
     // Audio clips and crossfade
     for (int i = 0; i <= MAX_SOUND_CHANNELS; i++)
@@ -429,7 +432,10 @@ SavegameError ReadAudio(Stream *in, int32_t blk_ver, const PreservedParams &pp, 
 
     // Audio types
     for (int i = 0; i < game.audioClipTypeCount; ++i)
-        game.audioClipTypes[i].ReadFromFile(in);
+    {
+        game.audioClipTypes[i].ReadFromSavegame(in);
+        play.default_audio_type_volumes[i] = in->ReadInt32();
+    }
 
     // Audio clips and crossfade
     for (int i = 0; i <= MAX_SOUND_CHANNELS; ++i)
