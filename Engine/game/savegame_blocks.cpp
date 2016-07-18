@@ -786,7 +786,13 @@ SavegameError ReadDynamicSprites(Stream *in, int32_t blk_ver, const PreservedPar
     const int spr_count = in->ReadInt32();
     // ensure the sprite set is at least large enough
     // to accomodate top dynamic sprite index
-    spriteset.enlargeTo(in->ReadInt32());
+    const int top_index = in->ReadInt32();
+    if (top_index >= MAX_SPRITES)
+    {
+        Out::FPrint("Restore game error: incompatible sprite top index (id: %d, max: %d)", top_index, MAX_SPRITES - 1);
+        return kSvgErr_IncompatibleEngine;
+    }
+    spriteset.enlargeTo(top_index);
     for (int i = 0; i < spr_count; ++i)
     {
         int id = in->ReadInt32();
