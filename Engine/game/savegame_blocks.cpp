@@ -647,13 +647,14 @@ SavegameError ReadGUI(Stream *in, int32_t blk_ver, const PreservedParams &pp, Re
         return kSvgErr_InconsistentFormat;
 
     // Animated buttons
-    numAnimButs = in->ReadInt32();
-    if (numAnimButs > MAX_ANIMATING_BUTTONS)
+    int anim_count = in->ReadInt32();
+    if (anim_count > MAX_ANIMATING_BUTTONS)
     {
         Out::FPrint("Restore game error: incompatible number of animated buttons (count: %d, max: %d)",
-            numAnimButs, MAX_ANIMATING_BUTTONS);
+            anim_count, MAX_ANIMATING_BUTTONS);
         return kSvgErr_IncompatibleEngine;
     }
+    numAnimButs = anim_count;
     for (int i = 0; i < numAnimButs; ++i)
         animbuts[i].ReadFromFile(in);
     return kSvgErr_NoError;
@@ -811,8 +812,14 @@ SavegameError WriteOverlays(Stream *out)
 
 SavegameError ReadOverlays(Stream *in, int32_t blk_ver, const PreservedParams &pp, RestoredData &r_data)
 {
-    if (!AssertGameContent(numscreenover, in->ReadInt32(), "Overlays"))
-        return kSvgErr_GameContentAssertion;
+    int over_count = in->ReadInt32();
+    if (over_count > MAX_SCREEN_OVERLAYS)
+    {
+        Out::FPrint("Restore game error: incompatible number of overlays (count: %d, max: %d)",
+            over_count, MAX_SCREEN_OVERLAYS);
+        return kSvgErr_IncompatibleEngine;
+    }
+    numscreenover = over_count;
     for (int i = 0; i < numscreenover; ++i)
     {
         screenover[i].ReadFromFile(in);
