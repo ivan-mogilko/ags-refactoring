@@ -493,6 +493,8 @@ SavegameError WriteCharacters(Stream *out)
         Properties::WriteValues(play.charProps[i], out);
         if (loaded_game_file_version <= kGameVersion_272)
             game.intrChar[i]->WriteTimesRunToSavedgame(out);
+        // character movement path cache
+        mls[CHMLSOFFS + i].WriteToFile(out);
     }
     return kSvgErr_NoError;
 }
@@ -508,6 +510,8 @@ SavegameError ReadCharacters(Stream *in, int32_t blk_ver, const PreservedParams 
         Properties::ReadValues(play.charProps[i], in);
         if (loaded_game_file_version <= kGameVersion_272)
             game.intrChar[i]->ReadTimesRunFromSavedgame(in);
+        // character movement path cache
+        mls[CHMLSOFFS + i].ReadFromFile(in);
     }
     return kSvgErr_NoError;
 }
@@ -989,14 +993,9 @@ SavegameError WriteThisRoom(Stream *out)
         out->WriteInt32(thisroom.walk_area_zoom2[i]);
     }
 
-    // character and object movement paths cache
-    out->WriteInt32(game.numcharacters);
-    for (int i = 0; i < game.numcharacters; ++i)
-    {
-        mls[i].WriteToFile(out);
-    }
-    out->WriteInt32(MAX_INIT_SPR + 1);
-    for (int i = game.numcharacters; i < game.numcharacters + MAX_INIT_SPR + 1; ++i)
+    // room object movement paths cache
+    out->WriteInt32(thisroom.numsprs + 1);
+    for (int i = 0; i < thisroom.numsprs + 1; ++i)
     {
         mls[i].WriteToFile(out);
     }
@@ -1043,16 +1042,15 @@ SavegameError ReadThisRoom(Stream *in, int32_t blk_ver, const PreservedParams &p
         r_data.RoomZoomLevels2[i] = in->ReadInt32();
     }
 
-    // character and object movement paths cache
-    if (!AssertContentMatch(game.numcharacters, in->ReadInt32(), "characters", "character move lists"))
-        return kSvgErr_InconsistentData;
-    for (int i = 0; i < game.numcharacters; ++i)
+    // room object movement paths cache
+    int objmls_count = in->ReadInt32();
+    if (objmls_count > CHMLSOFFS)
     {
-        mls[i].ReadFromFile(in);
+        Out::FPrint("Restore game error: incompatible number of room object move lists (count: %d, max: %d)",
+            objmls_count, CHMLSOFFS);
+        return kSvgErr_IncompatibleEngine;
     }
-    if (!AssertContentMatch(MAX_INIT_SPR + 1, in->ReadInt32(), "objects (max)", "object move lists"))
-        return kSvgErr_InconsistentData;
-    for (int i = game.numcharacters; i < game.numcharacters + MAX_INIT_SPR + 1; ++i)
+    for (int i = 0; i < objmls_count; ++i)
     {
         mls[i].ReadFromFile(in);
     }
