@@ -49,22 +49,8 @@ struct PreservedParams
 // the restoration process
 struct RestoredData
 {
-    // Game content reference, used in cases when the number
-    // of entities is supposed to be constant at runtime
-    int                     AudioTypeCount;
-    int                     AudioClipCount;
-    int                     CharCount;
-    int                     DialogCount;
-    int                     GUICount;
-    int                     GUIBtnCount;
-    int                     GUILblCount;
-    int                     GUIInvCount;
-    int                     GUISldCount;
-    int                     GUITbxCount;
-    int                     GUILbxCount;
-    int                     InvItemCount;
-    int                     MouseCurCount;
-    std::vector< std::vector<int> > Views;
+    // Information on save content and entity conflicts
+    LoadedSaveInfo          SaveInfo;
 
     // Dynamic state
     int                     FPS;

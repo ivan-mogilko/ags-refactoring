@@ -17,6 +17,7 @@
 #include "ac/dynobj/cc_serializer.h"
 #include "ac/dynobj/all_dynamicclasses.h"
 #include "ac/dynobj/all_scriptclasses.h"
+#include "ac/dynobj/scriptloadedsaveinfo.h"
 #include "ac/dynobj/scriptfile.h"
 #include "ac/dynobj/scriptuserobject.h"
 #include "ac/game.h"
@@ -36,6 +37,7 @@ extern CCObject    ccDynamicObject;
 extern CCDialog    ccDynamicDialog;
 extern ScriptDrawingSurface* dialogOptionsRenderingSurface;
 extern ScriptDialogOptionsRendering ccDialogOptionsRendering;
+extern ScriptLoadedSaveInfo ccLoadedSaveInfo;
 extern PluginObjectReader pluginReaders[MAX_PLUGIN_OBJECT_READERS];
 extern int numPluginReaders;
 
@@ -106,6 +108,10 @@ void AGSDeSerializer::Unserialize(int index, const char *objectType, const char 
     else if (strcmp(objectType, "DialogOptionsRendering") == 0)
     {
         ccDialogOptionsRendering.Unserialize(index, serializedData, dataSize);
+    }
+    else if (strcmp(objectType, "LoadedSaveInfo") == 0)
+    {
+        ccLoadedSaveInfo.Unserialize(index, serializedData, dataSize);
     }
     else if (strcmp(objectType, "UserObject") == 0) {
         ScriptUserObject *suo = new ScriptUserObject();

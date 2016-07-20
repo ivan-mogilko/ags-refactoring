@@ -87,6 +87,11 @@ extern NonBlockingScriptFunction getDialogOptionUnderCursorFunc;
 extern NonBlockingScriptFunction runDialogOptionMouseClickHandlerFunc;
 extern NonBlockingScriptFunction runDialogOptionKeyPressHandlerFunc;
 extern NonBlockingScriptFunction runDialogOptionRepExecFunc;
+// "resolve_restored_game" is run in the end of save loading process
+// to let game developer react to content conflicts and do last minute
+// corrections to the game state; at this point loading save can still
+// be aborted
+extern NonBlockingScriptFunction resolveRestoredGame;
 
 extern ScriptSystem scsystem;
 

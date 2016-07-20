@@ -31,6 +31,7 @@
 #include "ac/viewframe.h"
 #include "ac/dynobj/all_dynamicclasses.h"
 #include "ac/dynobj/all_scriptclasses.h"
+#include "ac/dynobj/scriptloadedsaveinfo.h"
 #include "debug/debug_log.h"
 #include "debug/out.h"
 #include "font/fonts.h"
@@ -83,6 +84,8 @@ extern ScriptDialog scrDialog[MAX_DIALOG];
 
 extern ScriptDialogOptionsRendering ccDialogOptionsRendering;
 extern ScriptDrawingSurface* dialogOptionsRenderingSurface;
+
+extern ScriptLoadedSaveInfo ccLoadedSaveInfo;
 
 extern int our_eip;
 extern int game_paused;
@@ -205,6 +208,7 @@ void game_file_read_script_modules(Stream *in)
         runDialogOptionMouseClickHandlerFunc.moduleHasFunction.resize(numScriptModules, true);
         runDialogOptionKeyPressHandlerFunc.moduleHasFunction.resize(numScriptModules, true);
         runDialogOptionRepExecFunc.moduleHasFunction.resize(numScriptModules, true);
+        resolveRestoredGame.moduleHasFunction.resize(numScriptModules, true);
         for (int bb = 0; bb < numScriptModules; bb++) {
             scriptModules[bb] = ccScript::CreateFromStream(in);
             if (scriptModules[bb] == NULL)
@@ -562,6 +566,8 @@ void init_and_register_game_objects()
     ccAddExternalStaticArray("region",&scrRegion[0], &StaticRegionArray);
     ccAddExternalStaticArray("inventory",&scrInv[0], &StaticInventoryArray);
     ccAddExternalStaticArray("dialog", &scrDialog[0], &StaticDialogArray);
+
+    ccRegisterManagedObject(&ccLoadedSaveInfo, &ccLoadedSaveInfo);
 }
 
 void ReadGameSetupStructBase_Aligned(Stream *in)

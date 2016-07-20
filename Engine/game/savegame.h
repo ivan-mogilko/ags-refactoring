@@ -15,6 +15,7 @@
 #ifndef __AGS_EE_GAME__SAVEGAME_H
 #define __AGS_EE_GAME__SAVEGAME_H
 
+#include "game/loadedsaveinfo.h"
 #include "main/version.h"
 
 
@@ -68,6 +69,7 @@ enum SavegameError
     kSvgErr_InconsistentPlugin,
     kSvgErr_DifferentColorDepth,
     kSvgErr_GameObjectInitFailed,
+    kSvgErr_CancelledByScript,
     kNumSavegameError
 };
 
@@ -137,7 +139,7 @@ SavegameError  OpenSavegame(const String &filename, SavegameSource &src,
 SavegameError  OpenSavegame(const String &filename, SavegameDescription &desc, SavegameDescElem elems = kSvgDesc_All);
 
 // Reads the game data from the save stream and reinitializes game state
-SavegameError  RestoreGameState(Stream *in, SavegameVersion svg_version);
+SavegameError  RestoreGameState(Stream *in, SavegameVersion svg_version, LoadedSaveInfo &save_info);
 
 // Opens savegame for writing and puts in savegame description
 Stream        *StartSavegame(const String &filename, const String &user_text, const Bitmap *user_image);

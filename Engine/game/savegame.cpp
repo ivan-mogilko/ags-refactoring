@@ -157,6 +157,8 @@ String GetSavegameErrorText(SavegameError err)
         return "Saved with the engine running at a different colour depth";
     case kSvgErr_GameObjectInitFailed:
         return "Game object initialization failed after save restoration";
+    case kSvgErr_CancelledByScript:
+        return "Save restoration was cancelled by the game script";
     }
     return "Unknown error";
 }
@@ -582,7 +584,7 @@ SavegameError DoAfterRestore(const PreservedParams &pp, const RestoredData &r_da
     return kSvgErr_NoError;
 }
 
-SavegameError RestoreGameState(Stream *in, SavegameVersion svg_version)
+SavegameError RestoreGameState(Stream *in, SavegameVersion svg_version, LoadedSaveInfo &save_info)
 {
     PreservedParams pp;
     RestoredData r_data;
@@ -594,7 +596,9 @@ SavegameError RestoreGameState(Stream *in, SavegameVersion svg_version)
         err = restore_game_data(in, svg_version, pp, r_data);
     if (err != kSvgErr_NoError)
         return err;
-    return DoAfterRestore(pp, r_data);
+    err = DoAfterRestore(pp, r_data);
+    save_info = r_data.SaveInfo;
+    return err;
 }
 
 Stream *StartSavegame(const String &filename, const String &user_text, const Bitmap *user_image)

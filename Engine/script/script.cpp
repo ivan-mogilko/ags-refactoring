@@ -77,6 +77,7 @@ NonBlockingScriptFunction getDialogOptionUnderCursorFunc("dialog_options_get_act
 NonBlockingScriptFunction runDialogOptionMouseClickHandlerFunc("dialog_options_mouse_click", 2);
 NonBlockingScriptFunction runDialogOptionKeyPressHandlerFunc("dialog_options_key_press", 2);
 NonBlockingScriptFunction runDialogOptionRepExecFunc("dialog_options_repexec", 1);
+NonBlockingScriptFunction resolveRestoredGame("resolve_restored_game", 1);
 
 ScriptSystem scsystem;
 

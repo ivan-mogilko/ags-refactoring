@@ -438,15 +438,15 @@ SavegameError WriteAudio(Stream *out)
 SavegameError ReadAudio(Stream *in, int32_t blk_ver, const PreservedParams &pp, RestoredData &r_data)
 {
     // Game content assertion
-    r_data.AudioTypeCount = in->ReadInt32();
-    r_data.AudioClipCount = in->ReadInt32();
-    if (!AssertGameContent(game.audioClipTypeCount, r_data.AudioTypeCount, "Audio Clip Types"))
+    r_data.SaveInfo.AudioTypeCount = in->ReadInt32();
+    r_data.SaveInfo.AudioClipCount = in->ReadInt32();
+    if (!AssertGameContent(game.audioClipTypeCount, r_data.SaveInfo.AudioTypeCount, "Audio Clip Types"))
         return kSvgErr_GameContentAssertion;
-    if (!AssertGameContent(game.audioClipCount, r_data.AudioClipCount, "Audio Clips"))
+    if (!AssertGameContent(game.audioClipCount, r_data.SaveInfo.AudioClipCount, "Audio Clips"))
         return kSvgErr_GameContentAssertion;
 
     // Audio types
-    for (int i = 0; i < r_data.AudioTypeCount; ++i)
+    for (int i = 0; i < r_data.SaveInfo.AudioTypeCount; ++i)
     {
         game.audioClipTypes[i].ReadFromSavegame(in);
         play.default_audio_type_volumes[i] = in->ReadInt32();
@@ -516,10 +516,10 @@ SavegameError WriteCharacters(Stream *out)
 
 SavegameError ReadCharacters(Stream *in, int32_t blk_ver, const PreservedParams &pp, RestoredData &r_data)
 {
-    r_data.CharCount = in->ReadInt32();
-    if (!AssertGameContent(game.numcharacters, r_data.CharCount, "Characters"))
+    r_data.SaveInfo.CharCount = in->ReadInt32();
+    if (!AssertGameContent(game.numcharacters, r_data.SaveInfo.CharCount, "Characters"))
         return kSvgErr_GameContentAssertion;
-    for (int i = 0; i < r_data.CharCount; ++i)
+    for (int i = 0; i < r_data.SaveInfo.CharCount; ++i)
     {
         game.chars[i].ReadFromFile(in);
         charextra[i].ReadFromFile(in);
@@ -544,10 +544,10 @@ SavegameError WriteDialogs(Stream *out)
 
 SavegameError ReadDialogs(Stream *in, int32_t blk_ver, const PreservedParams &pp, RestoredData &r_data)
 {
-    r_data.DialogCount = in->ReadInt32();
-    if (!AssertGameContent(game.numdialog, r_data.DialogCount, "Dialogs"))
+    r_data.SaveInfo.DialogCount = in->ReadInt32();
+    if (!AssertGameContent(game.numdialog, r_data.SaveInfo.DialogCount, "Dialogs"))
         return kSvgErr_GameContentAssertion;
-    for (int i = 0; i < r_data.DialogCount; ++i)
+    for (int i = 0; i < r_data.SaveInfo.DialogCount; ++i)
     {
         dialog[i].ReadFromSavegame(in);
     }
@@ -611,64 +611,64 @@ SavegameError WriteGUI(Stream *out)
 SavegameError ReadGUI(Stream *in, int32_t blk_ver, const PreservedParams &pp, RestoredData &r_data)
 {
     // GUI state
-    r_data.GUICount = in->ReadInt32();
-    if (!AssertGameContent(game.numgui, r_data.GUICount, "GUIs"))
+    r_data.SaveInfo.GUICount = in->ReadInt32();
+    if (!AssertGameContent(game.numgui, r_data.SaveInfo.GUICount, "GUIs"))
         return kSvgErr_GameContentAssertion;
-    for (int i = 0; i < r_data.GUICount; ++i)
+    for (int i = 0; i < r_data.SaveInfo.GUICount; ++i)
         guis[i].ReadFromSavegame(in);
 
     if (!AssertFormat(FormatConsistencyCheck, in->ReadInt32(), "GUI Buttons"))
         return kSvgErr_InconsistentFormat;
 
-    r_data.GUIBtnCount = in->ReadInt32();
-    if (!AssertGameContent(numguibuts, r_data.GUIBtnCount, "GUI Buttons"))
+    r_data.SaveInfo.GUIBtnCount = in->ReadInt32();
+    if (!AssertGameContent(numguibuts, r_data.SaveInfo.GUIBtnCount, "GUI Buttons"))
         return kSvgErr_GameContentAssertion;
-    for (int i = 0; i < r_data.GUIBtnCount; ++i)
+    for (int i = 0; i < r_data.SaveInfo.GUIBtnCount; ++i)
         guibuts[i].ReadFromSavegame(in);
 
     if (!AssertFormat(FormatConsistencyCheck, in->ReadInt32(), "GUI Labels"))
         return kSvgErr_InconsistentFormat;
 
-    r_data.GUILblCount = in->ReadInt32();
-    if (!AssertGameContent(numguilabels, r_data.GUILblCount, "GUI Labels"))
+    r_data.SaveInfo.GUILblCount = in->ReadInt32();
+    if (!AssertGameContent(numguilabels, r_data.SaveInfo.GUILblCount, "GUI Labels"))
         return kSvgErr_GameContentAssertion;
-    for (int i = 0; i < r_data.GUILblCount; ++i)
+    for (int i = 0; i < r_data.SaveInfo.GUILblCount; ++i)
         guilabels[i].ReadFromSavegame(in);
 
     if (!AssertFormat(FormatConsistencyCheck, in->ReadInt32(), "GUI InvWindows"))
         return kSvgErr_InconsistentFormat;
 
-    r_data.GUIInvCount = in->ReadInt32();
-    if (!AssertGameContent(numguiinv, r_data.GUIInvCount, "GUI InvWindows"))
+    r_data.SaveInfo.GUIInvCount = in->ReadInt32();
+    if (!AssertGameContent(numguiinv, r_data.SaveInfo.GUIInvCount, "GUI InvWindows"))
         return kSvgErr_GameContentAssertion;
-    for (int i = 0; i < r_data.GUIInvCount; ++i)
+    for (int i = 0; i < r_data.SaveInfo.GUIInvCount; ++i)
         guiinv[i].ReadFromSavegame(in);
 
     if (!AssertFormat(FormatConsistencyCheck, in->ReadInt32(), "GUI Sliders"))
         return kSvgErr_InconsistentFormat;
 
-    r_data.GUISldCount = in->ReadInt32();
-    if (!AssertGameContent(numguislider, r_data.GUISldCount, "GUI Sliders"))
+    r_data.SaveInfo.GUISldCount = in->ReadInt32();
+    if (!AssertGameContent(numguislider, r_data.SaveInfo.GUISldCount, "GUI Sliders"))
         return kSvgErr_GameContentAssertion;
-    for (int i = 0; i < r_data.GUISldCount; ++i)
+    for (int i = 0; i < r_data.SaveInfo.GUISldCount; ++i)
         guislider[i].ReadFromSavegame(in);
 
     if (!AssertFormat(FormatConsistencyCheck, in->ReadInt32(), "GUI TextBoxes"))
         return kSvgErr_InconsistentFormat;
 
-    r_data.GUITbxCount = in->ReadInt32();
-    if (!AssertGameContent(numguitext, r_data.GUITbxCount, "GUI TextBoxes"))
+    r_data.SaveInfo.GUITbxCount = in->ReadInt32();
+    if (!AssertGameContent(numguitext, r_data.SaveInfo.GUITbxCount, "GUI TextBoxes"))
         return kSvgErr_GameContentAssertion;
-    for (int i = 0; i < r_data.GUITbxCount; ++i)
+    for (int i = 0; i < r_data.SaveInfo.GUITbxCount; ++i)
         guitext[i].ReadFromSavegame(in);
 
     if (!AssertFormat(FormatConsistencyCheck, in->ReadInt32(), "GUI ListBoxes"))
         return kSvgErr_InconsistentFormat;
 
-    r_data.GUILbxCount = in->ReadInt32();
-    if (!AssertGameContent(numguilist, r_data.GUILbxCount, "GUI ListBoxes"))
+    r_data.SaveInfo.GUILbxCount = in->ReadInt32();
+    if (!AssertGameContent(numguilist, r_data.SaveInfo.GUILbxCount, "GUI ListBoxes"))
         return kSvgErr_GameContentAssertion;
-    for (int i = 0; i < r_data.GUILbxCount; ++i)
+    for (int i = 0; i < r_data.SaveInfo.GUILbxCount; ++i)
         guilist[i].ReadFromSavegame(in);
 
     if (!AssertFormat(FormatConsistencyCheck, in->ReadInt32(), "Animated Buttons"))
@@ -703,10 +703,10 @@ SavegameError WriteInventory(Stream *out)
 
 SavegameError ReadInventory(Stream *in, int32_t blk_ver, const PreservedParams &pp, RestoredData &r_data)
 {
-    r_data.InvItemCount = in->ReadInt32();
-    if (!AssertGameContent(game.numinvitems, r_data.InvItemCount, "Inventory Items"))
+    r_data.SaveInfo.InvItemCount = in->ReadInt32();
+    if (!AssertGameContent(game.numinvitems, r_data.SaveInfo.InvItemCount, "Inventory Items"))
         return kSvgErr_GameContentAssertion;
-    for (int i = 0; i < r_data.InvItemCount; ++i)
+    for (int i = 0; i < r_data.SaveInfo.InvItemCount; ++i)
     {
         game.invinfo[i].ReadFromSavegame(in);
         Properties::ReadValues(play.invProps[i], in);
@@ -728,10 +728,10 @@ SavegameError WriteMouseCursors(Stream *out)
 
 SavegameError ReadMouseCursors(Stream *in, int32_t blk_ver, const PreservedParams &pp, RestoredData &r_data)
 {
-    r_data.MouseCurCount = in->ReadInt32();
-    if (!AssertGameContent(game.numcursors, r_data.MouseCurCount, "Mouse Cursors"))
+    r_data.SaveInfo.MouseCurCount = in->ReadInt32();
+    if (!AssertGameContent(game.numcursors, r_data.SaveInfo.MouseCurCount, "Mouse Cursors"))
         return kSvgErr_GameContentAssertion;
-    for (int i = 0; i < r_data.MouseCurCount; ++i)
+    for (int i = 0; i < r_data.SaveInfo.MouseCurCount; ++i)
     {
         game.mcurs[i].ReadFromSavegame(in);
     }
@@ -762,20 +762,20 @@ SavegameError ReadViews(Stream *in, int32_t blk_ver, const PreservedParams &pp, 
     int view_count = in->ReadInt32();
     if (!AssertGameContent(game.numviews, view_count, "Views"))
         return kSvgErr_GameContentAssertion;
-    r_data.Views.resize(view_count);
+    r_data.SaveInfo.Views.resize(view_count);
     for (int view = 0; view < view_count; ++view)
     {
         int loop_count = in->ReadInt32();
         if (!AssertGameObjectContent(views[view].numLoops, loop_count, "Loops", "View", view))
             return kSvgErr_GameContentAssertion;
-        r_data.Views[view].resize(loop_count);
+        r_data.SaveInfo.Views[view].resize(loop_count);
         for (int loop = 0; loop < loop_count; ++loop)
         {
             int frame_count = in->ReadInt32();
             if (!AssertGameObjectContent2(views[view].loops[loop].numFrames, frame_count,
                 "Frame", "View", view, "Loop", loop))
                 return kSvgErr_GameContentAssertion;
-            r_data.Views[view][loop] = frame_count;
+            r_data.SaveInfo.Views[view][loop] = frame_count;
             for (int frame = 0; frame < frame_count; ++frame)
             {
                 views[view].loops[loop].frames[frame].sound = in->ReadInt32();

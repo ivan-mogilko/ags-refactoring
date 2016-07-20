@@ -59,6 +59,7 @@
 #include "ac/dynobj/all_scriptclasses.h"
 #include "ac/dynobj/cc_audiochannel.h"
 #include "ac/dynobj/cc_audioclip.h"
+#include "ac/dynobj/scriptloadedsaveinfo.h"
 #include "debug/debug_log.h"
 #include "debug/out.h"
 #include "device/mousew32.h"
@@ -179,6 +180,8 @@ ScriptHotspot scrHotspot[MAX_HOTSPOTS];
 ScriptRegion scrRegion[MAX_REGIONS];
 ScriptInvItem scrInv[MAX_INV];
 ScriptDialog scrDialog[MAX_DIALOG];
+
+ScriptLoadedSaveInfo ccLoadedSaveInfo;
 
 ViewStruct*views=NULL;
 
@@ -574,6 +577,7 @@ void unload_game_file() {
     runDialogOptionMouseClickHandlerFunc.moduleHasFunction.resize(0);
     runDialogOptionKeyPressHandlerFunc.moduleHasFunction.resize(0);
     runDialogOptionRepExecFunc.moduleHasFunction.resize(0);
+    resolveRestoredGame.moduleHasFunction.resize(0);
     numScriptModules = 0;
 
     if (game.audioClipCount > 0)
@@ -1785,12 +1789,23 @@ SavegameError load_game(const String &path, int slotNumber, bool &data_overwritt
     }
 
     // do the actual restore
-    err = RestoreGameState(src.InputStream.get(), src.Version);
+    LoadedSaveInfo save_info;
+    err = RestoreGameState(src.InputStream.get(), src.Version, save_info);
     data_overwritten = true;
     if (err != kSvgErr_NoError)
         return err;
     src.InputStream.reset();
     our_eip = oldeip;
+
+    // Run 'resolve_restored_game' script function;
+    if (src.Version >= kSvgVersion_Blocks)
+        ccLoadedSaveInfo.Set(save_info);
+    else
+        ccLoadedSaveInfo.Reset();
+    resolveRestoredGame.params[0].SetDynamicObject(&ccLoadedSaveInfo, &ccLoadedSaveInfo);
+    run_function_on_non_blocking_thread(&resolveRestoredGame);
+    if (ccLoadedSaveInfo.IsRestoreCancelled())
+        return kSvgErr_CancelledByScript;
 
     // ensure keyboard buffer is clean
     // use the raw versions rather than the rec_ versions so we don't
