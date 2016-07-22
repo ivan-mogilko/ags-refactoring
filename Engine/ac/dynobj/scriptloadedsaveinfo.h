@@ -19,7 +19,8 @@
 #include "ac/dynobj/cc_agsdynamicobject.h"
 #include "game/loadedsaveinfo.h"
 
-typedef std::auto_ptr<AGS::Engine::LoadedSaveInfo> ALoadedSaveInfo;
+using AGS::Engine::LoadedSaveInfo;
+typedef std::auto_ptr<LoadedSaveInfo> ALoadedSaveInfo;
 
 class ScriptLoadedSaveInfo : public AGSCCDynamicObject
 {
@@ -36,8 +37,11 @@ public:
 
     // Tells if the game restoration was cancelled from game script
     bool IsRestoreCancelled() const { return _cancelRestore; }
+    const LoadedSaveInfo *GetInfo() const { return _info.get(); }
     // Copies LoadedSaveInfo to the managed object
-    void Set(const AGS::Engine::LoadedSaveInfo &info);
+    void Set(const LoadedSaveInfo &info);
+    // Sets whether save restoration should be cancelled
+    void SetRestoreCancelled(bool cancel);
     // Deletes LoadedSaveInfo (this does not dispose managed object itself)
     void Reset();
 

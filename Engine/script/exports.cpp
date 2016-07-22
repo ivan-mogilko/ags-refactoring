@@ -35,6 +35,7 @@ extern void RegisterInventoryItemAPI();
 extern void RegisterInventoryWindowAPI();
 extern void RegisterLabelBoxAPI();
 extern void RegisterListBoxAPI();
+extern void RegisterLoadedSaveInfoAPI();
 extern void RegisterMathAPI();
 extern void RegisterMouseAPI();
 extern void RegisterObjectAPI();
@@ -72,6 +73,7 @@ void setup_script_exports()
     RegisterInventoryWindowAPI();
     RegisterLabelBoxAPI();
     RegisterListBoxAPI();
+    RegisterLoadedSaveInfoAPI();
     RegisterMathAPI();
     RegisterMouseAPI();
     RegisterObjectAPI();

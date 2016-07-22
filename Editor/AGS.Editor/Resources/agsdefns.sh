@@ -2418,6 +2418,40 @@ builtin struct Speech {
 };
 #endif
 
+builtin managed struct LoadedSaveInfo {
+  /// Gets/sets whether save restoration should be cancelled
+  import attribute bool CancelRestore;
+  /// Gets whether information on save contents is currently valid
+  readonly import attribute bool Valid;
+  /// Gets number of audio types in save
+  readonly import attribute int AudioTypeCount;
+  /// Gets number of audio clips in save
+  readonly import attribute int AudioClipCount;
+  /// Gets number of characters in save
+  readonly import attribute int CharacterCount;
+  /// Gets number of dialogs in save
+  readonly import attribute int DialogCount;
+  /// Gets number of GUIs in save
+  readonly import attribute int GUICount;
+  /// Gets number of buttons in save
+  readonly import attribute int ButtonCount;
+  /// Gets number of labels in save
+  readonly import attribute int LabelCount;
+  /// Gets number of inventory windows in save
+  readonly import attribute int InvWindowCount;
+  /// Gets number of sliders in save
+  readonly import attribute int SliderCount;
+  /// Gets number of text boxes in save
+  readonly import attribute int TextBoxCount;
+  /// Gets number of list boxes in save
+  readonly import attribute int ListBoxCount;
+  /// Gets number of inventory items in save
+  readonly import attribute int InventoryCount;
+  /// Gets number of mouse cursors in save
+  readonly import attribute int MouseCursorCount;
+  /// Gets number of views in save
+  readonly import attribute int ViewCount;
+};
 
 import readonly Character *player;
 import Mouse mouse;
