@@ -100,6 +100,7 @@ namespace AGS.Types
 		private string _saveGameExtension = string.Empty;
 		private bool _enhancedSaveGames = false;
         private string _saveGamesFolderName = string.Empty;
+        private SavegameCompatibility _saveCompatibility = SavegameCompatibility.None;
         private int _audioIndexer = 0;
         private string _buildTargets = GetBuildTargetsString(BuildTargetsInfo.GetAvailableBuildTargetNames(), false);
 
@@ -973,6 +974,17 @@ namespace AGS.Types
                 }
                 _saveGamesFolderName = _saveGamesFolderName.Trim();
             }
+        }
+
+        [DisplayName("Save games compatibility")]
+        [Description("Determines whether it is allowed to load saves made by different version of the game.")]
+        [DefaultValue(SavegameCompatibility.AllowMissingContent)]
+        [Category("Saved Games")]
+        [TypeConverter(typeof(EnumTypeConverter))]
+        public SavegameCompatibility SaveCompatibility
+        {
+            get { return _saveCompatibility; }
+            set { _saveCompatibility = value; }
         }
 
         [DisplayName("Put sound and sprite files in source control")]

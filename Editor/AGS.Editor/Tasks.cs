@@ -171,6 +171,11 @@ namespace AGS.Editor
             }
 
             game.SetScriptAPIForOldProject();
+
+            if (xmlVersionIndex < 14)
+            {
+                game.Settings.SaveCompatibility = SavegameCompatibility.None;
+            }
         }
 
         private string RemoveAllLeadingSpacesFromLines(string script)
