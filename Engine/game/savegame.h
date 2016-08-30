@@ -34,12 +34,14 @@ using Common::String;
 // Savegame version history
 //
 // 8      last old style saved game format (of AGS 3.2.1)
+// 9      first new style (self-descriptive block-based) format version
 //-----------------------------------------------------------------------------
 enum SavegameVersion
 {
     kSvgVersion_Undefined = 0,
     kSvgVersion_321       = 8,
-    kSvgVersion_Current   = kSvgVersion_321,
+    kSvgVersion_Blocks    = 9,
+    kSvgVersion_Current   = kSvgVersion_Blocks,
     kSvgVersion_LowestSupported = kSvgVersion_321
 };
 
@@ -52,6 +54,11 @@ enum SavegameError
     kSvgErr_SignatureFailed,
     kSvgErr_FormatVersionNotSupported,
     kSvgErr_IncompatibleEngine,
+    kSvgErr_GameGuidMismatch,
+    kSvgErr_BlockOpenSigMismatch,
+    kSvgErr_BlockCloseSigMismatch,
+    kSvgErr_MismatchingBlockType,
+    kSvgErr_UnsupportedBlockType,
     kSvgErr_InconsistentFormat,
     kSvgErr_GameContentAssertion,
     kSvgErr_InconsistentPlugin,
@@ -68,6 +75,8 @@ struct SavegameSource
 {
     // Signature of the current savegame format
     static const String Signature;
+    // Signature of the legacy savegame format
+    static const String LegacySignature;
 
     // Name of the savefile
     String              Filename;
@@ -94,8 +103,14 @@ enum SavegameDescElem
 // it was created in, and custom data provided by user
 struct SavegameDescription
 {
+    // Name of the engine that saved the game
+    String              EngineName;
     // Version of the engine that saved the game
     Version             EngineVersion;
+    // Guid of the game which made this save
+    String              GameGuid;
+    // Title of the game which made this save
+    String              GameTitle;
     // Name of the main data file used; this is needed to properly
     // load saves made by "minigames"
     String              MainDataFilename;
@@ -121,7 +136,7 @@ SavegameError  OpenSavegame(const String &filename, SavegameDescription &desc, S
 SavegameError  RestoreGameState(Stream *in, SavegameVersion svg_version);
 
 // Opens savegame for writing and puts in savegame description
-Stream        *StartSavegame(const String &filename, const String &desc, const Bitmap *image);
+Stream        *StartSavegame(const String &filename, const String &user_text, const Bitmap *user_image);
 
 // Prepares game for saving state and writes data into the save stream
 void           SaveGameState(Stream *out);

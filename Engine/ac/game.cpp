@@ -1943,6 +1943,8 @@ SavegameError restore_game_data(Stream *in, SavegameVersion svg_version, const P
     int numinvwas = game.numinvitems;
     int numviewswas = game.numviews;
     int numGuisWas = game.numgui;
+    String guid_was = game.guid;
+    String title_was = game.gamename;
 
     ReadGameSetupStructBase_Aligned(in);
 
@@ -1968,6 +1970,13 @@ SavegameError restore_game_data(Stream *in, SavegameVersion svg_version, const P
     }
 
     game.ReadFromSaveGame_v321(in, gswas, compsc, chwas, olddict, mesbk);
+
+    if (guid_was.Compare(game.guid))
+    {
+        Out::FPrint("ERROR: the save was made by a different game:\n\tThis game: '%s' (guid: %s)\n\tSaved in: '%s' (guid: %s)",
+            title_was.GetCStr(), guid_was.GetCStr(), game.gamename, game.guid);
+        return kSvgErr_GameGuidMismatch;
+    }
 
     // Modified custom properties are read separately to keep existing save format
     play.ReadCustomProperties(in);
@@ -2090,6 +2099,28 @@ SavegameError load_game(const String &path, int slotNumber, bool &data_overwritt
         return kSvgErr_DifferentColorDepth;
     else if (!src.InputStream.get())
         return kSvgErr_NoStream;
+/*
+    if (src.Version == kSvgVersion_321)
+    {
+        // This is legacy save format
+        if (desc.EngineVersion > EngineVersion ||
+            desc.EngineVersion < SavedgameLowestBackwardCompatVersion)
+        {
+            // Engine version is either non-forward or non-backward compatible
+            return kSvgErr_IncompatibleEngine;
+        }
+    }
+*/
+    if (src.Version >= kSvgVersion_Blocks)
+    {
+        // This is contemporary save format, check game guid
+        if (desc.GameGuid.Compare(game.guid))
+        {
+            Out::FPrint("ERROR: the save was made by a different game:\n\tThis game: '%s' (guid: %s)\n\tSaved in: '%s' (guid: %s)",
+                game.gamename, game.guid, desc.GameTitle.GetCStr(), desc.GameGuid.GetCStr());
+            return kSvgErr_GameGuidMismatch;
+        }
+    }
 
     // saved with different game file
     if (Path::ComparePaths(desc.MainDataFilename, usetup.main_data_filename))

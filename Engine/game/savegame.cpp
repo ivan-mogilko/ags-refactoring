@@ -38,6 +38,7 @@
 #include "gfx/ddb.h"
 #include "gfx/graphicsdriver.h"
 #include "game/savegame.h"
+#include "game/savegame_blocks.h"
 #include "game/savegame_internal.h"
 #include "main/main.h"
 #include "main/version.h"
@@ -74,8 +75,8 @@ namespace AGS
 namespace Engine
 {
 
-const String SavegameSource::Signature = "Adventure Game Studio saved game";
-
+const String SavegameSource::LegacySignature = "Adventure Game Studio saved game";
+const String SavegameSource::Signature       = "Adventure Game Studio saved game v2";
 
 SavegameSource::SavegameSource()
     : Version(kSvgVersion_Undefined)
@@ -128,6 +129,16 @@ String GetSavegameErrorText(SavegameError err)
         return "Save format version not supported";
     case kSvgErr_IncompatibleEngine:
         return "Save was written by incompatible engine, or file is corrupted";
+    case kSvgErr_GameGuidMismatch:
+        return "Game GUID does not match, saved by a different game";
+    case kSvgErr_BlockOpenSigMismatch:
+        return "Mismatching opening block signature";
+    case kSvgErr_BlockCloseSigMismatch:
+        return "Mismatching closing block signature";
+    case kSvgErr_MismatchingBlockType:
+        return "Mismatching block type, order of data could be wrong";
+    case kSvgErr_UnsupportedBlockType:
+        return "Unknown and/or unsupported block type";
     case kSvgErr_InconsistentFormat:
         return "Inconsistent format, or file is corrupted";
     case kSvgErr_GameContentAssertion:
@@ -142,19 +153,6 @@ String GetSavegameErrorText(SavegameError err)
     return "Unknown error";
 }
 
-Bitmap *RestoreSaveImage(Stream *in)
-{
-    if (in->ReadInt32())
-        return read_serialized_bitmap(in);
-    return NULL;
-}
-
-void SkipSaveImage(Stream *in)
-{
-    if (in->ReadInt32())
-        skip_serialized_bitmap(in);
-}
-
 SavegameError OpenSavegameBase(const String &filename, SavegameSource *src, SavegameDescription *desc, SavegameDescElem elems)
 {
     AStream in(File::OpenFileRead(filename));
@@ -166,51 +164,77 @@ SavegameError OpenSavegameBase(const String &filename, SavegameSource *src, Save
     rich_media_header.ReadFromFile(in.get());
 
     // Check saved game signature
+    bool is_new_save = false;
+    size_t pre_sig_pos = in->GetPosition();
     String svg_sig = String::FromStreamCount(in.get(), SavegameSource::Signature.GetLength());
-    if (svg_sig.Compare(SavegameSource::Signature))
-        return kSvgErr_SignatureFailed;
-
-    String desc_text;
-    if (desc && elems == kSvgDesc_UserText)
-        desc_text.Read(in.get());
-    else
-        for (; in->ReadByte(); ); // skip until null terminator
-    SavegameVersion svg_ver = (SavegameVersion)in->ReadInt32();
-
-    // Check saved game format version
-    if (svg_ver < kSvgVersion_LowestSupported ||
-        svg_ver > kSvgVersion_Current)
+    if (svg_sig.Compare(SavegameSource::Signature) == 0)
     {
-        return kSvgErr_FormatVersionNotSupported;
-    }
-
-    ABitmap image;
-    if (desc && elems == kSvgDesc_UserImage)
-        image.reset(RestoreSaveImage(in.get()));
-    else
-        SkipSaveImage(in.get());
-
-    String version_str = String::FromStream(in.get());
-    Version eng_version(version_str);
-    if (eng_version > EngineVersion ||
-        eng_version < SavedgameLowestBackwardCompatVersion)
-    {
-        // Engine version is either non-forward or non-backward compatible
-        return kSvgErr_IncompatibleEngine;
-    }
-    String main_file;
-    int color_depth;
-    if (desc && elems == kSvgDesc_EnvInfo)
-    {
-        main_file.Read(in.get());
-        in->ReadInt32(); // unscaled game height with borders, now obsolete
-        color_depth = in->ReadInt32();
+        is_new_save = true;
     }
     else
     {
-        for (; in->ReadByte(); ); // skip until null terminator
-        in->ReadInt32(); // unscaled game height with borders, now obsolete
-        in->ReadInt32(); // color depth
+        in->Seek(pre_sig_pos, kSeekBegin);
+        svg_sig = String::FromStreamCount(in.get(), SavegameSource::LegacySignature.GetLength());
+        if(svg_sig.Compare(SavegameSource::LegacySignature) != 0)
+            return kSvgErr_SignatureFailed;
+    }
+
+    SavegameVersion svg_ver;
+    SavegameDescription temp_desc;
+    if (is_new_save)
+    {
+        svg_ver = (SavegameVersion)in.get()->ReadInt32();
+        if (svg_ver < kSvgVersion_LowestSupported || svg_ver > kSvgVersion_Current)
+            return kSvgErr_FormatVersionNotSupported;
+        SavegameError err = SavegameBlocks::ReadDescription(in.get(), temp_desc, elems);
+        if (err != kSvgErr_NoError)
+            return err;
+    }
+    else
+    {
+        // Legacy savegame header
+        String desc_text;
+        if (desc && elems == kSvgDesc_UserText)
+            desc_text.Read(in.get());
+        else
+            for (; in->ReadByte(); ); // skip until null terminator
+        SavegameVersion svg_ver = (SavegameVersion)in->ReadInt32();
+
+        // Check saved game format version
+        if (svg_ver < kSvgVersion_LowestSupported ||
+            svg_ver > kSvgVersion_Current)
+        {
+            return kSvgErr_FormatVersionNotSupported;
+        }
+
+        ABitmap image;
+        if (desc && elems == kSvgDesc_UserImage)
+            image.reset(SavegameBlocks::RestoreSaveImage(in.get()));
+        else
+            SavegameBlocks::SkipSaveImage(in.get());
+
+        String version_str = String::FromStream(in.get());
+        Version eng_version(version_str);
+        if (eng_version > EngineVersion ||
+            eng_version < SavedgameLowestBackwardCompatVersion)
+        {
+            // Engine version is either non-forward or non-backward compatible
+            return kSvgErr_IncompatibleEngine;
+        }
+        String main_file;
+        int color_depth;
+        if (desc && elems == kSvgDesc_EnvInfo)
+        {
+            main_file.Read(in.get());
+            in->ReadInt32(); // unscaled game height with borders, now obsolete
+            color_depth = in->ReadInt32();
+        }
+        else
+        {
+            for (; in->ReadByte(); ); // skip until null terminator
+            in->ReadInt32(); // unscaled game height with borders, now obsolete
+            in->ReadInt32(); // color depth
+        }
     }
 
     if (src)
@@ -221,16 +245,19 @@ SavegameError OpenSavegameBase(const String &filename, SavegameSource *src, Save
     }
     if (desc)
     {
-        if (elems == kSvgDesc_EnvInfo)
+        if (elems & kSvgDesc_EnvInfo)
         {
-            desc->EngineVersion = eng_version;
-            desc->MainDataFilename = main_file;
-            desc->ColorDepth = color_depth;
+            desc->EngineName = temp_desc.EngineName;
+            desc->EngineVersion = temp_desc.EngineVersion;
+            desc->GameGuid = temp_desc.GameGuid;
+            desc->GameTitle = temp_desc.GameTitle;
+            desc->MainDataFilename = temp_desc.MainDataFilename;
+            desc->ColorDepth = temp_desc.ColorDepth;
         }
-        if (elems == kSvgDesc_UserText)
-            desc->UserText = desc_text;
-        if (elems == kSvgDesc_UserImage)
-            desc->UserImage.reset(image.release());
+        if (elems & kSvgDesc_UserText)
+            desc->UserText = temp_desc.UserText;
+        if (elems & kSvgDesc_UserImage)
+            desc->UserImage.reset(temp_desc.UserImage.release());
     }
     return kSvgErr_NoError;
 }
@@ -558,16 +585,7 @@ SavegameError RestoreGameState(Stream *in, SavegameVersion svg_version)
     return DoAfterRestore(pp, r_data);
 }
 
-void WriteSaveImage(Stream *out, const Bitmap *screenshot)
-{
-    // store the screenshot at the start to make it easily accesible
-    out->WriteInt32((screenshot == NULL) ? 0 : 1);
-
-    if (screenshot)
-        serialize_bitmap(screenshot, out);
-}
-
-Stream *StartSavegame(const String &filename, const String &desc, const Bitmap *image)
+Stream *StartSavegame(const String &filename, const String &user_text, const Bitmap *user_image)
 {
     Stream *out = Common::File::CreateFile(filename);
     if (!out)
@@ -584,31 +602,21 @@ Stream *StartSavegame(const String &filename, const String &desc, const Bitmap *
     vistaHeader.dwThumbnailSize = 0;
     convert_guid_from_text_to_binary(game.guid, &vistaHeader.guidGameId[0]);
     uconvert(game.gamename, U_ASCII, (char*)&vistaHeader.szGameName[0], U_UNICODE, RM_MAXLENGTH);
-    uconvert(desc, U_ASCII, (char*)&vistaHeader.szSaveName[0], U_UNICODE, RM_MAXLENGTH);
+    uconvert(user_text, U_ASCII, (char*)&vistaHeader.szSaveName[0], U_UNICODE, RM_MAXLENGTH);
     vistaHeader.szLevelName[0] = 0;
     vistaHeader.szComments[0] = 0;
-
     // MS Windows Vista rich media header
     vistaHeader.WriteToFile(out);
 
-    // Savegame signature
+    // Savegame signature and general version
     out->Write(SavegameSource::Signature, SavegameSource::Signature.GetLength());
-    // Description
-    StrUtil::WriteCStr(desc, out);
-
-    platform->RunPluginHooks(AGSE_PRESAVEGAME, 0);
     out->WriteInt32(kSvgVersion_Current);
-    WriteSaveImage(out, image);
 
-    // Write lowest forward-compatible version string, so that
-    // earlier versions could load savedgames made by current engine
-    String compat_version;
-    if (SavedgameLowestForwardCompatVersion <= Version::LastOldFormatVersion)
-        compat_version = SavedgameLowestForwardCompatVersion.BackwardCompatibleString;
-    else
-        compat_version = SavedgameLowestForwardCompatVersion.LongString;
-    StrUtil::WriteCStr(compat_version, out);
-    StrUtil::WriteCStr(usetup.main_data_filename, out);
+    // CHECKME: what is this plugin hook suppose to mean, and if it is called here correctly
+    platform->RunPluginHooks(AGSE_PRESAVEGAME, 0);
+
+    // Write descrition block
+    SavegameBlocks::WriteDescription(out, user_text, user_image);
 
     // Write current display mode parameters
     out->WriteInt32(play.viewport.GetHeight()); // for compatibility with old engines

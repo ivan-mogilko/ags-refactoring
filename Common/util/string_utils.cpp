@@ -196,12 +196,45 @@ String StrUtil::ReadString(Stream *in)
     return String();
 }
 
+void StrUtil::SkipString(Stream *in)
+{
+    int32_t len = in->ReadInt32();
+    in->Seek(len);
+}
+
 void StrUtil::WriteString(const String &s, Stream *out)
 {
     int32_t len = s.GetLength();
     out->WriteInt32(len);
     if (len > 0)
         out->Write(s.GetCStr(), len);
+}
+
+String StrUtil::ReadSmallString(Stream *in)
+{
+    uint8_t len = in->ReadInt8();
+    if (len > 0)
+        return String::FromStreamCount(in, len);
+    return String();
+}
+
+void StrUtil::SkipSmallString(Stream *in)
+{
+    uint8_t len = in->ReadInt8();
+    in->Seek(len);
+}
+
+void StrUtil::WriteSmallString(const String &s, Stream *out)
+{
+    uint8_t len = (uint8_t)s.GetLength();
+    out->WriteInt8(len);
+    if (len > 0)
+        out->Write(s.GetCStr(), len);
+}
+
+void StrUtil::SkipCStr(Stream *in)
+{
+    for (; in->ReadByte(); );
 }
 
 void StrUtil::WriteCStr(const String &s, Stream *out)

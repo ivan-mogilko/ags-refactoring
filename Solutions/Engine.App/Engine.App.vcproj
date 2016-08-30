@@ -1183,6 +1183,10 @@
 					RelativePath="..\..\Engine\game\savegame.cpp"
 					>
 				</File>
+				<File
+					RelativePath="..\..\Engine\game\savegame_blocks.cpp"
+					>
+				</File>
 			</Filter>
 		</Filter>
 		<Filter
@@ -2227,6 +2231,10 @@
 				>
 				<File
 					RelativePath="..\..\Engine\game\savegame.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\Engine\game\savegame_blocks.h"
 					>
 				</File>
 				<File
