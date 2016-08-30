@@ -28,6 +28,8 @@ public:
 
   virtual void WriteToFile(Common::Stream *out);
   virtual void ReadFromFile(Common::Stream *in, GuiVersion gui_version);
+  virtual void ReadFromSavegame(Common::Stream *in);
+  virtual void WriteToSavegame(Common::Stream *out) const;
   virtual void Draw(Common::Bitmap *ds);
   void printtext_align(Common::Bitmap *g, int yy, color_t text_color, char *teptr);
   void SetText(const char *newText);

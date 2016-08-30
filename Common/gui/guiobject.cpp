@@ -81,3 +81,29 @@ void GUIObject::ReadFromFile(Stream *in, GuiVersion gui_version)
       fgetstring_limit(eventHandlers[kk], in, MAX_GUIOBJ_EVENTHANDLER_LEN + 1);
   }
 }
+
+void GUIObject::ReadFromSavegame(Stream *in)
+{
+    // Properties
+    flags = in->ReadInt32();
+    x = in->ReadInt32();
+    y = in->ReadInt32();
+    wid = in->ReadInt32();
+    hit = in->ReadInt32();
+    zorder = in->ReadInt32();
+    // Dynamic state
+    activated = in->ReadBool() ? 1: 0;
+}
+
+void GUIObject::WriteToSavegame(Stream *out) const
+{
+    // Properties
+    out->WriteInt32(flags);
+    out->WriteInt32(x);
+    out->WriteInt32(y);
+    out->WriteInt32(wid);
+    out->WriteInt32(hit);
+    out->WriteInt32(zorder);
+    // Dynamic state
+    out->WriteBool(activated != 0);
+}

@@ -18,10 +18,10 @@
 #include "gui/guimain.h"
 #include "util/stream.h"
 #include "gfx/bitmap.h"
+#include "util/string_utils.h"
 #include "util/wgt2allg.h"
 
-using AGS::Common::Stream;
-using AGS::Common::Bitmap;
+using namespace AGS::Common;
 
 std::vector<GUITextBox> guitext;
 int numguitext = 0;
@@ -42,6 +42,22 @@ void GUITextBox::ReadFromFile(Stream *in, GuiVersion gui_version)
   in->ReadArrayOfInt32(&font, 3);
   if (textcol == 0)
     textcol = 16;
+}
+
+void GUITextBox::ReadFromSavegame(Stream *in)
+{
+    GUIObject::ReadFromSavegame(in);
+    font = in->ReadInt32();
+    textcol = in->ReadInt32();
+    StrUtil::ReadString(text, in, 200);
+}
+
+void GUITextBox::WriteToSavegame(Stream *out) const
+{
+    GUIObject::WriteToSavegame(out);
+    out->WriteInt32(font);
+    out->WriteInt32(textcol);
+    StrUtil::WriteString(text, out);
 }
 
 void GUITextBox::Draw(Common::Bitmap *ds)

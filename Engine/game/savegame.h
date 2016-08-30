@@ -64,6 +64,7 @@ enum SavegameError
     kSvgErr_InconsistentFormat,
     kSvgErr_DataVersionNotSupported,
     kSvgErr_GameContentAssertion,
+    kSvgErr_InconsistentData,
     kSvgErr_InconsistentPlugin,
     kSvgErr_DifferentColorDepth,
     kSvgErr_GameObjectInitFailed,

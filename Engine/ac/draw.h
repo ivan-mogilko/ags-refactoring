@@ -109,4 +109,6 @@ Common::Bitmap *convert_32_to_32bgr(Common::Bitmap *tempbl);
 // be to use shared pointers when storing Bitmaps, or make Bitmap reference-counted object.
 Common::Bitmap *ReplaceBitmapWithSupportedFormat(Common::Bitmap *bitmap);
 
+extern int offsetx, offsety;
+
 #endif // __AGS_EE_AC__DRAW_H

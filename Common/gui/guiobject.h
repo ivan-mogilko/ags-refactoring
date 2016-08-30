@@ -63,6 +63,8 @@ struct GUIObject
   }
   virtual void WriteToFile(Common::Stream *out);
   virtual void ReadFromFile(Common::Stream *in, GuiVersion gui_version);
+  virtual void ReadFromSavegame(Common::Stream *in);
+  virtual void WriteToSavegame(Common::Stream *out) const;
   // called when the control is resized
   virtual void Resized() { }
   virtual int  GetNumEvents() {

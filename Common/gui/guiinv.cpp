@@ -62,6 +62,25 @@ void GUIInv::ReadFromFile(Stream *in, GuiVersion gui_version)
 	CalculateNumCells();
 }
 
+void GUIInv::ReadFromSavegame(Stream *in)
+{
+    GUIObject::ReadFromSavegame(in);
+    itemWidth = in->ReadInt32();
+    itemHeight = in->ReadInt32();
+    charId = in->ReadInt32();
+    topIndex = in->ReadInt32();
+    CalculateNumCells();
+}
+
+void GUIInv::WriteToSavegame(Stream *out) const
+{
+    GUIObject::WriteToSavegame(out);
+    out->WriteInt32(itemWidth);
+    out->WriteInt32(itemHeight);
+    out->WriteInt32(charId);
+    out->WriteInt32(topIndex);
+}
+
 void GUIInv::CalculateNumCells() {
   if (loaded_game_file_version >= kGameVersion_270)
   {

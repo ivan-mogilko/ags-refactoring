@@ -49,6 +49,28 @@ void GUISlider::ReadFromFile(Stream *in, GuiVersion gui_version)
   in->ReadArrayOfInt32(&min, sizeToRead);
 }
 
+void GUISlider::ReadFromSavegame(Stream *in)
+{
+    GUIObject::ReadFromSavegame(in);
+    bgimage = in->ReadInt32();
+    handlepic = in->ReadInt32();
+    handleoffset = in->ReadInt32();
+    min = in->ReadInt32();
+    max = in->ReadInt32();
+    value = in->ReadInt32();
+}
+
+void GUISlider::WriteToSavegame(Stream *out) const
+{
+    GUIObject::WriteToSavegame(out);
+    out->WriteInt32(bgimage);
+    out->WriteInt32(handlepic);
+    out->WriteInt32(handleoffset);
+    out->WriteInt32(min);
+    out->WriteInt32(max);
+    out->WriteInt32(value);
+}
+
 void GUISlider::Draw(Common::Bitmap *ds)
 {
   int bartlx, bartly, barbrx, barbry;

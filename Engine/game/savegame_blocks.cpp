@@ -12,23 +12,64 @@
 //
 //=============================================================================
 
+#include "ac/character.h"
 #include "ac/common.h"
+#include "ac/dialogtopic.h"
+#include "ac/draw.h"
+#include "ac/dynamicsprite.h"
 #include "ac/game.h"
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
+#include "ac/gamestate.h"
+#include "ac/gui.h"
+#include "ac/movelist.h"
+#include "ac/mouse.h"
+#include "ac/roomstatus.h"
+#include "ac/roomstruct.h"
+#include "ac/screenoverlay.h"
+#include "ac/spritecache.h"
+#include "ac/view.h"
+#include "ac/dynobj/cc_serializer.h"
 #include "debug/out.h"
 #include "game/savegame_blocks.h"
+#include "gui/animatingguibutton.h"
+#include "gui/guibutton.h"
+#include "gui/guiinv.h"
+#include "gui/guilabel.h"
+#include "gui/guilistbox.h"
+#include "gui/guislider.h"
+#include "gui/guitextbox.h"
 #include "main/main.h"
+#include "media/audio/audio.h"
+#include "media/audio/soundclip.h"
+#include "platform/base/agsplatformdriver.h"
+#include "plugin/agsplugin.h"
+#include "script/cc_error.h"
+#include "script/script.h"
+#include "util/filestream.h"
 #include "util/string_utils.h"
 
+using namespace AGS::Common;
+
 extern GameSetupStruct game;
+extern color palette[256];
+extern DialogTopic *dialog;
+extern AnimatingGUIButton animbuts[MAX_ANIMATING_BUTTONS];
+extern int numAnimButs;
+extern ViewStruct *views;
+extern ScreenOverlay screenover[MAX_SCREEN_OVERLAYS];
+extern int numscreenover;
+extern Bitmap *dynamicallyCreatedSurfaces[MAX_DYNAMIC_SURFACES];
+extern roomstruct thisroom;
+extern RoomStatus troom;
+extern Bitmap *raw_saved_screen;
+extern MoveList *mls;
+
 
 namespace AGS
 {
 namespace Engine
 {
-
-using namespace Common;
 
 namespace SavegameBlocks
 {
@@ -206,6 +247,839 @@ void WriteDescription(Stream *out, const String &user_text, const Bitmap *user_i
 }
 
 
+inline bool AssertFormat(int original, int value, const char *test_name, int test_id = -1)
+{
+    if (value != original)
+    {
+        Out::FPrint("Restore game error: format consistency assertion failed at %s (%d)", test_name, test_id);
+        return false;
+    }
+    return true;
+}
+
+inline bool AssertGameContent(int original_val, int new_val, const char *content_name)
+{
+    if (new_val != original_val)
+    {
+        Out::FPrint("Restore game error: mismatching number of %s (game: %d, save: %d)",
+            content_name, original_val, new_val);
+        return false;
+    }
+    return true;
+}
+
+inline bool AssertGameObjectContent(int original_val, int new_val, const char *content_name,
+                                    const char *obj_type, int obj_id)
+{
+    if (new_val != original_val)
+    {
+        Out::FPrint("Restore game error: mismatching number of %s in %s #%d (game: %d, save: %d)",
+            content_name, obj_type, obj_id, original_val, new_val);
+        return false;
+    }
+    return true;
+}
+
+inline bool AssertGameObjectContent2(int original_val, int new_val, const char *content_name,
+                                    const char *obj1_type, int obj1_id, const char *obj2_type, int obj2_id)
+{
+    if (new_val != original_val)
+    {
+        Out::FPrint("Restore game error: mismatching number of %s in %s #%d, %s #%d (game: %d, save: %d)",
+            content_name, obj1_type, obj1_id, obj2_type, obj2_id, original_val, new_val);
+        return false;
+    }
+    return true;
+}
+
+inline bool AssertContentMatch(int expected, int actual, const char *reference, const char *dependant)
+{
+    if (actual != expected)
+    {
+        Out::FPrint("Restore game error: number of %s does not match number of %s (expected: %d, got: %d)",
+            dependant, reference, expected, actual);
+        return false;
+    }
+    return true;
+}
+
+
+SavegameError WriteGameState(Stream *out)
+{
+    out->WriteInt32(ScreenResolution.ColorDepth);
+
+    // Game base
+    game.WriteForSavegame(out);
+    // Game palette
+    // TODO: probably no need to save this for hi/true-res game
+    out->WriteArray(palette, sizeof(color), 256);
+    // Global variables
+    out->WriteInt32(numGlobalVars);
+    for (int i = 0; i < numGlobalVars; ++i)
+        globalvars[i].Write(out);
+
+    // Game state
+    play.WriteForSavegame(out);
+    // Other dynamic values
+    out->WriteInt32(frames_per_second);
+    out->WriteInt32(loopcounter);
+    out->WriteInt32(ifacepopped);
+    out->WriteInt32(game_paused);
+    // Mouse cursor
+    out->WriteInt32(cur_mode);
+    out->WriteInt32(cur_cursor);
+    out->WriteInt32(mouse_on_iface);
+    // Viewport
+    out->WriteInt32(offsetx);
+    out->WriteInt32(offsety);
+    return kSvgErr_NoError;
+}
+
+SavegameError ReadGameState(Stream *in, int32_t blk_ver, const PreservedParams &pp, RestoredData &r_data)
+{
+    // CHECKME: is this still essential? if yes, is there possible workaround?
+    if (in->ReadInt32() != ScreenResolution.ColorDepth)
+        return kSvgErr_DifferentColorDepth;
+
+    // Game base
+    game.ReadFromSavegame(in);
+    // Game palette
+    in->ReadArray(palette, sizeof(color), 256);
+    // Global variables
+    if (!AssertGameContent(numGlobalVars, in->ReadInt32(), "Global Variables"))
+        return kSvgErr_GameContentAssertion;
+    for (int i = 0; i < numGlobalVars; ++i)
+        globalvars[i].Read(in);
+
+    // Game state
+    play.ReadFromSavegame(in, false);
+
+    // Other dynamic values
+    r_data.FPS = in->ReadInt32();
+    loopcounter = in->ReadInt32();
+    ifacepopped = in->ReadInt32();
+    game_paused = in->ReadInt32();
+    // Mouse cursor state
+    r_data.CursorMode = in->ReadInt32();
+    r_data.CursorID = in->ReadInt32();
+    mouse_on_iface = in->ReadInt32();
+    // Viewport state
+    offsetx = in->ReadInt32();
+    offsety = in->ReadInt32();
+    return kSvgErr_NoError;
+}
+
+SavegameError WriteAudio(Stream *out)
+{
+    // Game content assertion
+    out->WriteInt32(game.audioClipTypeCount);
+    out->WriteInt32(game.audioClipCount);
+    // Audio types
+    for (int i = 0; i < game.audioClipTypeCount; ++i)
+        game.audioClipTypes[i].WriteToFile(out);
+
+    // Audio clips and crossfade
+    for (int i = 0; i <= MAX_SOUND_CHANNELS; i++)
+    {
+        if ((channels[i] != NULL) && (channels[i]->done == 0) && (channels[i]->sourceClip != NULL))
+        {
+            out->WriteInt32(((ScriptAudioClip*)channels[i]->sourceClip)->id);
+            out->WriteInt32(channels[i]->get_pos());
+            out->WriteInt32(channels[i]->priority);
+            out->WriteInt32(channels[i]->repeat ? 1 : 0);
+            out->WriteInt32(channels[i]->vol);
+            out->WriteInt32(channels[i]->panning);
+            out->WriteInt32(channels[i]->volAsPercentage);
+            out->WriteInt32(channels[i]->panningAsPercentage);
+            out->WriteInt32(channels[i]->speed);
+        }
+        else
+        {
+            out->WriteInt32(-1);
+        }
+    }
+    out->WriteInt32(crossFading);
+    out->WriteInt32(crossFadeVolumePerStep);
+    out->WriteInt32(crossFadeStep);
+    out->WriteInt32(crossFadeVolumeAtStart);
+    // CHECKME: why this needs to be saved?
+    out->WriteInt32(current_music_type);
+
+    // Ambient sound
+    for (int i = 0; i < MAX_SOUND_CHANNELS; ++i)
+        ambient[i].WriteToFile(out);
+    return kSvgErr_NoError;
+}
+
+SavegameError ReadAudio(Stream *in, int32_t blk_ver, const PreservedParams &pp, RestoredData &r_data)
+{
+    // Game content assertion
+    if (!AssertGameContent(game.audioClipTypeCount, in->ReadInt32(), "Audio Clip Types"))
+        return kSvgErr_GameContentAssertion;
+    if (!AssertGameContent(game.audioClipCount, in->ReadInt32(), "Audio Clips"))
+        return kSvgErr_GameContentAssertion;
+
+    // Audio types
+    for (int i = 0; i < game.audioClipTypeCount; ++i)
+        game.audioClipTypes[i].ReadFromFile(in);
+
+    // Audio clips and crossfade
+    for (int i = 0; i <= MAX_SOUND_CHANNELS; ++i)
+    {
+        RestoredData::ChannelInfo &chan_info = r_data.AudioChans[i];
+        chan_info.Pos = 0;
+        chan_info.ClipID = in->ReadInt32();
+        if (chan_info.ClipID >= 0)
+        {
+            chan_info.Pos = in->ReadInt32();
+            if (chan_info.Pos < 0)
+                chan_info.Pos = 0;
+            chan_info.Priority = in->ReadInt32();
+            chan_info.Repeat = in->ReadInt32();
+            chan_info.Vol = in->ReadInt32();
+            chan_info.Pan = in->ReadInt32();
+            chan_info.VolAsPercent = in->ReadInt32();
+            chan_info.PanAsPercent = in->ReadInt32();
+            chan_info.Speed = 1000;
+            chan_info.Speed = in->ReadInt32();
+        }
+    }
+    crossFading = in->ReadInt32();
+    crossFadeVolumePerStep = in->ReadInt32();
+    crossFadeStep = in->ReadInt32();
+    crossFadeVolumeAtStart = in->ReadInt32();
+    // preserve legacy music type setting
+    current_music_type = in->ReadInt32();
+    
+    // Ambient sound
+    for (int i = 0; i < MAX_SOUND_CHANNELS; ++i)
+        ambient[i].ReadFromFile(in);
+    for (int i = 1; i < MAX_SOUND_CHANNELS; ++i)
+    {
+        if (ambient[i].channel == 0)
+        {
+            r_data.DoAmbient[i] = 0;
+        }
+        else
+        {
+            r_data.DoAmbient[i] = ambient[i].num;
+            ambient[i].channel = 0;
+        }
+    }
+    return kSvgErr_NoError;
+}
+
+SavegameError WriteCharacters(Stream *out)
+{
+    out->WriteInt32(game.numcharacters);
+    for (int i = 0; i < game.numcharacters; ++i)
+    {
+        game.chars[i].WriteToFile(out);
+        charextra[i].WriteToFile(out);
+        if (game.intrChar)
+            game.intrChar[i]->WriteTimesRunToSavedgame(out);
+        Properties::WriteValues(play.charProps[i], out);
+    }
+    return kSvgErr_NoError;
+}
+
+SavegameError ReadCharacters(Stream *in, int32_t blk_ver, const PreservedParams &pp, RestoredData &r_data)
+{
+    if (!AssertGameContent(game.numcharacters, in->ReadInt32(), "Characters"))
+        return kSvgErr_GameContentAssertion;
+    for (int i = 0; i < game.numcharacters; ++i)
+    {
+        game.chars[i].ReadFromFile(in);
+        charextra[i].ReadFromFile(in);
+        if (game.intrChar)
+            game.intrChar[i]->ReadTimesRunFromSavedgame(in);
+        Properties::ReadValues(play.charProps[i], in);
+    }
+    return kSvgErr_NoError;
+}
+
+SavegameError WriteDialogs(Stream *out)
+{
+    out->WriteInt32(game.numdialog);
+    for (int i = 0; i < game.numdialog; ++i)
+    {
+        dialog[i].WriteToSavegame(out);
+    }
+    return kSvgErr_NoError;
+}
+
+SavegameError ReadDialogs(Stream *in, int32_t blk_ver, const PreservedParams &pp, RestoredData &r_data)
+{
+    if (!AssertGameContent(game.numdialog, in->ReadInt32(), "Dialogs"))
+        return kSvgErr_GameContentAssertion;
+    for (int i = 0; i < game.numdialog; ++i)
+    {
+        dialog[i].ReadFromSavegame(in);
+    }
+    return kSvgErr_NoError;
+}
+
+static const int FormatConsistencyCheck = 0xbeefcafe;
+
+SavegameError WriteGUI(Stream *out)
+{
+    // GUI state
+    out->WriteInt32(game.numgui);
+    for (int i = 0; i < game.numgui; ++i)
+        guis[i].WriteToSavegame(out);
+
+    out->WriteInt32(FormatConsistencyCheck);
+
+    out->WriteInt32(numguibuts);
+    for (int i = 0; i < numguibuts; ++i)
+        guibuts[i].WriteToSavegame(out);
+
+    out->WriteInt32(FormatConsistencyCheck);
+
+    out->WriteInt32(numguilabels);
+    for (int i = 0; i < numguilabels; ++i)
+        guilabels[i].WriteToSavegame(out);
+
+    out->WriteInt32(FormatConsistencyCheck);
+
+    out->WriteInt32(numguiinv);
+    for (int i = 0; i < numguiinv; ++i)
+        guiinv[i].WriteToSavegame(out);
+
+    out->WriteInt32(FormatConsistencyCheck);
+
+    out->WriteInt32(numguislider);
+    for (int i = 0; i < numguislider; ++i)
+        guislider[i].WriteToSavegame(out);
+
+    out->WriteInt32(FormatConsistencyCheck);
+
+    out->WriteInt32(numguitext);
+    for (int i = 0; i < numguitext; ++i)
+        guitext[i].WriteToSavegame(out);
+
+    out->WriteInt32(FormatConsistencyCheck);
+
+    out->WriteInt32(numguilist);
+    for (int i = 0; i < numguilist; ++i)
+        guilist[i].WriteToSavegame(out);
+
+    out->WriteInt32(FormatConsistencyCheck);
+
+    // Animated buttons
+    out->WriteInt32(numAnimButs);
+    for (int i = 0; i < numAnimButs; ++i)
+        animbuts[i].WriteToFile(out);
+    return kSvgErr_NoError;
+}
+
+SavegameError ReadGUI(Stream *in, int32_t blk_ver, const PreservedParams &pp, RestoredData &r_data)
+{
+    // GUI state
+    if (!AssertGameContent(game.numgui, in->ReadInt32(), "GUIs"))
+        return kSvgErr_GameContentAssertion;
+    for (int i = 0; i < game.numgui; ++i)
+        guis[i].ReadFromSavegame(in);
+
+    if (!AssertFormat(FormatConsistencyCheck, in->ReadInt32(), "GUI Buttons"))
+        return kSvgErr_InconsistentFormat;
+
+    if (!AssertGameContent(numguibuts, in->ReadInt32(), "GUI Buttons"))
+        return kSvgErr_GameContentAssertion;
+    for (int i = 0; i < numguibuts; ++i)
+        guibuts[i].ReadFromSavegame(in);
+
+    if (!AssertFormat(FormatConsistencyCheck, in->ReadInt32(), "GUI Labels"))
+        return kSvgErr_InconsistentFormat;
+
+    if (!AssertGameContent(numguilabels, in->ReadInt32(), "GUI Labels"))
+        return kSvgErr_GameContentAssertion;
+    for (int i = 0; i < numguilabels; ++i)
+        guilabels[i].ReadFromSavegame(in);
+
+    if (!AssertFormat(FormatConsistencyCheck, in->ReadInt32(), "GUI InvWindows"))
+        return kSvgErr_InconsistentFormat;
+
+    if (!AssertGameContent(numguiinv, in->ReadInt32(), "GUI InvWindows"))
+        return kSvgErr_GameContentAssertion;
+    for (int i = 0; i < numguiinv; ++i)
+        guiinv[i].ReadFromSavegame(in);
+
+    if (!AssertFormat(FormatConsistencyCheck, in->ReadInt32(), "GUI Sliders"))
+        return kSvgErr_InconsistentFormat;
+
+    if (!AssertGameContent(numguislider, in->ReadInt32(), "GUI Sliders"))
+        return kSvgErr_GameContentAssertion;
+    for (int i = 0; i < numguislider; ++i)
+        guislider[i].ReadFromSavegame(in);
+
+    if (!AssertFormat(FormatConsistencyCheck, in->ReadInt32(), "GUI TextBoxes"))
+        return kSvgErr_InconsistentFormat;
+
+    if (!AssertGameContent(numguitext, in->ReadInt32(), "GUI TextBoxes"))
+        return kSvgErr_GameContentAssertion;
+    for (int i = 0; i < numguitext; ++i)
+        guitext[i].ReadFromSavegame(in);
+
+    if (!AssertFormat(FormatConsistencyCheck, in->ReadInt32(), "GUI ListBoxes"))
+        return kSvgErr_InconsistentFormat;
+
+    if (!AssertGameContent(numguilist, in->ReadInt32(), "GUI ListBoxes"))
+        return kSvgErr_GameContentAssertion;
+    for (int i = 0; i < numguilist; ++i)
+        guilist[i].ReadFromSavegame(in);
+
+    if (!AssertFormat(FormatConsistencyCheck, in->ReadInt32(), "Animated Buttons"))
+        return kSvgErr_InconsistentFormat;
+
+    // Animated buttons
+    numAnimButs = in->ReadInt32();
+    if (numAnimButs > MAX_ANIMATING_BUTTONS)
+    {
+        Out::FPrint("Restore game error: incompatible number of animated buttons (count: %d, max: %d)",
+            numAnimButs, MAX_ANIMATING_BUTTONS);
+        return kSvgErr_IncompatibleEngine;
+    }
+    for (int i = 0; i < numAnimButs; ++i)
+        animbuts[i].ReadFromFile(in);
+    return kSvgErr_NoError;
+}
+
+SavegameError WriteInventory(Stream *out)
+{
+    out->WriteInt32(game.numinvitems);
+    for (int i = 0; i < game.numinvitems; ++i)
+    {
+        game.invinfo[i].WriteToSavegame(out);
+        Properties::WriteValues(play.invProps[i], out);
+        if (game.intrInv[i])
+            game.intrInv[i]->WriteTimesRunToSavedgame(out);
+    }
+    return kSvgErr_NoError;
+}
+
+SavegameError ReadInventory(Stream *in, int32_t blk_ver, const PreservedParams &pp, RestoredData &r_data)
+{
+    if (!AssertGameContent(game.numinvitems, in->ReadInt32(), "Inventory Items"))
+        return kSvgErr_GameContentAssertion;
+    for (int i = 0; i < game.numinvitems; ++i)
+    {
+        game.invinfo[i].ReadFromSavegame(in);
+        Properties::ReadValues(play.invProps[i], in);
+        if (game.intrInv[i])
+            game.intrInv[i]->ReadTimesRunFromSavedgame(in);
+    }
+    return kSvgErr_NoError;
+}
+
+SavegameError WriteMouseCursors(Stream *out)
+{
+    out->WriteInt32(game.numcursors);
+    for (int i = 0; i < game.numcursors; ++i)
+    {
+        game.mcurs[i].WriteToSavegame(out);
+    }
+    return kSvgErr_NoError;
+}
+
+SavegameError ReadMouseCursors(Stream *in, int32_t blk_ver, const PreservedParams &pp, RestoredData &r_data)
+{
+    if (!AssertGameContent(game.numcursors, in->ReadInt32(), "Mouse Cursors"))
+        return kSvgErr_GameContentAssertion;
+    for (int i = 0; i < game.numcursors; ++i)
+    {
+        game.mcurs[i].ReadFromSavegame(in);
+    }
+    return kSvgErr_NoError;
+}
+
+SavegameError WriteViews(Stream *out)
+{
+    out->WriteInt32(game.numviews);
+    for (int view = 0; view < game.numviews; ++view)
+    {
+        out->WriteInt32(views[view].numLoops);
+        for (int loop = 0; loop < views[view].numLoops; ++loop)
+        {
+            out->WriteInt32(views[view].loops[loop].numFrames);
+            for (int frame = 0; frame < views[view].loops[loop].numFrames; ++frame)
+            {
+                out->WriteInt32(views[view].loops[loop].frames[frame].sound);
+                out->WriteInt32(views[view].loops[loop].frames[frame].pic);
+            }
+        }
+    }
+    return kSvgErr_NoError;
+}
+
+SavegameError ReadViews(Stream *in, int32_t blk_ver, const PreservedParams &pp, RestoredData &r_data)
+{
+    if (!AssertGameContent(game.numviews, in->ReadInt32(), "Views"))
+        return kSvgErr_GameContentAssertion;
+    for (int view = 0; view < game.numviews; ++view)
+    {
+        if (!AssertGameObjectContent(views[view].numLoops, in->ReadInt32(),
+            "Loops", "View", view))
+            return kSvgErr_GameContentAssertion;
+        for (int loop = 0; loop < views[view].numLoops; ++loop)
+        {
+            if (!AssertGameObjectContent2(views[view].loops[loop].numFrames, in->ReadInt32(),
+                "Frame", "View", view, "Loop", loop))
+                return kSvgErr_GameContentAssertion;
+            for (int frame = 0; frame < views[view].loops[loop].numFrames; ++frame)
+            {
+                views[view].loops[loop].frames[frame].sound = in->ReadInt32();
+                views[view].loops[loop].frames[frame].pic = in->ReadInt32();
+            }
+        }
+    }
+    return kSvgErr_NoError;
+}
+
+SavegameError WriteDynamicSprites(Stream *out)
+{
+    const size_t ref_pos = out->GetPosition();
+    out->WriteInt32(0); // number of dynamic sprites
+    out->WriteInt32(0); // top index
+    int count = 0;
+    int top_index = 0;
+    for (int i = 1; i < spriteset.elements; ++i)
+    {
+        if (game.spriteflags[i] & SPF_DYNAMICALLOC)
+        {
+            count++;
+            top_index = i;
+            out->WriteInt32(i);
+            out->WriteInt32(game.spriteflags[i]);
+            serialize_bitmap(spriteset[i], out);
+        }
+    }
+    const size_t end_pos = out->GetPosition();
+    out->Seek(ref_pos, kSeekBegin);
+    out->WriteInt32(count);
+    out->WriteInt32(top_index);
+    out->Seek(end_pos, kSeekBegin);
+    return kSvgErr_NoError;
+}
+
+SavegameError ReadDynamicSprites(Stream *in, int32_t blk_ver, const PreservedParams &pp, RestoredData &r_data)
+{
+    const int spr_count = in->ReadInt32();
+    // ensure the sprite set is at least large enough
+    // to accomodate top dynamic sprite index
+    spriteset.enlargeTo(in->ReadInt32());
+    for (int i = 0; i < spr_count; ++i)
+    {
+        int id = in->ReadInt32();
+        if (id < 1 || id >= MAX_SPRITES)
+        {
+            Out::FPrint("Restore game error: incompatible sprite index (id: %d, range: %d - %d)",
+                id, 1, MAX_SPRITES - 1);
+            return kSvgErr_IncompatibleEngine;
+        }
+        int flags = in->ReadInt32();
+        add_dynamic_sprite(id, read_serialized_bitmap(in));
+        game.spriteflags[id] = flags;
+    }
+    return kSvgErr_NoError;
+}
+
+SavegameError WriteOverlays(Stream *out)
+{
+    out->WriteInt32(numscreenover);
+    for (int i = 0; i < numscreenover; ++i)
+    {
+        screenover[i].WriteToFile(out);
+        serialize_bitmap(screenover[i].pic, out);
+    }
+    return kSvgErr_NoError;
+}
+
+SavegameError ReadOverlays(Stream *in, int32_t blk_ver, const PreservedParams &pp, RestoredData &r_data)
+{
+    if (!AssertGameContent(numscreenover, in->ReadInt32(), "Overlays"))
+        return kSvgErr_GameContentAssertion;
+    for (int i = 0; i < numscreenover; ++i)
+    {
+        screenover[i].ReadFromFile(in);
+        if (screenover[i].hasSerializedBitmap)
+            screenover[i].pic = read_serialized_bitmap(in);
+    }
+    return kSvgErr_NoError;
+}
+
+SavegameError WriteDynamicSurfaces(Stream *out)
+{
+    out->WriteInt32(MAX_DYNAMIC_SURFACES);
+    for (int i = 0; i < MAX_DYNAMIC_SURFACES; ++i)
+    {
+        if (dynamicallyCreatedSurfaces[i] == NULL)
+        {
+            out->WriteInt8(0);
+        }
+        else
+        {
+            out->WriteInt8(1);
+            serialize_bitmap(dynamicallyCreatedSurfaces[i], out);
+        }
+    }
+    return kSvgErr_NoError;
+}
+
+SavegameError ReadDynamicSurfaces(Stream *in, int32_t blk_ver, const PreservedParams &pp, RestoredData &r_data)
+{
+    if (!AssertGameContent(MAX_DYNAMIC_SURFACES, in->ReadInt32(), "Dynamic Surfaces"))
+        return kSvgErr_GameContentAssertion;
+    // load into a temp array since ccUnserialiseObjects will destroy
+    // it otherwise
+    r_data.DynamicSurfaces.resize(MAX_DYNAMIC_SURFACES);
+    for (int i = 0; i < MAX_DYNAMIC_SURFACES; ++i)
+    {
+        if (in->ReadInt8() == 0)
+            r_data.DynamicSurfaces[i] = NULL;
+        else
+            r_data.DynamicSurfaces[i] = read_serialized_bitmap(in);
+    }
+    return kSvgErr_NoError;
+}
+
+SavegameError WriteScriptModules(Stream *out)
+{
+    // write the data segment of the global script
+    int data_len = gameinst->globaldatasize;
+    out->WriteInt32(data_len);
+    if (data_len > 0)
+        out->Write(gameinst->globaldata, data_len);
+    // write the script modules data segments
+    out->WriteInt32(numScriptModules);
+    for (int i = 0; i < numScriptModules; ++i)
+    {
+        data_len = moduleInst[i]->globaldatasize;
+        out->WriteInt32(data_len);
+        if (data_len > 0)
+            out->Write(moduleInst[i]->globaldata, data_len);
+    }
+    return kSvgErr_NoError;
+}
+
+SavegameError ReadScriptModules(Stream *in, int32_t blk_ver, const PreservedParams &pp, RestoredData &r_data)
+{
+    // read the global script data segment
+    int data_len = in->ReadInt32();
+    if (r_data.GlobalScript.Len != data_len)
+    {
+        Out::FPrint("Restore game error: mismatching size of global script data (game: %d, save: %d)",
+            r_data.GlobalScript.Len, data_len);
+        return kSvgErr_GameContentAssertion;
+    }
+    r_data.GlobalScript.Data.reset(new char[data_len]);
+    in->Read(r_data.GlobalScript.Data.get(), data_len);
+
+    if (!AssertGameContent(numScriptModules, in->ReadInt32(), "Script Modules"))
+        return kSvgErr_GameContentAssertion;
+    for (int i = 0; i < numScriptModules; ++i)
+    {
+        data_len = in->ReadInt32();
+        if (r_data.ScriptModules[i].Len != data_len)
+        {
+            Out::FPrint("Restore game error: mismatching size of script module data, module #%d (game: %d, save: %d)",
+                i, r_data.ScriptModules[i].Len, data_len);
+            return kSvgErr_GameContentAssertion;
+        }
+        r_data.ScriptModules[i].Data.reset(new char[data_len]);
+        in->Read(r_data.ScriptModules[i].Data.get(), data_len);
+    }
+    return kSvgErr_NoError;
+}
+
+SavegameError WriteRoomStates(Stream *out)
+{
+    // write the room state for all the rooms the player has been in
+    out->WriteInt32(MAX_ROOMS);
+    for (int i = 0; i < MAX_ROOMS; ++i)
+    {
+        if (isRoomStatusValid(i))
+        {
+            RoomStatus *roomstat = getRoomStatus(i);
+            if (roomstat->beenhere)
+            {
+                out->WriteInt32(i);
+                roomstat->WriteToSavegame(out);
+                out->WriteInt32(FormatConsistencyCheck);
+            }
+            else
+                out->WriteInt32(-1);
+        }
+        else
+            out->WriteInt32(-1);
+    }
+    return kSvgErr_NoError;
+}
+
+SavegameError ReadRoomStates(Stream *in, int32_t blk_ver, const PreservedParams &pp, RestoredData &r_data)
+{
+    int roomstat_count = in->ReadInt32();
+    for (; roomstat_count > 0; --roomstat_count)
+    {
+        int id = in->ReadInt32();
+        if (id >= MAX_ROOMS)
+        {
+            Out::FPrint("Restore game error: incompatible saved room index (id: %d, range: %d - %d)",
+                id, 0, MAX_ROOMS - 1);
+            return kSvgErr_IncompatibleEngine;
+        }
+        else if (id >= 0)
+        {
+            RoomStatus *roomstat = getRoomStatus(id);
+            roomstat->ReadFromSavegame(in);
+            if (!AssertFormat(FormatConsistencyCheck, in->ReadInt32(), "Room States", id))
+                return kSvgErr_InconsistentFormat;
+        }
+    }
+    return kSvgErr_NoError;
+}
+
+SavegameError WriteThisRoom(Stream *out)
+{
+    out->WriteInt32(displayed_room);
+    if (displayed_room < 0)
+        return kSvgErr_NoError;
+
+    // modified room backgrounds
+    for (int i = 0; i < MAX_BSCENE; ++i)
+    {
+        out->WriteBool(play.raw_modified[i] != 0);
+        if (play.raw_modified[i])
+            serialize_bitmap(thisroom.ebscene[i], out);
+    }
+    out->WriteBool(raw_saved_screen != NULL);
+    if (raw_saved_screen)
+        serialize_bitmap(raw_saved_screen, out);
+
+    // room region state
+    for (int i = 0; i < MAX_REGIONS; ++i)
+    {
+        out->WriteInt32(thisroom.regionLightLevel[i]);
+        out->WriteInt32(thisroom.regionTintLevel[i]);
+    }
+    for (int i = 0; i < MAX_WALK_AREAS + 1; ++i)
+    {
+        out->WriteInt32(thisroom.walk_area_zoom[i]);
+        out->WriteInt32(thisroom.walk_area_zoom2[i]);
+    }
+
+    // character and object movement paths cache
+    out->WriteInt32(game.numcharacters);
+    for (int i = 0; i < game.numcharacters; ++i)
+    {
+        mls[i].WriteToFile(out);
+    }
+    out->WriteInt32(MAX_INIT_SPR + 1);
+    for (int i = game.numcharacters; i < game.numcharacters + MAX_INIT_SPR + 1; ++i)
+    {
+        mls[i].WriteToFile(out);
+    }
+
+    // room music volume
+    out->WriteInt32(thisroom.options[ST_VOLUME]);
+
+    // persistent room's indicator
+    const bool persist = displayed_room < MAX_ROOMS;
+    out->WriteBool(persist);
+    // write the current troom state, in case they save in temporary room
+    if (!persist)
+        troom.WriteToSavegame(out);
+    return kSvgErr_NoError;
+}
+
+SavegameError ReadThisRoom(Stream *in, int32_t blk_ver, const PreservedParams &pp, RestoredData &r_data)
+{
+    displayed_room = in->ReadInt32();
+    if (displayed_room < 0)
+        return kSvgErr_NoError;
+
+    // modified room backgrounds
+    for (int i = 0; i < MAX_BSCENE; ++i)
+    {
+        r_data.RoomBkgScene[i] = NULL;
+        if (in->ReadBool() != (play.raw_modified[i] != 0))
+        {
+            Out::FPrint("Restore game error: raw_modified%d flag is not consistent with serialized room", i);
+            return kSvgErr_InconsistentData;
+        }
+        if (play.raw_modified[i])
+            r_data.RoomBkgScene[i] = read_serialized_bitmap(in);
+    }
+    if (in->ReadBool())
+        raw_saved_screen = read_serialized_bitmap(in);
+
+    // room region state
+    for (int i = 0; i < MAX_REGIONS; ++i)
+    {
+        r_data.RoomLightLevels[i] = in->ReadInt32();
+        r_data.RoomTintLevels[i] = in->ReadInt32();
+    }
+    for (int i = 0; i < MAX_WALK_AREAS + 1; ++i)
+    {
+        r_data.RoomZoomLevels1[i] = in->ReadInt32();
+        r_data.RoomZoomLevels2[i] = in->ReadInt32();
+    }
+
+    // character and object movement paths cache
+    if (!AssertContentMatch(game.numcharacters, in->ReadInt32(), "characters", "character move lists"))
+        return kSvgErr_InconsistentData;
+    for (int i = 0; i < game.numcharacters; ++i)
+    {
+        mls[i].ReadFromFile(in);
+    }
+    if (!AssertContentMatch(MAX_INIT_SPR + 1, in->ReadInt32(), "objects (max)", "object move lists"))
+        return kSvgErr_InconsistentData;
+    for (int i = game.numcharacters; i < game.numcharacters + MAX_INIT_SPR + 1; ++i)
+    {
+        mls[i].ReadFromFile(in);
+    }
+
+    // save the new room music vol for later use
+    r_data.RoomVolume = in->ReadInt32();
+
+    // read the current troom state, in case they saved in temporary room
+    if (!in->ReadBool())
+        troom.ReadFromSavegame(in);
+
+    return kSvgErr_NoError;
+}
+
+SavegameError WriteManagedPool(Stream *out)
+{
+    ccSerializeAllObjects(out);
+    return kSvgErr_NoError;
+}
+
+SavegameError ReadManagedPool(Stream *in, int32_t blk_ver, const PreservedParams &pp, RestoredData &r_data)
+{
+    if (ccUnserializeAllObjects(in, &ccUnserializer))
+    {
+        Out::FPrint("Restore game error: managed pool deserialization failed: %s", ccErrorString);
+        return kSvgErr_GameObjectInitFailed;
+    }
+    return kSvgErr_NoError;
+}
+
+SavegameError WritePluginData(Stream *out)
+{
+    // [IKM] Plugins expect FILE pointer! // TODO something with this later...
+    platform->RunPluginHooks(AGSE_SAVEGAME, (long)((Common::FileStream*)out)->GetHandle());
+    return kSvgErr_NoError;
+}
+
+SavegameError ReadPluginData(Stream *in, int32_t blk_ver, const PreservedParams &pp, RestoredData &r_data)
+{
+    // [IKM] Plugins expect FILE pointer! // TODO something with this later
+    platform->RunPluginHooks(AGSE_RESTOREGAME, (long)((Common::FileStream*)in)->GetHandle());
+    return kSvgErr_NoError;
+}
+
+
 struct BlockHandler
 {
     SavegameBlockType  Type;
@@ -226,98 +1100,98 @@ BlockHandler BlockHandlers[kNumSavegameBlocks] =
     {
         kSvgBlock_GameState_PlayStruct, "Game State",
         0,
-        NULL,
-        NULL
+        WriteGameState,
+        ReadGameState
     },
     {
         kSvgBlock_GameState_Audio, "Audio",
         0,
-        NULL,
-        NULL
+        WriteAudio,
+        ReadAudio
     },
     {
         kSvgBlock_GameState_Characters, "Characters",
         0,
-        NULL,
-        NULL
+        WriteCharacters,
+        ReadCharacters
     },
     {
         kSvgBlock_GameState_Dialogs, "Dialogs",
         0,
-        NULL,
-        NULL
+        WriteDialogs,
+        ReadDialogs
     },
     {
         kSvgBlock_GameState_GUI, "GUI",
         0,
-        NULL,
-        NULL
+        WriteGUI,
+        ReadGUI
     },
     {
         kSvgBlock_GameState_InventoryItems, "Inventory Items",
         0,
-        NULL,
-        NULL
+        WriteInventory,
+        ReadInventory
     },
     {
         kSvgBlock_GameState_MouseCursors, "Mouse Cursors",
         0,
-        NULL,
-        NULL
+        WriteMouseCursors,
+        ReadMouseCursors
     },
     {
         kSvgBlock_GameState_Views, "Views",
         0,
-        NULL,
-        NULL
+        WriteViews,
+        ReadViews
     },
     {
         kSvgBlock_GameState_DynamicSprites, "Dynamic Sprites",
         0,
-        NULL,
-        NULL
+        WriteDynamicSprites,
+        ReadDynamicSprites
     },
     {
         kSvgBlock_GameState_Overlays, "Overlays",
         0,
-        NULL,
-        NULL
+        WriteOverlays,
+        ReadOverlays
     },
     {
         kSvgBlock_GameState_DynamicSurfaces, "Dynamic Surfaces",
         0,
-        NULL,
-        NULL
+        WriteDynamicSurfaces,
+        ReadDynamicSurfaces
     },
     {
         kSvgBlock_GameState_ScriptModules, "Script Modules",
         0,
-        NULL,
-        NULL
+        WriteScriptModules,
+        ReadScriptModules
     },
     {
         kSvgBlock_RoomStates_AllRooms, "Room States",
         0,
-        NULL,
-        NULL
+        WriteRoomStates,
+        ReadRoomStates
     },
     {
         kSvgBlock_RoomStates_ThisRoom, "Running Room State",
         0,
-        NULL,
-        NULL
+        WriteThisRoom,
+        ReadThisRoom
     },
     {
         kSvgBlock_ManagedPool, "Managed Pool",
         0,
-        NULL,
-        NULL
+        WriteManagedPool,
+        ReadManagedPool
     },
     {
         kSvgBlock_PluginData, "Plugin Data",
         0,
-        NULL,
-        NULL
+        WritePluginData,
+        ReadPluginData
     }
 };
 

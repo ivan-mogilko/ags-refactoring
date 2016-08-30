@@ -100,6 +100,8 @@ public:
     // Serialization
     void    ReadFromFile(Common::Stream *in, GuiVersion gui_version);
     void    WriteToFile(Common::Stream *out, GuiVersion gui_version) const;
+    void    ReadFromSavegame(Common::Stream *in);
+    void    WriteToSavegame(Common::Stream *out) const;
 
 private:
     void    DrawBlob(Bitmap *ds, int x, int y, color_t draw_color);
@@ -152,8 +154,8 @@ extern int gui_disabled_style;
 extern char lines[MAXLINE][200];
 extern int  numlines;
 
-extern void read_gui(Common::Stream *in, std::vector<Common::GUIMain> &guiread, GameSetupStruct * gss);
-extern void write_gui(Common::Stream *out, const std::vector<Common::GUIMain> &guiwrite, GameSetupStruct * gss, bool savedgame);
+void read_gui(Common::Stream *in, std::vector<Common::GUIMain> &guiread, GameSetupStruct * gss);
+void write_gui(Common::Stream *out, const std::vector<Common::GUIMain> &guiwrite, GameSetupStruct * gss, bool savedgame);
 
 extern int mousex, mousey;
 

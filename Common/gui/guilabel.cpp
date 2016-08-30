@@ -20,6 +20,7 @@
 #include "gui/guilabel.h"
 #include "gui/guimain.h"
 #include "util/stream.h"
+#include "util/string_utils.h"
 #include "util/wgt2allg.h"
 
 using namespace AGS::Common;
@@ -55,6 +56,22 @@ void GUILabel::ReadFromFile(Stream *in, GuiVersion gui_version)
 
   // All labels are translated at the moment
   flags |= GUIF_TRANSLATED;
+}
+
+void GUILabel::ReadFromSavegame(Stream *in)
+{
+    GUIObject::ReadFromSavegame(in);
+    font = in->ReadInt32();
+    textcol = in->ReadInt32();
+    text = StrUtil::ReadString(in);
+}
+
+void GUILabel::WriteToSavegame(Stream *out) const
+{
+    GUIObject::WriteToSavegame(out);
+    out->WriteInt32(font);
+    out->WriteInt32(textcol);
+    StrUtil::WriteString(text, out);
 }
 
 void GUILabel::SetText(const char *newText) {

@@ -19,10 +19,10 @@
 #include "ac/spritecache.h"
 #include "util/stream.h"
 #include "gfx/bitmap.h"
+#include "util/string_utils.h"
 #include "util/wgt2allg.h"
 
-using AGS::Common::Stream;
-using AGS::Common::Bitmap;
+using namespace AGS::Common;
 
 
 std::vector<GUIButton> guibuts;
@@ -60,6 +60,34 @@ void GUIButton::ReadFromFile(Stream *in, GuiVersion gui_version)
 
   // All buttons are translated at the moment
   flags |= GUIF_TRANSLATED;
+}
+
+void GUIButton::ReadFromSavegame(Stream *in)
+{
+    GUIObject::ReadFromSavegame(in);
+    // Properties
+    pic = in->ReadInt32();
+    overpic = in->ReadInt32();
+    pushedpic = in->ReadInt32();
+    font = in->ReadInt32();
+    textcol = in->ReadInt32();
+    StrUtil::ReadString(text, in, 50);
+    // Dynamic state
+    usepic = in->ReadInt32();
+}
+
+void GUIButton::WriteToSavegame(Stream *out) const
+{
+    // Properties
+    GUIObject::WriteToSavegame(out);
+    out->WriteInt32(pic);
+    out->WriteInt32(overpic);
+    out->WriteInt32(pushedpic);
+    out->WriteInt32(font);
+    out->WriteInt32(textcol);
+    StrUtil::WriteString(text, out);
+    // Dynamic state
+    out->WriteInt32(usepic);
 }
 
 void GUIButton::Draw(Common::Bitmap *ds)

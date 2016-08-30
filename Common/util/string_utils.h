@@ -95,8 +95,11 @@ namespace StrUtil
     // Serializes and unserializes unterminated string prefixed with 32-bit length;
     // length is presented as 32-bit integer integer
     String          ReadString(Stream *in);
+    void            ReadString(char *cstr, Stream *in, size_t buf_limit = 0);
+    void            ReadString(char **cstr, Stream *in);
     void            SkipString(Stream *in);
     void            WriteString(const String &s, Stream *out);
+    void            WriteString(const char *cstr, Stream *out);
     // Serializes and unserializes unterminated string prefixed with 8-bit length
     String          ReadSmallString(Stream *in);
     void            SkipSmallString(Stream *in);

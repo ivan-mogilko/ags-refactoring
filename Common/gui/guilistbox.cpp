@@ -20,10 +20,10 @@
 #include "font/fonts.h"
 #include "util/stream.h"
 #include "gfx/bitmap.h"
+#include "util/string_utils.h"
 #include "util/wgt2allg.h"
 
-using AGS::Common::Stream;
-using AGS::Common::Bitmap;
+using namespace AGS::Common;
 
 std::vector<GUIListBox> guilist;
 int numguilist = 0;
@@ -105,6 +105,36 @@ void GUIListBox::ReadFromFile(Stream *in, GuiVersion gui_version)
 
   if (textcol == 0)
     textcol = 16;
+}
+
+void GUIListBox::ReadFromSavegame(Stream *in)
+{
+    GUIObject::ReadFromSavegame(in);
+    exflags = in->ReadInt32();
+    font = in->ReadInt32();
+
+    numItems = in->ReadInt32();
+    for (int i = 0; i < numItems; ++i)
+        items[i] = StrUtil::ReadString(in);
+    if (exflags & GLF_SGINDEXVALID)
+        in->ReadArrayOfInt16(saveGameIndex, numItems);
+    topItem = in->ReadInt32();
+    selected = in->ReadInt32();
+}
+
+void GUIListBox::WriteToSavegame(Stream *out) const
+{
+    GUIObject::WriteToSavegame(out);
+    out->WriteInt32(exflags);
+    out->WriteInt32(font);
+
+    out->WriteInt32(numItems);
+    for (int i = 0; i < numItems; ++i)
+        StrUtil::WriteString(items[i], out);
+    if (exflags & GLF_SGINDEXVALID)
+        out->WriteArrayOfInt16(saveGameIndex, numItems);
+    out->WriteInt32(topItem);
+    out->WriteInt32(selected);
 }
 
 int GUIListBox::AddItem(const char *toadd)
