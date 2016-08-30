@@ -18,6 +18,7 @@
 #include "util/stdtr1compat.h"
 #include TR1INCLUDE(memory)
 
+#include "gfx/bitmap.h"
 #include "media/audio/audiodefines.h"
 
 
@@ -25,6 +26,8 @@ namespace AGS
 {
 namespace Engine
 {
+
+using namespace Common;
 
 // PreservedParams keeps old values of particular gameplay
 // parameters that are saved before the save restoration

@@ -12,9 +12,11 @@
 //
 //=============================================================================
 
+#include "ac/common.h"
 #include "ac/game.h"
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
+#include "debug/out.h"
 #include "game/savegame_blocks.h"
 #include "main/main.h"
 #include "util/string_utils.h"
@@ -31,6 +33,10 @@ using namespace Common;
 namespace SavegameBlocks
 {
 
+// Opening and closing signatures of the save blocks list
+static const String BlockListOpenSig  = "BlockListBEG";
+static const String BlockListCloseSig = "BlockListEND";
+
 enum SavegameBlockFlags
 {
     kSvgBlk_None       = 0,
@@ -38,9 +44,10 @@ enum SavegameBlockFlags
     kSvgBlk_Optional   = 0x0001
 };
 
+// Description of a single block
 struct SavegameBlockInfo
 {
-    // Opening and closing signatures
+    // Opening and closing block signatures
     static const int32_t OpenSignature  = 0xABCDEFFF;
     static const int32_t CloseSignature = 0xFEDCBAAA;
 
@@ -122,6 +129,7 @@ SavegameError ReadDescription(Stream *in, SavegameDescription &desc, SavegameDes
         desc.GameGuid = StrUtil::ReadSmallString(in);
         desc.GameTitle = StrUtil::ReadString(in);
         desc.MainDataFilename = StrUtil::ReadSmallString(in);
+        desc.ColorDepth = in->ReadInt32();
     }
     else
     {
@@ -130,6 +138,7 @@ SavegameError ReadDescription(Stream *in, SavegameDescription &desc, SavegameDes
         StrUtil::SkipSmallString(in);
         StrUtil::SkipString(in);
         StrUtil::SkipSmallString(in);
+        in->ReadInt32(); // color depth
     }
     // User description
     if (elems & kSvgDesc_UserText)
@@ -194,6 +203,234 @@ void WriteDescription(Stream *out, const String &user_text, const Bitmap *user_i
     WriteSaveImage(out, user_image);
 
     EndWriteBlock(out, binfo);
+}
+
+
+struct BlockHandler
+{
+    SavegameBlockType  Type;
+    String             Name;
+    int32_t            Version;
+    SavegameError      (*Serialize)  (Stream*);
+    SavegameError      (*Unserialize)(Stream*, int32_t blk_ver, const PreservedParams&, RestoredData&);
+};
+
+BlockHandler BlockHandlers[kNumSavegameBlocks] =
+{
+    {
+        kSvgBlock_Description, "Description",
+        0,
+        NULL,
+        NULL
+    },
+    {
+        kSvgBlock_GameState_PlayStruct, "Game State",
+        0,
+        NULL,
+        NULL
+    },
+    {
+        kSvgBlock_GameState_Audio, "Audio",
+        0,
+        NULL,
+        NULL
+    },
+    {
+        kSvgBlock_GameState_Characters, "Characters",
+        0,
+        NULL,
+        NULL
+    },
+    {
+        kSvgBlock_GameState_Dialogs, "Dialogs",
+        0,
+        NULL,
+        NULL
+    },
+    {
+        kSvgBlock_GameState_GUI, "GUI",
+        0,
+        NULL,
+        NULL
+    },
+    {
+        kSvgBlock_GameState_InventoryItems, "Inventory Items",
+        0,
+        NULL,
+        NULL
+    },
+    {
+        kSvgBlock_GameState_MouseCursors, "Mouse Cursors",
+        0,
+        NULL,
+        NULL
+    },
+    {
+        kSvgBlock_GameState_Views, "Views",
+        0,
+        NULL,
+        NULL
+    },
+    {
+        kSvgBlock_GameState_DynamicSprites, "Dynamic Sprites",
+        0,
+        NULL,
+        NULL
+    },
+    {
+        kSvgBlock_GameState_Overlays, "Overlays",
+        0,
+        NULL,
+        NULL
+    },
+    {
+        kSvgBlock_GameState_DynamicSurfaces, "Dynamic Surfaces",
+        0,
+        NULL,
+        NULL
+    },
+    {
+        kSvgBlock_GameState_ScriptModules, "Script Modules",
+        0,
+        NULL,
+        NULL
+    },
+    {
+        kSvgBlock_RoomStates_AllRooms, "Room States",
+        0,
+        NULL,
+        NULL
+    },
+    {
+        kSvgBlock_RoomStates_ThisRoom, "Running Room State",
+        0,
+        NULL,
+        NULL
+    },
+    {
+        kSvgBlock_ManagedPool, "Managed Pool",
+        0,
+        NULL,
+        NULL
+    },
+    {
+        kSvgBlock_PluginData, "Plugin Data",
+        0,
+        NULL,
+        NULL
+    }
+};
+
+
+SavegameError ReadBlock(Stream *in, SavegameVersion svg_version, const PreservedParams &pp,
+                        RestoredData &r_data, SavegameBlockInfo *get_binfo)
+{
+    SavegameBlockInfo binfo;
+    SavegameError err = BeginReadBlock(in, binfo);
+    if (err != kSvgErr_NoError)
+        return err;
+    if (get_binfo)
+        *get_binfo = binfo;
+
+    const bool known = binfo.Type >= 0 && binfo.Type < kNumSavegameBlocks;
+    const bool expected = binfo.Type >= kSvgBlock_FirstRandomType && binfo.Type <= kSvgBlock_LastRandomType;
+    const bool optional = binfo.Flags & kSvgBlk_Optional;
+    const bool good_version = binfo.Version >= 0 && binfo.Version <= BlockHandlers[binfo.Type].Version;
+    const bool supported = known && BlockHandlers[binfo.Type].Unserialize && good_version;
+    if (!expected || !supported)
+    {
+        Out::FPrint("%s: %s block in save (%s): type = %d (%s), v = %d, off = %u, len = %u",
+            optional ? "WARNING" : "ERROR",
+            known ? (supported ? "unexpected" : "unsupported") : "unknown",
+            optional ? "skip" : "break",
+            binfo.Type, known ? BlockHandlers[binfo.Type].Name.GetCStr() : "?", binfo.Version, binfo.DataOffset, binfo.DataLength);
+        if (!optional)
+            return good_version ? kSvgErr_UnsupportedBlockType : kSvgErr_DataVersionNotSupported;
+    }
+
+    if (supported)
+    {
+        err = BlockHandlers[binfo.Type].Unserialize(in, binfo.Version, pp, r_data);
+        if (err != kSvgErr_NoError)
+            return err;
+        update_polled_stuff_if_runtime();
+    }
+    else
+    {
+        in->Seek(binfo.DataLength);
+    }
+
+    return EndReadBlock(in, binfo);
+}
+
+SavegameError ReadBlock(Stream *in, SavegameVersion svg_version, const PreservedParams &pp, RestoredData &r_data)
+{
+    return ReadBlock(in, svg_version, pp, r_data, NULL);
+}
+
+SavegameError ReadBlockList(Stream *in, SavegameVersion svg_version, const PreservedParams &pp, RestoredData &r_data)
+{
+    String sig;
+    sig.ReadCount(in, BlockListOpenSig.GetLength());
+    if (sig.Compare(BlockListOpenSig))
+        return kSvgErr_BlockListOpenSigMismatch;
+
+    bool end_found = false;
+    size_t blk_index = 0;
+    while (!in->EOS())
+    {
+        sig.ReadCount(in, BlockListCloseSig.GetLength());
+        end_found = sig.Compare(BlockListCloseSig) == 0;
+        if (end_found)
+            break;
+        in->Seek(-(int)BlockListCloseSig.GetLength());
+
+        SavegameBlockInfo binfo;
+        SavegameError err = ReadBlock(in, svg_version, pp, r_data, &binfo);
+        if (err != kSvgErr_NoError)
+        {
+            Out::FPrint("ERROR: failed to read save block: index = %u, type = %d (%s), v = %d, off = %u, len = %u",
+                blk_index, binfo.Type,
+                (binfo.Type >= 0 && binfo.Type < kNumSavegameBlocks) ? BlockHandlers[binfo.Type].Name.GetCStr() : "?",
+                binfo.Version, binfo.DataOffset, binfo.DataLength);
+            return err;
+        }
+        blk_index++;
+    }
+
+    if (!end_found)
+        return kSvgErr_BlockListEndNotFound;
+    return kSvgErr_NoError;
+}
+
+SavegameError WriteRandomBlock(Stream *out, SavegameBlockType type)
+{
+    if (type < kSvgBlock_FirstRandomType || type > kSvgBlock_LastRandomType)
+        return kSvgErr_UnsupportedBlockType;
+    if (!BlockHandlers[type].Serialize)
+        return kSvgErr_UnsupportedBlockType;
+
+    SavegameBlockInfo binfo(type, BlockHandlers[type].Version);
+    BeginWriteBlock(out, binfo);
+    SavegameError err = BlockHandlers[type].Serialize(out);
+    if (err != kSvgErr_NoError)
+        return err;
+    EndWriteBlock(out, binfo);
+    return kSvgErr_NoError;
+}
+
+SavegameError WriteAllCommonBlocks(Stream *out)
+{
+    out->Write(BlockListOpenSig, BlockListOpenSig.GetLength());
+    for (int type = kSvgBlock_FirstRandomType; type != kSvgBlock_LastRandomType; ++type)
+    {
+        SavegameError err = WriteRandomBlock(out, (SavegameBlockType)type);
+        if (err != kSvgErr_NoError && err != kSvgErr_UnsupportedBlockType)
+            return err;
+        update_polled_stuff_if_runtime();
+    }
+    out->Write(BlockListCloseSig, BlockListCloseSig.GetLength());
+    return kSvgErr_NoError;
 }
 
 } // namespace SavegameBlocks

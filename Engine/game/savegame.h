@@ -55,11 +55,14 @@ enum SavegameError
     kSvgErr_FormatVersionNotSupported,
     kSvgErr_IncompatibleEngine,
     kSvgErr_GameGuidMismatch,
+    kSvgErr_BlockListOpenSigMismatch,
+    kSvgErr_BlockListEndNotFound,
     kSvgErr_BlockOpenSigMismatch,
     kSvgErr_BlockCloseSigMismatch,
     kSvgErr_MismatchingBlockType,
     kSvgErr_UnsupportedBlockType,
     kSvgErr_InconsistentFormat,
+    kSvgErr_DataVersionNotSupported,
     kSvgErr_GameContentAssertion,
     kSvgErr_InconsistentPlugin,
     kSvgErr_DifferentColorDepth,
@@ -138,7 +141,7 @@ SavegameError  RestoreGameState(Stream *in, SavegameVersion svg_version);
 // Opens savegame for writing and puts in savegame description
 Stream        *StartSavegame(const String &filename, const String &user_text, const Bitmap *user_image);
 
-// Prepares game for saving state and writes data into the save stream
+// Prepares game for saving state and writes game data into the save stream
 void           SaveGameState(Stream *out);
 
 } // namespace Engine

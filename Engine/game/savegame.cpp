@@ -131,6 +131,10 @@ String GetSavegameErrorText(SavegameError err)
         return "Save was written by incompatible engine, or file is corrupted";
     case kSvgErr_GameGuidMismatch:
         return "Game GUID does not match, saved by a different game";
+    case kSvgErr_BlockListOpenSigMismatch:
+        return "Mismatching block list signature";
+    case kSvgErr_BlockListEndNotFound:
+        return "Block list end signature was never found";
     case kSvgErr_BlockOpenSigMismatch:
         return "Mismatching opening block signature";
     case kSvgErr_BlockCloseSigMismatch:
@@ -141,6 +145,8 @@ String GetSavegameErrorText(SavegameError err)
         return "Unknown and/or unsupported block type";
     case kSvgErr_InconsistentFormat:
         return "Inconsistent format, or file is corrupted";
+    case kSvgErr_DataVersionNotSupported:
+        return "Game data version not supported";
     case kSvgErr_GameContentAssertion:
         return "Saved content does not match current game";
     case kSvgErr_InconsistentPlugin:
@@ -579,7 +585,11 @@ SavegameError RestoreGameState(Stream *in, SavegameVersion svg_version)
     PreservedParams pp;
     RestoredData r_data;
     DoBeforeRestore(pp);
-    SavegameError err = restore_game_data(in, svg_version, pp, r_data);
+    SavegameError err;
+    if (svg_version >= kSvgVersion_Blocks)
+        err = SavegameBlocks::ReadBlockList(in, svg_version, pp, r_data);
+    else
+        err = restore_game_data(in, svg_version, pp, r_data);
     if (err != kSvgErr_NoError)
         return err;
     return DoAfterRestore(pp, r_data);
@@ -647,7 +657,7 @@ void DoBeforeSave()
 void SaveGameState(Stream *out)
 {
     DoBeforeSave();
-    save_game_data(out);
+    SavegameBlocks::WriteAllCommonBlocks(out);
 }
 
 } // namespace Engine
