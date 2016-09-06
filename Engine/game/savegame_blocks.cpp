@@ -897,26 +897,29 @@ SavegameError ReadScriptModules(Stream *in, int32_t blk_ver, const PreservedPara
 {
     // read the global script data segment
     int data_len = in->ReadInt32();
-    if (r_data.GlobalScript.Len != data_len)
+    if (pp.GlScDataSize != data_len)
     {
         Out::FPrint("Restore game error: mismatching size of global script data (game: %d, save: %d)",
-            r_data.GlobalScript.Len, data_len);
+            pp.GlScDataSize, data_len);
         return kSvgErr_GameContentAssertion;
     }
+    r_data.GlobalScript.Len = data_len;
     r_data.GlobalScript.Data.reset(new char[data_len]);
     in->Read(r_data.GlobalScript.Data.get(), data_len);
 
     if (!AssertGameContent(numScriptModules, in->ReadInt32(), "Script Modules"))
         return kSvgErr_GameContentAssertion;
+    r_data.ScriptModules.resize(numScriptModules);
     for (int i = 0; i < numScriptModules; ++i)
     {
         data_len = in->ReadInt32();
-        if (r_data.ScriptModules[i].Len != data_len)
+        if (pp.ScMdDataSize[i] != data_len)
         {
             Out::FPrint("Restore game error: mismatching size of script module data, module #%d (game: %d, save: %d)",
                 i, r_data.ScriptModules[i].Len, data_len);
             return kSvgErr_GameContentAssertion;
         }
+        r_data.ScriptModules[i].Len = data_len;
         r_data.ScriptModules[i].Data.reset(new char[data_len]);
         in->Read(r_data.ScriptModules[i].Data.get(), data_len);
     }
