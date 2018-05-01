@@ -43,4 +43,6 @@ GameSetup::GameSetup()
     Screen.DisplayMode.Windowed = false;
     Screen.FsGameFrame = GameFrameSetup(kFrame_MaxProportional);
     Screen.WinGameFrame = GameFrameSetup(kFrame_MaxRound);
+
+    stealth_tra = false;
 }
