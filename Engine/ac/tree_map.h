@@ -27,7 +27,7 @@ struct TreeMap {
 
     TreeMap();
     char* findValue (const char* key);
-    void addText (const char* ntx, char *trans);
+    const char *addText (const char* ntx, char *trans);
     void clear();
     ~TreeMap();
 };
