@@ -113,6 +113,11 @@ const TreeMap* get_translation_tree()
     return transtree.get();
 }
 
+TreeMap* get_translation_tree_writeable()
+{
+    return transtree.get();
+}
+
 bool parse_translation(Stream *language_file, String &parse_error)
 {
     while (!language_file->EOS()) {

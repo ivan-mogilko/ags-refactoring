@@ -85,6 +85,8 @@ struct GameSetup {
     bool   stealth_tra;
     // File containing parser dictionary translations
     String dict_tra_file;
+    // When translating speech, additionally try finding translation without voice-over tag
+    bool   tra_trynovoice;
 
     GameSetup();
 };

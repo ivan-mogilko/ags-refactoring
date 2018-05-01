@@ -560,6 +560,7 @@ void apply_config(const ConfigTree &cfg)
         // Translation hacking
         usetup.stealth_tra = INIreadint(cfg, "hack", "stealth_tra") > 0;
         usetup.dict_tra_file = INIreadstring(cfg, "hack", "parser_dic");
+        usetup.tra_trynovoice = INIreadint(cfg, "hack", "tra_trynovoice") > 0;
 
     }
 

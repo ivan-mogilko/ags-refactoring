@@ -45,4 +45,5 @@ GameSetup::GameSetup()
     Screen.WinGameFrame = GameFrameSetup(kFrame_MaxRound);
 
     stealth_tra = false;
+    tra_trynovoice = false;
 }

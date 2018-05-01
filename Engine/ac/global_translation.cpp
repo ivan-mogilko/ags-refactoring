@@ -26,6 +26,10 @@
 #include "plugin/plugin_engine.h"
 #include "util/memory.h"
 #include "core/types.h"
+#include "util/math.h"
+#include "util/string_utils.h"
+
+using namespace AGS::Common;
 
 using namespace AGS::Common::Memory;
 
@@ -47,12 +51,30 @@ const char *get_translation (const char *text) {
     }
 #endif
 
-    const auto *transtree = get_translation_tree();
+    auto *transtree = get_translation_tree_writeable();
     if (transtree != nullptr) {
         // translate the text using the translation file
-        const char * transl = transtree->findValue (text);
+        const char *lookup = text;
+        const char *transl = transtree->findValue(lookup);
         if (transl != nullptr)
             return transl;
+        if (*lookup == '&' && usetup.tra_trynovoice)
+        { // skip voice token and repeat lookup
+            while (*lookup != ' ' && *lookup != 0) lookup++;
+            while (*lookup == ' ' && *lookup != 0) lookup++;
+            transl = transtree->findValue(lookup);
+            if (transl != NULL)
+            { // add new translation with voice token to the tree so that
+              // it will be found next time
+                char new_trans[STD_BUFFER_SIZE] = {0};
+                size_t token_len = lookup - text;
+                strncpy(new_trans, text, Math::Min((size_t)STD_BUFFER_SIZE - 1, token_len));
+                snprintf(new_trans + token_len, STD_BUFFER_SIZE - 1 - token_len, "%s", transl);
+                return transtree->addText(text, new_trans);
+                // because of how translated text traversal currently works in the engine,
+                // we must return pointer to the string stored in the global storage,
+            }
+        }
     }
     // return the original text
     return text;
