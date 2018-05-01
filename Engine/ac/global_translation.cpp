@@ -14,6 +14,7 @@
 #include <stdio.h>
 #include "ac/common.h"
 #include "ac/display.h"
+#include "ac/gamesetup.h"
 #include "ac/gamestate.h"
 #include "ac/global_translation.h"
 #include "ac/string.h"
@@ -53,6 +54,8 @@ const char *get_translation (const char *text) {
 }
 
 int IsTranslationAvailable () {
+    if (usetup.stealth_tra)
+        return 0;
     if (get_translation_tree().size() > 0)
         return 1;
     return 0;

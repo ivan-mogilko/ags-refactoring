@@ -392,6 +392,7 @@ void apply_config(const ConfigTree &cfg)
         usetup.key_save_game = CfgReadInt(cfg, "override", "save_game_key", 0);
         usetup.key_restore_game = CfgReadInt(cfg, "override", "restore_game_key", 0);
         // Translation hacking
+        usetup.stealth_tra = CfgReadBoolInt(cfg, "hack", "stealth_tra");
         usetup.dict_tra_file = CfgReadString(cfg, "hack", "parser_dic");
 
     }

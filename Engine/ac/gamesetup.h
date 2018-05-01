@@ -124,6 +124,8 @@ struct GameSetup
     int   key_save_game = 0;
     int   key_restore_game = 0;
 
+    // Always pretend that game is not using translation
+    bool   stealth_tra;
     // File containing parser dictionary translations
     String dict_tra_file;
 
