@@ -21,6 +21,9 @@
 #include "ac/string.h"
 #include "debug/debug_log.h"
 #include "util/string.h"
+// for tra hack
+#include "ac/gamesetup.h"
+#include "ac/global_translation.h"
 
 using namespace AGS::Common;
 
@@ -29,6 +32,8 @@ extern GameState play;
 
 int Parser_FindWordID(const char *wordToFind)
 {
+    if (usetup.tra_parsersaid)
+        wordToFind = get_translation(wordToFind);
     return find_word_in_dictionary(wordToFind);
 }
 
@@ -48,6 +53,8 @@ void ParseText (const char*text) {
 int Said (const char*checkwords) {
     int numword = 0;
     short words[MAX_PARSED_WORDS];
+    if (usetup.tra_parsersaid)
+        checkwords = get_translation(checkwords);
     return parse_sentence (checkwords, &numword, &words[0], play.parsed_words, play.num_parsed_words);
 }
 
