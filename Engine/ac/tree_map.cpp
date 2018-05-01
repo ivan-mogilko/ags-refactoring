@@ -43,11 +43,11 @@ const char* TreeMap::findValue (const char* key) const {
     }
 }
 
-void TreeMap::addText (const char* ntx, char *trans) {
+const char *TreeMap::addText (const char* ntx, char *trans) {
     if ((ntx == nullptr) || (ntx[0] == 0) ||
         ((text != nullptr) && (strcmp(ntx, text) == 0)))
         // don't add if it's an empty string or if it's already here
-        return;
+        return translation;
 
     if (text == nullptr) {
         text = (char*)malloc(strlen(ntx)+1);
@@ -56,21 +56,23 @@ void TreeMap::addText (const char* ntx, char *trans) {
             quit("load_translation: out of memory");
         strcpy(text, ntx);
         strcpy(translation, trans);
+        return translation;
     }
     else if (strcmp(ntx, text) < 0) {
         // Earlier in alphabet, add to left
         if (left == nullptr)
             left = new TreeMap();
 
-        left->addText (ntx, trans);
+        return left->addText (ntx, trans);
     }
     else if (strcmp(ntx, text) > 0) {
         // Later in alphabet, add to right
         if (right == nullptr)
             right = new TreeMap();
 
-        right->addText (ntx, trans);
+        return right->addText (ntx, trans);
     }
+    return translation;
 }
 
 void TreeMap::clear() {
