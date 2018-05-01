@@ -116,6 +116,9 @@ struct LoadedGameEntities
     // Original sprite data (when it was read into const-sized arrays)
     size_t                  SpriteCount;
     std::unique_ptr<char[]> SpriteFlags;
+    // File containing parser dictionary translations
+    String dict_tra_file;
+
 
     // Old dialog support
     // legacy compiled dialog script of its own format,

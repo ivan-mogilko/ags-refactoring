@@ -788,7 +788,7 @@ HGameFileError ReadGameData(LoadedGameEntities &ents, Stream *in, GameDataVersio
     if (!err)
         return err;
     game.read_interaction_scripts(in, data_ver);
-    game.read_words_dictionary(in);
+    game.read_words_dictionary(in, ents.dict_tra_file);
 
     if (!game.load_compiled_script)
         return new MainGameFileError(kMGFErr_NoGlobalScript);

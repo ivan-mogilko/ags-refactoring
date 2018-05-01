@@ -204,11 +204,11 @@ void GameSetupStruct::read_interaction_scripts(Common::Stream *in, GameDataVersi
     }
 }
 
-void GameSetupStruct::read_words_dictionary(Common::Stream *in)
+void GameSetupStruct::read_words_dictionary(Common::Stream *in, const String &dict_tra_file)
 {
     if (load_dictionary) {
         dict = new WordsDictionary();
-        read_dictionary (dict, in);
+        read_dictionary(dict, in, dict_tra_file);
     }
 }
 

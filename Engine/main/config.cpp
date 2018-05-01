@@ -557,6 +557,9 @@ void apply_config(const ConfigTree &cfg)
             usetup.override_script_os = eOS_Mac;
         }
         usetup.override_upscale = INIreadint(cfg, "override", "upscale", usetup.override_upscale) > 0;
+        // Translation hacking
+        usetup.dict_tra_file = INIreadstring(cfg, "hack", "parser_dic");
+
     }
 
     // Apply logging configuration
