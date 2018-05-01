@@ -75,6 +75,8 @@ struct GameSetup {
 
     ScreenSetup Screen;
 
+    // Always pretend that game is not using translation
+    bool   stealth_tra;
     // File containing parser dictionary translations
     String dict_tra_file;
 
