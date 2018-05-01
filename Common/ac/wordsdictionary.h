@@ -41,7 +41,7 @@ extern const char *passwencstring;
 
 extern void decrypt_text(char*toenc);
 extern void read_string_decrypt(Common::Stream *in, char *buf, size_t buf_sz);
-extern void read_dictionary (WordsDictionary *dict, Common::Stream *in);
+extern void read_dictionary (WordsDictionary *dict, Common::Stream *in, const char *dict_tra_file = "");
 
 #if defined (OBSOLETE)
 // TODO: not a part of wordsdictionary, move to obsoletes

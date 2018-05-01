@@ -75,6 +75,9 @@ struct GameSetup {
 
     ScreenSetup Screen;
 
+    // File containing parser dictionary translations
+    String dict_tra_file;
+
     GameSetup();
 };
 

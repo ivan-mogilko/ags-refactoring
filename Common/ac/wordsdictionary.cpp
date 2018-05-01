@@ -117,14 +117,52 @@ void read_string_decrypt(Stream *in, char *buf, size_t buf_sz) {
   decrypt_text(buf);
 }
 
-void read_dictionary (WordsDictionary *dict, Stream *out) {
-  int ii;
-
+#include "util/file.h"
+#include "util/textstreamreader.h"
+using namespace Common;
+void read_dictionary (WordsDictionary *dict, Stream *out, const char *dict_tra_file) {
   dict->allocate_memory(out->ReadInt32());
-  for (ii = 0; ii < dict->num_words; ii++) {
+  if (dict->num_words == 0)
+    return;
+
+  Stream *DictOut = NULL;
+  Stream *DictIn = NULL;
+  const String dict_filename = dict_tra_file;
+  // Choose the dict-hack mode: if the dictionary translation file already exists, then
+  // read it to overriden in-game dictionary. Otherwise, create one for writing
+  // in-game dictionary as we read one from the game file.
+  if (!dict_filename.IsEmpty())
+  {
+    if (File::TestReadFile(dict_filename))
+      DictIn = File::OpenFileRead(dict_filename);
+    else
+      DictOut = File::CreateFile(dict_filename);
+  }
+  TextStreamReader txt_read(DictIn);
+
+  for (int ii = 0; ii < dict->num_words; ii++) {
     read_string_decrypt (out, dict->word[ii], MAX_PARSER_WORD_LENGTH);
+    if (dict->word[ii])
+    {
+      if (DictOut)
+      {
+        DictOut->Write(dict->word[ii], strlen(dict->word[ii]));
+        DictOut->Write("\n", 1);
+      }
+      else if (DictIn)
+      {
+        String s = txt_read.ReadLine();
+        if (!s.IsEmpty())
+        {
+          s.TruncateToLeft(MAX_PARSER_WORD_LENGTH - 1);
+          memcpy(dict->word[ii], s.GetCStr(), s.GetLength() + 1);
+        }
+      }
+    }
     dict->wordnum[ii] = out->ReadInt16();
   }
+  delete DictOut;
+  // DictIn is deleted by TextStreamReader
 }
 
 #if defined (OBSOLETE)
