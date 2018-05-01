@@ -104,7 +104,7 @@ struct GameSetupStruct: public GameSetupStructBase {
     MainGameFileError read_sprite_flags(Common::Stream *in, GameDataVersion data_ver);
     MainGameFileError read_cursors(Common::Stream *in, GameDataVersion data_ver);
     void read_interaction_scripts(Common::Stream *in, GameDataVersion data_ver);
-    void read_words_dictionary(Common::Stream *in);
+    void read_words_dictionary(Common::Stream *in, const Common::String &dict_tra_file);
 
     void ReadInvInfo_Aligned(Common::Stream *in);
     void WriteInvInfo_Aligned(Common::Stream *out);

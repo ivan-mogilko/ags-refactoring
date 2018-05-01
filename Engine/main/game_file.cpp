@@ -144,6 +144,7 @@ bool load_game_file(String &err_str)
 {
     MainGameSource src;
     LoadedGameEntities ents(game, dialog, views);
+    ents.dict_tra_file = usetup.dict_tra_file;
     MainGameFileError load_err = OpenMainGameFileFromDefaultAsset(src);
     if (load_err == kMGFErr_NoError)
     {

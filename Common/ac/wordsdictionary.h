@@ -37,7 +37,7 @@ extern const char *passwencstring;
 
 extern void decrypt_text(char*toenc);
 extern void read_string_decrypt(Common::Stream *in, char *sss);
-extern void read_dictionary (WordsDictionary *dict, Common::Stream *in);
+extern void read_dictionary (WordsDictionary *dict, Common::Stream *in, const char *dict_tra_file = "");
 extern void freadmissout(short *pptr, Common::Stream *in);
 
 extern void encrypt_text(char *toenc);

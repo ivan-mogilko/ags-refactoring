@@ -651,7 +651,7 @@ MainGameFileError ReadGameData(LoadedGameEntities &ents, Stream *in, GameDataVer
     if (err != kMGFErr_NoError)
         return err;
     game.read_interaction_scripts(in, data_ver);
-    game.read_words_dictionary(in);
+    game.read_words_dictionary(in, ents.dict_tra_file);
 
     if (!game.load_compiled_script)
         return kMGFErr_NoGlobalScript;
