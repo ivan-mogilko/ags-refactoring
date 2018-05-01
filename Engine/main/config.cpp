@@ -379,7 +379,6 @@ void apply_config(const ConfigTree &cfg)
 
         // Various system options
         usetup.multitasking = CfgReadInt(cfg, "misc", "background", 0) != 0;
-
         // User's overrides and hacks
         usetup.override_multitasking = CfgReadInt(cfg, "override", "multitasking", -1);
         String override_os = CfgReadString(cfg, "override", "os");
@@ -395,6 +394,7 @@ void apply_config(const ConfigTree &cfg)
         usetup.stealth_tra = CfgReadBoolInt(cfg, "hack", "stealth_tra");
         usetup.dict_tra_file = CfgReadString(cfg, "hack", "parser_dic");
         usetup.tra_trynovoice = CfgReadBoolInt(cfg, "hack", "tra_trynovoice");
+        usetup.tra_parsersaid = CfgReadBoolInt(cfg, "hack", "tra_parsersaid");
     }
 
     // Apply logging configuration
