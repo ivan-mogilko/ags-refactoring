@@ -132,7 +132,7 @@ struct GameSetupStruct : public GameSetupStructBase
     void read_font_infos(Common::Stream *in, GameDataVersion data_ver);
     HGameFileError read_cursors(Common::Stream *in);
     void read_interaction_scripts(Common::Stream *in, GameDataVersion data_ver);
-    void read_words_dictionary(Common::Stream *in);
+    void read_words_dictionary(Common::Stream *in, const Common::String &dict_tra_file);
 
     void ReadInvInfo(Common::Stream *in);
     void WriteInvInfo(Common::Stream *out);

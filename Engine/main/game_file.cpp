@@ -182,6 +182,7 @@ HError load_game_file()
 {
     MainGameSource src;
     LoadedGameEntities ents(game);
+    ents.dict_tra_file = usetup.dict_tra_file;
     HError err = (HError)OpenMainGameFileFromDefaultAsset(src, AssetMgr.get());
     if (!err)
         return err;

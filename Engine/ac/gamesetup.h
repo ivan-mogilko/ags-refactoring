@@ -124,6 +124,9 @@ struct GameSetup
     int   key_save_game = 0;
     int   key_restore_game = 0;
 
+    // File containing parser dictionary translations
+    String dict_tra_file;
+
     GameSetup();
 };
 

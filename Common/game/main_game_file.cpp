@@ -912,7 +912,7 @@ HGameFileError ReadGameData(LoadedGameEntities &ents, Stream *in, GameDataVersio
         return err;
     game.read_interaction_scripts(in, data_ver);
     if (sinfo.HasWordsDict)
-        game.read_words_dictionary(in);
+        game.read_words_dictionary(in, ents.dict_tra_file);
 
     if (sinfo.HasCCScript)
     {

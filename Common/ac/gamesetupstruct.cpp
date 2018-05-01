@@ -189,10 +189,10 @@ void GameSetupStruct::read_interaction_scripts(Common::Stream *in, GameDataVersi
     }
 }
 
-void GameSetupStruct::read_words_dictionary(Common::Stream *in)
+void GameSetupStruct::read_words_dictionary(Common::Stream *in, const String &dict_tra_file)
 {
     dict.reset(new WordsDictionary());
-    read_dictionary(dict.get(), in);
+    read_dictionary(dict.get(), in, dict_tra_file.GetCStr());
 }
 
 void GameSetupStruct::ReadMouseCursors(Stream *in)
