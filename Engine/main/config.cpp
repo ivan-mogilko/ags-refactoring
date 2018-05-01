@@ -542,6 +542,7 @@ void apply_config(const ConfigTree &cfg)
         }
         usetup.override_upscale = INIreadint(cfg, "override", "upscale") > 0;
         // Translation hacking
+        usetup.stealth_tra = INIreadint(cfg, "hack", "stealth_tra") > 0;
         usetup.dict_tra_file = INIreadstring(cfg, "hack", "parser_dic");
 
     }
