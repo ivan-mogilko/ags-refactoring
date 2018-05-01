@@ -20,13 +20,16 @@
 #include "ac/parser.h"
 #include "ac/string.h"
 #include "debug/debug_log.h"
+#include "util/string.h"
+
+using namespace AGS::Common;
 
 extern GameSetupStruct game;
 extern GameState play;
 
 int Parser_FindWordID(const char *wordToFind)
 {
-    return find_word_in_dictionary((char*)wordToFind);
+    return find_word_in_dictionary(wordToFind);
 }
 
 const char* Parser_SaidUnknownWord() {
@@ -35,14 +38,14 @@ const char* Parser_SaidUnknownWord() {
     return CreateNewScriptString(play.bad_parsed_word);
 }
 
-void ParseText (char*text) {
+void ParseText (const char*text) {
     parse_sentence (text, &play.num_parsed_words, play.parsed_words, NULL, 0);
 }
 
 // Said: call with argument for example "get apple"; we then check
 // word by word if it matches (using dictonary ID equivalence to match
 // synonyms). Returns 1 if it does, 0 if not.
-int Said (char*checkwords) {
+int Said (const char*checkwords) {
     int numword = 0;
     short words[MAX_PARSED_WORDS];
     return parse_sentence (checkwords, &numword, &words[0], play.parsed_words, play.num_parsed_words);
@@ -50,7 +53,7 @@ int Said (char*checkwords) {
 
 //=============================================================================
 
-int find_word_in_dictionary (char *lookfor) {
+int find_word_in_dictionary (const char *lookfor) {
     int j;
     if (game.dict == NULL)
         return -1;
@@ -63,13 +66,12 @@ int find_word_in_dictionary (char *lookfor) {
     if (lookfor[0] != 0) {
         // If the word wasn't found, but it ends in 'S', see if there's
         // a non-plural version
-        char *ptat = &lookfor[strlen(lookfor)-1];
+        const char *ptat = &lookfor[strlen(lookfor)-1];
         char lastletter = *ptat;
         if ((lastletter == 's') || (lastletter == 'S') || (lastletter == '\'')) {
-            *ptat = 0;
-            int reslt = find_word_in_dictionary (lookfor);
-            *ptat = lastletter;
-            return reslt;
+            String singular = lookfor;
+            singular.ClipRight(1);
+            return find_word_in_dictionary(singular);
         } 
     }
     return -1;
@@ -82,7 +84,7 @@ int is_valid_word_char(char theChar) {
     return 0;
 }
 
-int FindMatchingMultiWordWord(char *thisword, char **text) {
+int FindMatchingMultiWordWord(char *thisword, const char **text) {
     // see if there are any multi-word words
     // that match -- if so, use them
     const char *tempptr = *text;
@@ -117,7 +119,7 @@ int FindMatchingMultiWordWord(char *thisword, char **text) {
 
     if (word >= 0) {
         // yes, a word like "pick up" was found
-        *text = (char*)tempptrAtBestMatch;
+        *text = tempptrAtBestMatch;
         if (thisword != NULL)
             strcpy(thisword, tempword);
     }
@@ -127,7 +129,7 @@ int FindMatchingMultiWordWord(char *thisword, char **text) {
 
 // parse_sentence: pass compareto as NULL to parse the sentence, or
 // compareto as non-null to check if it matches the passed sentence
-int parse_sentence (char*text, int *numwords, short*wordarray, short*compareto, int comparetonum) {
+int parse_sentence (const char *text, int *numwords, short*wordarray, short*compareto, int comparetonum) {
     char thisword[150] = "\0";
     int  i = 0, comparing = 0;
     char in_optional = 0, do_word_now = 0;
@@ -139,7 +141,9 @@ int parse_sentence (char*text, int *numwords, short*wordarray, short*compareto, 
     // [IKM] Now, this is extremely not smart; this string could come
     // from anywhere, including script data, and we are changing it here
     // FIXME!!!
-    strlwr(text);
+    String uniform_text = text;
+    uniform_text.MakeLower();
+    text = uniform_text.GetCStr();
     while (1) {
         if ((compareto != NULL) && (compareto[comparing] == RESTOFLINE))
             return 1;
