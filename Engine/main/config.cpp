@@ -561,7 +561,7 @@ void apply_config(const ConfigTree &cfg)
         usetup.stealth_tra = INIreadint(cfg, "hack", "stealth_tra") > 0;
         usetup.dict_tra_file = INIreadstring(cfg, "hack", "parser_dic");
         usetup.tra_trynovoice = INIreadint(cfg, "hack", "tra_trynovoice") > 0;
-
+        usetup.tra_parsersaid = INIreadint(cfg, "hack", "tra_parsersaid") > 0;
     }
 
     // Apply logging configuration

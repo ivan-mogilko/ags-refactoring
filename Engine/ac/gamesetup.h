@@ -87,6 +87,8 @@ struct GameSetup {
     String dict_tra_file;
     // When translating speech, additionally try finding translation without voice-over tag
     bool   tra_trynovoice;
+    // Forcedly translate any argument passed into Parser.Said or Parser.FindWordID script functions
+    bool   tra_parsersaid;
 
     GameSetup();
 };
