@@ -37,6 +37,9 @@ extern AGS::Common::String cmdGameDataPath;
 extern int override_start_room;
 extern bool justTellInfo;
 extern AGS::Common::String loadSaveGameOnStartup;
+// HACK
+extern bool justExtractRoomMessages;
+extern AGS::Common::String justExtractRoomMessagesTo;
 
 void main_print_help();
 

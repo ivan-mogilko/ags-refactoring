@@ -69,6 +69,9 @@ bool attachToParentConsole = false;
 bool hideMessageBoxes = false;
 std::set<String> tellInfoKeys;
 String loadSaveGameOnStartup;
+// HACK
+bool justExtractRoomMessages = false;
+String justExtractRoomMessagesTo;
 
 // Current engine version
 AGS::Common::Version EngineVersion;
@@ -272,6 +275,15 @@ static int main_process_cmdline(ConfigTree &cfg, int argc, char *argv[])
                 tellInfoKeys.insert(String("all"));
             else if (arg[6] == '-' && arg[7] != 0)
                 tellInfoKeys.insert(String(arg + 7));
+        }
+        else if (stricmp(argv[ee], "--extract-room-messages") == 0)
+        {
+            justExtractRoomMessages = true;
+            if (argc > ee + 1)
+            {
+                justExtractRoomMessagesTo = argv[ee + 1];
+                ee++;
+            }
         }
         //
         // Config overrides
