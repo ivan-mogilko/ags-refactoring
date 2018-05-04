@@ -37,6 +37,7 @@ void sprstruc::ReadFromFile(Common::Stream *in)
 }
 
 roomstruct::roomstruct() {
+    memset(ebscene, 0, sizeof(ebscene));
     ebscene[0] = NULL; walls = NULL; object = NULL; lookat = NULL; nummes = 0;
     left = 0; right = 317; top = 40; bottom = 199; numobj = MAX_OBJ; numsprs = 0; password[0] = 0;
     wasversion = kRoomVersion_Current; numanims = 0; regions = NULL; numwalkareas = 0;

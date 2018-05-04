@@ -64,6 +64,8 @@
 #include "main/game_file.h"
 #include "debug/out.h"
 
+#include "util/extractor.h"
+
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
@@ -737,6 +739,20 @@ int engine_load_game_data()
     }
 
     return RETURN_CONTINUE;
+}
+
+bool do_extraction_work()
+{
+    if (justExtractRoomMessages)
+    {
+        String fullpath = usetup.data_files_dir;
+        if (!justExtractRoomMessagesTo.IsEmpty())
+            fullpath = String::FromFormat("%s/%s", usetup.data_files_dir.GetCStr(), justExtractRoomMessagesTo.GetCStr());
+        ExtractRoomMessages(0, 999, game, fullpath);
+        proper_exit = 1;
+        return false;
+    }
+    return true;
 }
 
 int engine_check_register_game()
@@ -1460,7 +1476,10 @@ int initialize_engine(int argc,char*argv[])
     if (res != RETURN_CONTINUE) {
         return res;
     }
-    
+
+    if (!do_extraction_work())
+        return EXIT_NORMAL;
+
     res = engine_check_register_game();
     if (res != RETURN_CONTINUE) {
         return res;

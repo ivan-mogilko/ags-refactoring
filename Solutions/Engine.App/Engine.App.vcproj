@@ -1184,6 +1184,14 @@
 					>
 				</File>
 			</Filter>
+			<Filter
+				Name="util"
+				>
+				<File
+					RelativePath="..\..\Engine\util\extractor.cpp"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -2181,6 +2189,10 @@
 			<Filter
 				Name="util"
 				>
+				<File
+					RelativePath="..\..\Engine\util\extractor.h"
+					>
+				</File>
 				<File
 					RelativePath="..\..\Engine\util\library.h"
 					>
