@@ -89,6 +89,9 @@ bool attachToParentConsole = false;
 bool hideMessageBoxes = false;
 std::set<String> tellInfoKeys;
 const char *loadSaveGameOnStartup = nullptr;
+// HACK
+bool justExtractRoomMessages = false;
+String justExtractRoomMessagesTo;
 
 #if ! AGS_PLATFORM_DEFINES_PSP_VARS
 int psp_video_framedrop = 1;
@@ -346,6 +349,15 @@ static int main_process_cmdline(ConfigTree &cfg, int argc, char *argv[])
         else if ((ags_stricmp(arg, "--gfxdriver") == 0) && (argc > ee + 1))
         {
             INIwritestring(cfg, "graphics", "driver", argv[++ee]);
+        }
+        else if (stricmp(argv[ee],"--extract-room-messages") == 0)
+        {
+            justExtractRoomMessages = true;
+            if (argc > ee+1)
+            {
+                justExtractRoomMessagesTo = argv[ee + 1];
+                ee++;
+            }
         }
         else if ((ags_stricmp(arg, "--gfxfilter") == 0) && (argc > ee + 1))
         {

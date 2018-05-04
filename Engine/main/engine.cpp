@@ -73,6 +73,8 @@
 #include "util/misc.h"
 #include "util/path.h"
 
+#include "util/extractor.h"
+
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
@@ -658,6 +660,20 @@ int engine_load_game_data()
         return EXIT_ERROR;
     }
     return 0;
+}
+
+bool do_extraction_work()
+{
+    if (justExtractRoomMessages)
+    {
+        String fullpath = usetup.main_data_dir;
+        if (!justExtractRoomMessagesTo.IsEmpty())
+            fullpath = Path::ConcatPaths(usetup.main_data_dir, justExtractRoomMessagesTo);
+        ExtractRoomMessages(0, 999, game, fullpath);
+        proper_exit = 1;
+        return false;
+    }
+    return true;
 }
 
 int engine_check_register_game()
@@ -1559,7 +1575,10 @@ int initialize_engine(const ConfigTree &startup_opts)
     int res = engine_load_game_data();
     if (res != 0)
         return res;
-    
+
+    if (!do_extraction_work())
+        return EXIT_NORMAL;
+
     res = engine_check_register_game();
     if (res != 0)
         return res;
