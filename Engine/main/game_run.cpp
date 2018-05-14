@@ -416,6 +416,12 @@ bool run_service_key_controls(int &key_out)
         Display(bigbuffer);
         return false;
     }
+    
+    if (keycode == eAGSKeyCodeCtrlX && play.debug_mode) // Ctrl + X
+    {
+        script_debug (3,0);
+        return false;
+    }
 
     if ((keycode == eAGSKeyCodeAltV) && (key[KEY_LCONTROL] || key[KEY_RCONTROL]) && (play.wait_counter < 1) && (is_text_overlay == 0) && (restrict_until == 0)) {
         // make sure we can't interrupt a Wait()
@@ -442,7 +448,6 @@ bool run_service_mb_controls(int &mbut, int &mwheelz)
     mwheelz = mz;
     return true;
 }
-
 // Runs default keyboard handling
 static void check_keyboard_controls()
 {

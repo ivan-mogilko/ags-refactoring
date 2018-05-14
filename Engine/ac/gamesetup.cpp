@@ -44,6 +44,7 @@ GameSetup::GameSetup()
     Screen.FsGameFrame = GameFrameSetup(kFrame_MaxProportional);
     Screen.WinGameFrame = GameFrameSetup(kFrame_MaxRound);
 
+    debug_mode = false;
     stealth_tra = false;
     tra_trynovoice = false;
     tra_parsersaid = false;
