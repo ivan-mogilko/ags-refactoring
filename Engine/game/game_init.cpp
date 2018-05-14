@@ -469,8 +469,11 @@ GameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion data
         return kGameInitErr_ScriptLinkFailed;
 
 
+    // HACKS
     if (usetup.debug_mode)
         ents.Game.options[OPT_DEBUGMODE] = 1;
+    if (usetup.tra_listbox)
+        force_tra_gui_controls();
 
     return kGameInitErr_NoError;
 }

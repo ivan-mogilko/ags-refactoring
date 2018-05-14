@@ -412,6 +412,16 @@ void unexport_gui_controls(int ee) {
     }
 }
 
+/* HACK */
+void force_tra_gui_controls()
+{
+    for (size_t i = 0; i < guilist.size(); i++)
+    {
+        guilist[i].flags |= GUIF_TRANSLATED;
+    }
+}
+/* HACK */
+
 int convert_gui_disabled_style(int oldStyle) {
     int toret = GUIDIS_GREYOUT;
 
