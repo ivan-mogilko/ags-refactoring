@@ -450,8 +450,11 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     if (create_global_script())
         return new GameInitError(kGameInitErr_ScriptLinkFailed, ccErrorString);
 
+    // HACKS
     if (usetup.debug_mode)
         ents.Game.options[OPT_DEBUGMODE] = 1;
+    if (usetup.tra_listbox)
+        force_tra_gui_controls();
 
     return HGameInitError::None();
 }

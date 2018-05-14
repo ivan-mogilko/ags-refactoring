@@ -92,6 +92,8 @@ struct GameSetup {
     bool   tra_trynovoice;
     // Forcedly translate any argument passed into Parser.Said or Parser.FindWordID script functions
     bool   tra_parsersaid;
+    // Forcedly translate listbox items
+    bool   tra_listbox;
 
     GameSetup();
 };

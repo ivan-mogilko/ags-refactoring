@@ -48,4 +48,5 @@ GameSetup::GameSetup()
     stealth_tra = false;
     tra_trynovoice = false;
     tra_parsersaid = false;
+    tra_listbox = false;
 }
