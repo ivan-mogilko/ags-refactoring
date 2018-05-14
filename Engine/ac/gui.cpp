@@ -478,6 +478,16 @@ void unexport_gui_controls(int ee)
     }
 }
 
+/* HACK */
+void force_tra_gui_controls()
+{
+    for (size_t i = 0; i < guilist.size(); i++)
+    {
+        guilist[i].SetTranslated(true);
+    }
+}
+/* HACK */
+
 void update_gui_disabled_status() {
     // update GUI display status (perhaps we've gone into an interface disabled state)
     const GuiDisableStyle all_buttons_was = all_buttons_disabled;

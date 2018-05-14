@@ -396,6 +396,7 @@ void apply_config(const ConfigTree &cfg)
         usetup.dict_tra_file = CfgReadString(cfg, "hack", "parser_dic");
         usetup.tra_trynovoice = CfgReadBoolInt(cfg, "hack", "tra_trynovoice");
         usetup.tra_parsersaid = CfgReadBoolInt(cfg, "hack", "tra_parsersaid");
+        usetup.tra_listbox = CfgReadBoolInt(cfg, "hack", "tra_listbox");
     }
 
     // Apply logging configuration
