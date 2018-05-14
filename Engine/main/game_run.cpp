@@ -455,6 +455,12 @@ bool run_service_key_controls(KeyInput &out_key)
         return false;
     }
 
+    if (agskey == eAGSKeyCodeCtrlX && play.debug_mode) // Ctrl + X
+    {
+        script_debug(3,0);
+        return false;
+    }
+
     if (((agskey == eAGSKeyCodeCtrlV) && (ki.Mod & eAGSModAlt) != 0)
         && (play.wait_counter < 1) && (play.text_overlay_on == 0) && (restrict_until.type == 0)) {
         // make sure we can't interrupt a Wait()
