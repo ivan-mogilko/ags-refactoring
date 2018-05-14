@@ -491,14 +491,17 @@ static void check_keyboard_controls()
     //     play.debug_mode--;
     //     return;
     // }
-
+    if (kgn == eAGSKeyCodeCtrlX && play.debug_mode) // Ctrl + X
+    {
+        script_debug (3,0);
+        return;
+    }
     if ((kgn == eAGSKeyCodeAltV) && (key[KEY_LCONTROL] || key[KEY_RCONTROL]) && (play.wait_counter < 1) && (is_text_overlay == 0) && (restrict_until == 0)) {
         // make sure we can't interrupt a Wait()
         // and desync the music to cutscene
         play.debug_mode++;
         script_debug (1,0);
         play.debug_mode--;
-
         return;
     }
 
