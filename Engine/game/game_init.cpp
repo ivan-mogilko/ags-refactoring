@@ -468,6 +468,10 @@ GameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion data
     if (create_global_script())
         return kGameInitErr_ScriptLinkFailed;
 
+
+    if (usetup.debug_mode)
+        ents.Game.options[OPT_DEBUGMODE] = 1;
+
     return kGameInitErr_NoError;
 }
 

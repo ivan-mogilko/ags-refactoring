@@ -469,6 +469,10 @@ void check_keyboard_controls()
         script_debug(5,0);
         play.debug_mode--;
         }*/
+        else if (kgn == 24 && play.debug_mode) // Ctrl + X
+        {
+            script_debug (3,0);
+        }
         else if ((kgn == 22 + AGS_EXT_KEY_SHIFT && (key[KEY_LCONTROL] || key[KEY_RCONTROL]) ) &&
             (play.wait_counter < 1) && (is_text_overlay == 0) && (restrict_until == 0))
         {
