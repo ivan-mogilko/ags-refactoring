@@ -49,8 +49,8 @@ extern bool justUnRegisterGame;
 extern bool justTellInfo;
 extern const char *loadSaveGameOnStartup;
 // HACK
-extern bool justExtractRoomMessages;
-extern AGS::Common::String justExtractRoomMessagesTo;
+extern bool justExtractMessages;
+extern AGS::Common::String justExtractMessagesTo;
 
 extern int psp_video_framedrop;
 extern int psp_audio_enabled;
