@@ -89,8 +89,8 @@ bool justRegisterGame = false;
 bool justUnRegisterGame = false;
 const char *loadSaveGameOnStartup = NULL;
 // HACK
-bool justExtractRoomMessages = false;
-String justExtractRoomMessagesTo;
+bool justExtractMessages = false;
+String justExtractMessagesTo;
 
 #if !defined(MAC_VERSION) && !defined(IOS_VERSION) && !defined(PSP_VERSION) && !defined(ANDROID_VERSION)
 int psp_video_framedrop = 1;
@@ -319,12 +319,12 @@ int main_process_cmdline(int argc,char*argv[])
         {
             disable_log_file = true;
         }
-        else if (stricmp(argv[ee],"--extract-room-messages") == 0)
+        else if (stricmp(argv[ee],"--extract-messages") == 0)
         {
-            justExtractRoomMessages = true;
+            justExtractMessages = true;
             if (argc > ee+1)
             {
-                justExtractRoomMessagesTo = argv[ee + 1];
+                justExtractMessagesTo = argv[ee + 1];
                 ee++;
             }
         }

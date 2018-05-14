@@ -743,11 +743,16 @@ int engine_load_game_data()
 
 bool do_extraction_work()
 {
-    if (justExtractRoomMessages)
+    if (justExtractMessages)
     {
         String fullpath = usetup.data_files_dir;
-        if (!justExtractRoomMessagesTo.IsEmpty())
-            fullpath = String::FromFormat("%s/%s", usetup.data_files_dir.GetCStr(), justExtractRoomMessagesTo.GetCStr());
+        if (!justExtractMessagesTo.IsEmpty())
+        {
+            fullpath = String::FromFormat("%s/%s", usetup.data_files_dir.GetCStr(), justExtractMessagesTo.GetCStr());
+            if (!Path::IsDirectory(fullpath))
+                Directory::CreateDirectory(fullpath);
+        }
+        ExtractGlobalMessages(game, fullpath);
         ExtractRoomMessages(0, 999, game, fullpath);
         proper_exit = 1;
         return false;
