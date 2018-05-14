@@ -15,10 +15,37 @@ void DoExtractRoomMessages(const RoomStruct &room, const String &dest_file)
     if (room.MessageCount == 0)
         return;
     Stream *out = File::CreateFile(dest_file);
+    if (!out)
+        return;
     for (int i = 0; i < room.MessageCount; i++)
     {
-        out->Write(room.Messages[i], room.Messages[i].GetLength());
-        out->Write("\n", 1);
+        const size_t len = room.Messages[i].GetLength();
+        if (len > 0)
+        {
+            out->Write(room.Messages[i].GetCStr(), len);
+            out->Write("\n", 1);
+        }
+    }
+    delete out;
+}
+
+void ExtractGlobalMessages(const GameSetupStruct &game, const String &dest_directory)
+{
+    if (!Path::IsDirectory(dest_directory))
+        return;
+    Stream *out = File::CreateFile(String::FromFormat("%s/game_messages.txt", dest_directory.GetCStr()));
+    if (!out)
+        return;
+    for (int i = 0; i < MAXGLOBALMES; i++)
+    {
+        if (!game.messages[i])
+            continue;
+        size_t len = strlen(game.messages[i]);
+        if (len > 0)
+        {
+            out->Write(game.messages[i], len);
+            out->Write("\n", 1);
+        }
     }
     delete out;
 }
@@ -29,7 +56,7 @@ extern void convert_room_coordinates_to_data_res(RoomStruct *rstruc);
 void ExtractRoomMessages(int from, int to, const GameSetupStruct &game, const String &dest_directory)
 {
     if (!Path::IsDirectory(dest_directory))
-        Directory::CreateDirectory(dest_directory);
+        return;
 
     RoomStruct room;
     String room_filename;
