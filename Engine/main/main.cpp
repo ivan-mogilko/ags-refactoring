@@ -70,8 +70,8 @@ bool hideMessageBoxes = false;
 std::set<String> tellInfoKeys;
 String loadSaveGameOnStartup;
 // HACK
-bool justExtractRoomMessages = false;
-String justExtractRoomMessagesTo;
+bool justExtractMessages = false;
+String justExtractMessagesTo;
 
 // Current engine version
 AGS::Common::Version EngineVersion;
@@ -276,12 +276,12 @@ static int main_process_cmdline(ConfigTree &cfg, int argc, char *argv[])
             else if (arg[6] == '-' && arg[7] != 0)
                 tellInfoKeys.insert(String(arg + 7));
         }
-        else if (stricmp(argv[ee], "--extract-room-messages") == 0)
+        else if (stricmp(argv[ee],"--extract-messages") == 0)
         {
-            justExtractRoomMessages = true;
+            justExtractMessages = true;
             if (argc > ee + 1)
             {
-                justExtractRoomMessagesTo = argv[ee + 1];
+                justExtractMessagesTo = argv[ee + 1];
                 ee++;
             }
         }
