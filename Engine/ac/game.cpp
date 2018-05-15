@@ -1233,6 +1233,14 @@ bool try_restore_save(const Common::String &path, int slot)
             Display(error);
         return false;
     }
+
+
+    // HACKS
+    if (usetup.debug_mode)
+        game.options[OPT_DEBUGMODE] = 1;
+    if (usetup.tra_listbox)
+        force_tra_gui_controls();
+
     return true;
 }
 
