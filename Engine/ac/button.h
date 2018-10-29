@@ -18,9 +18,12 @@
 #ifndef __AGS_EE_AC__BUTTON_H
 #define __AGS_EE_AC__BUTTON_H
 
+#include "util/stdtr1compat.h"
+#include <memory>
 #include "gui/guibutton.h"
 
 using AGS::Common::GUIButton;
+struct AnimatingGUIButton;
 
 void		Button_Animate(GUIButton *butt, int view, int loop, int speed, int repeat);
 const char* Button_GetText_New(GUIButton *butt);
@@ -40,8 +43,14 @@ void		Button_SetPushedGraphic(GUIButton *guil, int slotn);
 int			Button_GetTextColor(GUIButton *butt);
 void		Button_SetTextColor(GUIButton *butt, int newcol);
 
+typedef std::shared_ptr<AnimatingGUIButton> PAnimatingButton;
+
 int			UpdateAnimatingButton(int bu);
+size_t      GetAnimatingButtonCount();
+PAnimatingButton GetAnimatingButtonByIndex(int idxn);
+void        AddButtonAnimation(const AnimatingGUIButton &abtn);
 void		StopButtonAnimation(int idxn);
 void		FindAndRemoveButtonAnimation(int guin, int objn);
+void        RemoveAllButtonAnimations();
 
 #endif // __AGS_EE_AC__BUTTON_H

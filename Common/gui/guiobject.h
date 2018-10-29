@@ -45,7 +45,9 @@ class GUIObject
 public:
     GUIObject();
     virtual ~GUIObject(){}
-    
+
+    String          GetScriptName() const;
+
     String          GetEventArgs(int event) const;
     int             GetEventCount() const;
     String          GetEventName(int event) const;

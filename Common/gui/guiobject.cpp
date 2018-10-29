@@ -35,6 +35,11 @@ GUIObject::GUIObject()
     IsActivated    = false;
 }
 
+String GUIObject::GetScriptName() const
+{
+    return Name;
+}
+
 int GUIObject::GetEventCount() const
 {
     return _scEventCount;
