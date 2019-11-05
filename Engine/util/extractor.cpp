@@ -52,6 +52,25 @@ void ExtractGlobalMessages(const GameSetupStruct &game, const String &dest_direc
     delete out;
 }
 
+void ExtractOldDialogs(const std::vector<String> &lines, const String &dest_directory)
+{
+    if (!Path::IsDirectory(dest_directory))
+        return;
+    Stream *out = File::CreateFile(String::FromFormat("%s/olddlg_messages.txt", dest_directory.GetCStr()));
+    if (!out)
+        return;
+    for (size_t i = 0; i < lines.size(); i++)
+    {
+        size_t len = lines[i].GetLength();
+        if (len > 0)
+        {
+            out->Write(lines[i].GetCStr(), len);
+            out->Write("\n", 1);
+        }
+    }
+    delete out;
+}
+
 #define NO_GAME_ID_IN_ROOM_FILE 16325
 
 void ExtractRoomMessages(int from, int to, const GameSetupStruct &game, const String &dest_directory)
