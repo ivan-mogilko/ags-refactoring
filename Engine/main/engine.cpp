@@ -662,6 +662,7 @@ int engine_load_game_data()
     return 0;
 }
 
+extern std::vector<String> old_speech_lines;
 bool do_extraction_work()
 {
     if (justExtractMessages)
@@ -674,6 +675,7 @@ bool do_extraction_work()
                 Directory::CreateDirectory(fullpath);
         }
         ExtractGlobalMessages(game, fullpath);
+        ExtractOldDialogs(old_speech_lines, fullpath);
         ExtractRoomMessages(0, 999, game, fullpath);
         proper_exit = 1;
         return false;
