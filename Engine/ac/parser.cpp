@@ -147,6 +147,7 @@ int parse_sentence (const char *text, int *numwords, short*wordarray, short*comp
     int  i = 0, comparing = 0;
     char in_optional = 0, do_word_now = 0;
     int  optional_start = 0;
+    String saved_text = text;
 
     numwords[0] = 0;
     if (compareto == NULL)
@@ -163,7 +164,7 @@ int parse_sentence (const char *text, int *numwords, short*wordarray, short*comp
 
         if ((text[0] == ']') && (compareto != NULL)) {
             if (!in_optional)
-                quit("!Said: unexpected ']'");
+                quitprintf("!Said: unexpected ']'\nText: %s", saved_text.GetCStr());
             do_word_now = 1;
         }
 
@@ -174,7 +175,7 @@ int parse_sentence (const char *text, int *numwords, short*wordarray, short*comp
         }
         else if ((text[0] == '[') && (compareto != NULL)) {
             if (in_optional)
-                quit("!Said: nested optional words");
+                quitprintf("!Said: nested optional words\nText: %s", saved_text.GetCStr());
 
             in_optional = 1;
             optional_start = comparing;
@@ -214,7 +215,7 @@ int parse_sentence (const char *text, int *numwords, short*wordarray, short*comp
                     return 0;
                 }
                 if (word <= 0)
-                    quitprintf("!Said: supplied word '%s' is not in dictionary or is an ignored word", thisword);
+                    quitprintf("!Said: supplied word '%s' is not in dictionary or is an ignored word\nText: %s", thisword, saved_text.GetCStr());
                 if (word == ANYWORD) { }
                 else if (word != compareto[comparing]) {
                     // words don't match - if a comma then a list of possibles,
@@ -227,7 +228,7 @@ int parse_sentence (const char *text, int *numwords, short*wordarray, short*comp
                             // inside an optional clause, so skip it
                             while (text[0] != ']') {
                                 if (text[0] == 0)
-                                    quit("!Said: unterminated [optional]");
+                                    quitprintf("!Said: unterminated [optional]\nText: %s", saved_text.GetCStr());
                                 text++;
                             }
                             // -1 because it's about to be ++'d again
