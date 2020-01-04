@@ -94,6 +94,8 @@ struct GameSetup {
     bool   tra_parsersaid;
     // Forcedly translate listbox items
     bool   tra_listbox;
+    // Override these fonts to have automatic outlines instead
+    std::vector<int> make_auto_outlines;
 
     GameSetup();
 };

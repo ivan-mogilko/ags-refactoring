@@ -564,6 +564,15 @@ void apply_config(const ConfigTree &cfg)
         usetup.tra_trynovoice = INIreadint(cfg, "hack", "tra_trynovoice") > 0;
         usetup.tra_parsersaid = INIreadint(cfg, "hack", "tra_parsersaid") > 0;
         usetup.tra_listbox = INIreadint(cfg, "hack", "tra_listbox") > 0;
+        String outline_opt = INIreadstring(cfg, "hack", "font_autooutline");
+        usetup.make_auto_outlines.clear();
+        if (!outline_opt.IsEmpty())
+        {
+            auto outlines = outline_opt.Split(',');
+            for (const auto &o : outlines)
+                if (!o.IsEmpty())
+                    usetup.make_auto_outlines.push_back(o.ToInt());
+        }
     }
 
     // Apply logging configuration

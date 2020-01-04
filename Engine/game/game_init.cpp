@@ -455,6 +455,8 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
         ents.Game.options[OPT_DEBUGMODE] = 1;
     if (usetup.tra_listbox)
         force_tra_gui_controls();
+    for (size_t i = 0; i < usetup.make_auto_outlines.size(); ++i)
+        set_font_outline(usetup.make_auto_outlines[i], FONT_OUTLINE_AUTO);
 
     return HGameInitError::None();
 }
