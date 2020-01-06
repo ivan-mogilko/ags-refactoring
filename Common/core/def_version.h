@@ -6,7 +6,7 @@
 #define ACI_VERSION_MSRC_DEF  3,6,1,27
 #endif
 
-#define SPECIAL_VERSION ""
+#define SPECIAL_VERSION "TRA-HACK"
 
 #define ACI_COPYRIGHT_YEARS "2011-2024"
 
