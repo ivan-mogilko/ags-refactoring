@@ -1214,6 +1214,8 @@ builtin managed struct Overlay {
   import void Remove();
   /// Checks whether this overlay is currently valid.
   readonly import attribute bool Valid;
+  /// Gets/sets whether this overlay belongs to the room entity space.
+  import attribute bool IsRoomOverlay;
   /// Gets/sets the X position on the screen where this overlay is displayed.
   import attribute int X;
   /// Gets/sets the Y position on the screen where this overlay is displayed.

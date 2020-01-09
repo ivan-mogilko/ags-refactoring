@@ -17,7 +17,7 @@
 
 using AGS::Common::Stream;
 
-void ScreenOverlay::ReadFromFile(Stream *in)
+void ScreenOverlay::ReadFromFile(Stream *in, int cmp_ver)
 {
     // Skipping bmp and pic pointer values
     bmp = nullptr;
@@ -31,7 +31,9 @@ void ScreenOverlay::ReadFromFile(Stream *in)
     bgSpeechForChar = in->ReadInt32();
     associatedOverlayHandle = in->ReadInt32();
     hasAlphaChannel = in->ReadBool();
-    positionRelativeToScreen = in->ReadBool();
+    uint8_t flags = in->ReadInt8();
+    positionRelativeToScreen = flags & 0x01;
+    isRoomSpace = flags & 0x02;
 }
 
 void ScreenOverlay::WriteToFile(Stream *out)
@@ -46,5 +48,7 @@ void ScreenOverlay::WriteToFile(Stream *out)
     out->WriteInt32(bgSpeechForChar);
     out->WriteInt32(associatedOverlayHandle);
     out->WriteBool(hasAlphaChannel);
-    out->WriteBool(positionRelativeToScreen);
+    uint8_t flags = static_cast<uint8_t>(positionRelativeToScreen);
+    flags |= static_cast<uint8_t>(isRoomSpace) << 1;
+    out->WriteInt8(flags);
 }

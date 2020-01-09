@@ -2037,6 +2037,17 @@ void prepare_room_sprites()
             draw_sprite_list();
         }
     }
+
+    // room overlays
+    for (int i = 0; i < numscreenover; ++i)
+    {
+        // skip screen overlays here
+        if (!screenover[i].isRoomSpace) continue;
+        // TODO: deny setting special overlays into room space?
+        // perhaps introduce a "user overlay" tag?
+        add_thing_to_draw(screenover[i].bmp, screenover[i].x, screenover[i].y, 0, screenover[i].hasAlphaChannel);
+    }
+
     our_eip = 36;
 }
 
@@ -2144,6 +2155,8 @@ void draw_gui_and_overlays()
 
     // draw overlays, except text boxes and portraits
     for (gg=0;gg<numscreenover;gg++) {
+        // skip room overlays here
+        if (screenover[gg].isRoomSpace) continue;
         // complete overlay draw in non-transparent mode
         if (screenover[gg].type == OVER_COMPLETE)
             add_thing_to_draw(screenover[gg].bmp, screenover[gg].x, screenover[gg].y, TRANS_OPAQUE, false);

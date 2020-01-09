@@ -31,10 +31,13 @@ struct ScreenOverlay {
     int bgSpeechForChar;
     int associatedOverlayHandle;
     bool hasAlphaChannel;
+    bool isRoomSpace;
     bool positionRelativeToScreen;
     bool hasSerializedBitmap;
 
-    void ReadFromFile(Common::Stream *in);
+    inline bool IsRoomCoords() const { return isRoomSpace | positionRelativeToScreen; }
+
+    void ReadFromFile(Common::Stream *in, int cmp_ver);
     void WriteToFile(Common::Stream *out);
 };
 

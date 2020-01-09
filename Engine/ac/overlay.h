@@ -30,6 +30,8 @@ void Overlay_SetX(ScriptOverlay *scover, int newx);
 int  Overlay_GetY(ScriptOverlay *scover);
 void Overlay_SetY(ScriptOverlay *scover, int newy);
 int  Overlay_GetValid(ScriptOverlay *scover);
+bool Overlay_GetIsRoomOverlay(ScriptOverlay *scover);
+void Overlay_SetIsRoomOverlay(ScriptOverlay *scover, bool is_room_over);
 ScriptOverlay* Overlay_CreateGraphical(int x, int y, int slot, int transparent);
 ScriptOverlay* Overlay_CreateTextual(int x, int y, int width, int font, int colour, const char* text);
 

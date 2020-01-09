@@ -113,6 +113,25 @@ int Overlay_GetValid(ScriptOverlay *scover) {
     return 1;
 }
 
+bool Overlay_GetIsRoomOverlay(ScriptOverlay *scover) {
+    if (scover->overlayId == -1)
+        return false;
+    // TODO: is there a way to not call this function all the time, but get object directly?
+    int ovri = find_overlay_of_type(scover->overlayId);
+    if (ovri < 0)
+        quit("!invalid overlay ID specified");
+    return screenover[ovri].isRoomSpace;
+}
+
+void Overlay_SetIsRoomOverlay(ScriptOverlay *scover, bool is_room_over) {
+    if (scover->overlayId == -1)
+        return;
+    int ovri = find_overlay_of_type(scover->overlayId);
+    if (ovri < 0)
+        quit("!invalid overlay ID specified");
+    screenover[ovri].isRoomSpace = is_room_over;
+}
+
 ScriptOverlay* Overlay_CreateGraphical(int x, int y, int slot, int transparent) {
     ScriptOverlay *sco = new ScriptOverlay();
     sco->overlayId = CreateGraphicOverlay(x, y, slot, transparent);
@@ -247,7 +266,7 @@ void get_overlay_position(int overlayidx, int *x, int *y) {
         tdxp = screenover[overlayidx].x;
         tdyp = screenover[overlayidx].y;
 
-        if (!screenover[overlayidx].positionRelativeToScreen)
+        if (!screenover[overlayidx].IsRoomCoords())
         {
             Point tdxy = play.RoomToScreen(tdxp, tdyp);
             tdxp = tdxy.X;
@@ -340,6 +359,17 @@ RuntimeScriptValue Sc_Overlay_SetY(void *self, const RuntimeScriptValue *params,
     API_OBJCALL_VOID_PINT(ScriptOverlay, Overlay_SetY);
 }
 
+RuntimeScriptValue Sc_Overlay_GetIsRoomOverlay(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_BOOL(ScriptOverlay, Overlay_GetIsRoomOverlay);
+}
+
+// void (ScriptOverlay *scover, int newy)
+RuntimeScriptValue Sc_Overlay_SetIsRoomOverlay(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_OBJCALL_VOID_PBOOL(ScriptOverlay, Overlay_SetIsRoomOverlay);
+}
+
 //=============================================================================
 //
 // Exclusive API for Plugins
@@ -372,6 +402,8 @@ void RegisterOverlayAPI()
     ccAddExternalObjectFunction("Overlay::set_X",               Sc_Overlay_SetX);
     ccAddExternalObjectFunction("Overlay::get_Y",               Sc_Overlay_GetY);
     ccAddExternalObjectFunction("Overlay::set_Y",               Sc_Overlay_SetY);
+    ccAddExternalObjectFunction("Overlay::get_IsRoomOverlay",   Sc_Overlay_GetIsRoomOverlay);
+    ccAddExternalObjectFunction("Overlay::set_IsRoomOverlay",   Sc_Overlay_SetIsRoomOverlay);
 
     /* ----------------------- Registering unsafe exports for plugins -----------------------*/
 
