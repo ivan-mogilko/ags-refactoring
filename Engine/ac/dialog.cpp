@@ -872,7 +872,7 @@ bool DialogOptions::Run()
       }
 
       int gkey;
-      if (run_service_key_controls(gkey)) {
+      if (run_service_key_controls(gkey) && !play.IsIgnoringInput()) {
         if (parserInput) {
           wantRefresh = true;
           // type into the parser 
@@ -958,7 +958,8 @@ bool DialogOptions::Run()
 
       int mouseButtonPressed = NONE;
       int mouseWheelTurn = 0;
-      if (run_service_mb_controls(mouseButtonPressed, mouseWheelTurn) && mouseButtonPressed >= 0)
+      if (run_service_mb_controls(mouseButtonPressed, mouseWheelTurn) && mouseButtonPressed >= 0 &&
+          !play.IsIgnoringInput())
       {
         if (mouseison < 0 && !new_custom_render)
         {

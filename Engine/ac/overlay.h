@@ -42,6 +42,6 @@ void remove_screen_overlay_index(int cc);
 void recreate_overlay_ddbs();
 
 extern int is_complete_overlay;
-extern int is_text_overlay;
+extern int is_text_overlay; // blocking text overlay on screen
 
 #endif // __AGS_EE_AC__OVERLAY_H

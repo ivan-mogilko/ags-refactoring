@@ -40,14 +40,7 @@ extern int misbuttondown(int buno);
 int mouse_z_was = 0;
 
 int ags_kbhit () {
-    int result = keypressed();
-    if ((result != 0) && play.IsIgnoringInput())
-    {
-        // ignoring user input
-        ags_getch();
-        result = 0;
-    }
-    return result;  
+    return keypressed();
 }
 
 int ags_iskeypressed (int keycode) {
@@ -72,13 +65,6 @@ int ags_mgetbutton() {
     else {
         result = mgetbutton();
     }
-
-    if ((result >= 0) && play.IsIgnoringInput())
-    {
-        // ignoring user input
-        result = NONE;
-    }
-
     return result;
 }
 

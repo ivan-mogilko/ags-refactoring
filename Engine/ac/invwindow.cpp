@@ -351,13 +351,13 @@ void InventoryScreen::RedrawOverItem(Bitmap *ds, int isonitem)
 
 bool InventoryScreen::Run()
 {
-    if (ags_kbhit() != 0)
+    int kgn;
+    if (run_service_key_controls(kgn) && !play.IsIgnoringInput())
     {
         return false; // end inventory screen loop
     }
 
         timerloop = 0;
-        //ags_domouse(DOMOUSE_UPDATE);
         update_audio_system_on_game_loop();
         refresh_gui_screen();
 
@@ -372,9 +372,10 @@ bool InventoryScreen::Run()
             isonitem=-1;
 
         int mclick, mwheelz;
-        if (!run_service_mb_controls(mclick, mwheelz)) {
+        if (!run_service_mb_controls(mclick, mwheelz) || play.IsIgnoringInput()) {
             mclick = NONE;
         }
+
         if (mclick == LEFT) {
             if ((mousey<0) | (mousey>windowhit) | (mousex<0) | (mousex>windowwid))
                 return true; // continue inventory screen loop
