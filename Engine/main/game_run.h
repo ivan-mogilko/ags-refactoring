@@ -37,8 +37,11 @@ void RunGameUntilAborted();
 void UpdateGameOnce(bool checkControls = false, IDriverDependantBitmap *extraBitmap = nullptr, int extraX = 0, int extraY = 0);
 
 float get_current_fps();
-// Runs service key controls, returns false if service key combinations were handled
-// and no more processing required, otherwise returns true and provides current keycode and key shifts.
+// Runs service key controls, returns false if key input was claimed by the engine,
+// otherwise returns true and provides a keycode.
 bool run_service_key_controls(int &kgn);
+// Runs service mouse controls, returns false if mouse input was claimed by the engine,
+// otherwise returns true and provides mouse button code.
+bool run_service_mb_controls(int &mbut, int &mwheelz);
 
 #endif // __AGS_EE_MAIN__GAMERUN_H
