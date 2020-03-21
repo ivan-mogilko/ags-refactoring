@@ -158,7 +158,7 @@ int CSCIWaitMessage(CSCIMessage * cscim)
         cscim->code = 0;
         smcode = 0;
         int keywas;
-        if (run_service_key_controls(keywas) && !play.IsIgnoringInput()) {
+        if (run_service_key_controls(keywas) && play.IsUserInputEnabled()) {
             if (keywas == 13) {
                 cscim->id = finddefaultcontrol(CNF_DEFAULT);
                 cscim->code = CM_COMMAND;
@@ -178,7 +178,7 @@ int CSCIWaitMessage(CSCIMessage * cscim)
         }
 
         int mbut, mwheelz;
-        if (run_service_mb_controls(mbut, mwheelz) && mbut >= 0 && !play.IsIgnoringInput()) {
+        if (run_service_mb_controls(mbut, mwheelz) && mbut >= 0 && play.IsUserInputEnabled()) {
             if (checkcontrols()) {
                 cscim->id = controlid;
                 cscim->code = CM_COMMAND;
