@@ -1381,8 +1381,9 @@ namespace AGS.Editor
             writer.Write(NativeConstants.GAME_DATA_VERSION_CURRENT);
             writer.Write(AGS.Types.Version.AGS_EDITOR_VERSION.Length);
             WriteString(AGS.Types.Version.AGS_EDITOR_VERSION, AGS.Types.Version.AGS_EDITOR_VERSION.Length, writer);
-            // Write extended engine caps; none for this version
-            writer.Write((int)0);
+            // Write extended engine caps
+            writer.Write(1);
+            FilePutString("AGD2-3.5.0-scapi", writer);
             // An example of writing caps (pseudo-code):
             //   writer.Write(caps.Count);
             //   foreach (cap in caps)

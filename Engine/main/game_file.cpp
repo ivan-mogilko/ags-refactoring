@@ -61,9 +61,11 @@ extern int numScriptModules;
 // Test if engine supports extended capabilities required to run the game
 bool test_game_caps(const std::set<String> &caps, std::set<String> &failed_caps)
 {
-    // Currently we support nothing special
     failed_caps = caps;
-    return caps.size() == 0;
+    auto it = failed_caps.find("AGD2-3.5.0-scapi");
+    if (it != failed_caps.end())
+        failed_caps.erase(it);
+    return failed_caps.size() == 0;
 }
 
 // Forms a simple list of capability names
