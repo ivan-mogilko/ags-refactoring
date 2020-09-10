@@ -2627,6 +2627,8 @@ builtin struct Game {
   import static attribute bool UserInputEnabled;
   /// Gets an arbitrary ID of a currently displayed blocking text (speech or another message), or 0 if none is display at the moment
   import static readonly attribute int BlockingTextIndex;
+  /// Gets the code which describes how was the last blocking state skipped by a user (or autotimer).
+  import static readonly attribute int BlockingWaitSkipped;
 //#endif
 };
 

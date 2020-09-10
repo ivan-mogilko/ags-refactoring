@@ -1008,6 +1008,8 @@ void engine_init_game_settings()
     play.music_queue_size = 0;
     play.shakesc_length = 0;
     play.wait_counter=0;
+    play.wait_skipped_by = SKIP_NONE;
+    play.wait_skipped_by_data = 0;
     play.key_skip_wait = 0;
     play.cur_music_number=-1;
     play.music_repeat=1;

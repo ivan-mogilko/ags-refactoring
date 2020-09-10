@@ -970,6 +970,11 @@ int Game_BlockingTextIndex()
     return play.GetBlockingTextID();
 }
 
+int Game_BlockingWaitSkipped()
+{
+    return play.GetBlockingWaitSkipResult();
+}
+
 //=============================================================================
 
 // save game functions
@@ -1804,7 +1809,11 @@ void start_skipping_cutscene () {
 
     // if a text message is currently displayed, remove it
     if (is_text_overlay > 0)
+    {
+        play.wait_skipped_by = SKIP_AUTOTIMER;
+        play.wait_skipped_by_data = 0;
         remove_screen_overlay(OVER_TEXTMSG);
+    }
 
 }
 
@@ -2459,6 +2468,11 @@ RuntimeScriptValue Sc_Game_BlockingTextIndex(const RuntimeScriptValue *params, i
     API_SCALL_INT(Game_BlockingTextIndex);
 }
 
+RuntimeScriptValue Sc_Game_BlockingWaitSkipped(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT(Game_BlockingWaitSkipped);
+}
+
 void RegisterGameAPI()
 {
     ccAddExternalStaticFunction("Game::IsAudioPlaying^1",                       Sc_Game_IsAudioPlaying);
@@ -2515,6 +2529,7 @@ void RegisterGameAPI()
     ccAddExternalStaticFunction("Game::get_UserInputEnabled",                   Sc_Game_GetUserInputEnabled);
     ccAddExternalStaticFunction("Game::set_UserInputEnabled",                   Sc_Game_SetUserInputEnabled);
     ccAddExternalStaticFunction("Game::get_BlockingTextIndex",                  Sc_Game_BlockingTextIndex);
+    ccAddExternalStaticFunction("Game::get_BlockingWaitSkipped",                Sc_Game_BlockingWaitSkipped);
 
     ccAddExternalStaticFunction("Game::get_Camera",                             Sc_Game_GetCamera);
     ccAddExternalStaticFunction("Game::get_CameraCount",                        Sc_Game_GetCameraCount);

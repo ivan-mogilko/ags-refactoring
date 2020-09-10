@@ -251,6 +251,8 @@ int _display_main(int xx,int yy,int wii,const char*text,int blocking,int usingfo
     if (blocking) {
         // If fast-forwarding, then skip immediately
         if (play.fast_forward) {
+            play.wait_skipped_by = SKIP_AUTOTIMER;
+            play.wait_skipped_by_data = 0;
             remove_screen_overlay(OVER_TEXTMSG);
             play.messagetime=-1;
             return 0;
@@ -271,7 +273,11 @@ int _display_main(int xx,int yy,int wii,const char*text,int blocking,int usingfo
                 if (play.fast_forward)
                     break;
                 if (skip_setting & SKIP_MOUSECLICK && play.IsUserInputEnabled())
+                {
+                    play.wait_skipped_by = SKIP_MOUSECLICK;
+                    play.wait_skipped_by_data = mbut;
                     break;
+                }
             }
             int kp;
             if (run_service_key_controls(kp)) {
@@ -279,7 +285,11 @@ int _display_main(int xx,int yy,int wii,const char*text,int blocking,int usingfo
                 if (play.fast_forward)
                     break;
                 if ((skip_setting & SKIP_KEYPRESS) && play.IsUserInputEnabled())
+                {
+                    play.wait_skipped_by = SKIP_KEYPRESS;
+                    play.wait_skipped_by_data = kp;
                     break;
+                }
             }
 
             update_polled_stuff_if_runtime();
@@ -304,6 +314,8 @@ int _display_main(int xx,int yy,int wii,const char*text,int blocking,int usingfo
             // Test for the timed auto-skip
             if ((countdown < 1) && (skip_setting & SKIP_AUTOTIMER))
             {
+                play.wait_skipped_by = SKIP_AUTOTIMER;
+                play.wait_skipped_by_data = 0;
                 play.SetIgnoreInput(play.ignore_user_input_after_text_timeout_ms);
                 break;
             }

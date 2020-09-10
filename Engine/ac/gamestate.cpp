@@ -426,6 +426,16 @@ int GameState::GetBlockingTextID() const
     return _isBlockingText ? _blockingTextID : 0;
 }
 
+int GameState::GetBlockingWaitSkipResult() const
+{
+    switch (play.wait_skipped_by)
+    {
+    case SKIP_KEYPRESS: return play.wait_skipped_by_data;
+    case SKIP_MOUSECLICK: return -(play.wait_skipped_by_data + 1); // convert to 1-based code and negate
+    default: return 0;
+    }
+}
+
 void GameState::SetBlockingText(bool on)
 {
     if (on && !_isBlockingText)

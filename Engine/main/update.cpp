@@ -282,10 +282,14 @@ void update_speech_and_messages()
     {
       if (play.fast_forward > 0)
       {
+        play.wait_skipped_by = SKIP_AUTOTIMER;
+        play.wait_skipped_by_data = 0;
         remove_screen_overlay(OVER_TEXTMSG);
       }
       else if (play.cant_skip_speech & SKIP_AUTOTIMER)
       {
+        play.wait_skipped_by = SKIP_AUTOTIMER;
+        play.wait_skipped_by_data = 0;
         remove_screen_overlay(OVER_TEXTMSG);
         play.SetIgnoreInput(play.ignore_user_input_after_text_timeout_ms);
       }
