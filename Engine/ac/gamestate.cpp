@@ -410,15 +410,18 @@ void GameState::SetUserInputEnabled(bool on)
 {
     _userInputOn = on;
     if (on)
-    {
         _ignoreUserInputUntilTime = AGS_Clock::now();
-    }
 }
 
 void GameState::SetIgnoreInput(int timeout_ms)
 {
     if (AGS_Clock::now() + std::chrono::milliseconds(timeout_ms) > _ignoreUserInputUntilTime)
         _ignoreUserInputUntilTime = AGS_Clock::now() + std::chrono::milliseconds(timeout_ms);
+}
+
+void GameState::ClearIgnoreInput()
+{
+    _ignoreUserInputUntilTime = AGS_Clock::now();
 }
 
 int GameState::GetBlockingTextID() const

@@ -330,6 +330,8 @@ struct GameState {
     void SetUserInputEnabled(bool on);
     // Sets ignore input state, for the given time; if there's one already, chooses max timeout
     void SetIgnoreInput(int timeout_ms);
+    // Clears ignore input state
+    void ClearIgnoreInput();
 
     //
     // Blocking text management
