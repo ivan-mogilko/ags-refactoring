@@ -1,0 +1,6 @@
+repo: 1078b3528e6f533c0e18061780b5ed9d0d4201b3
+node: 9262f92058982777dd48317a316bbe21af8d7bfd
+branch: default
+latesttag: final-lgpl-revision
+latesttagdistance: 54
+changessincelatesttag: 54
