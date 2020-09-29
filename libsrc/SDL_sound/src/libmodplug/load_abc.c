@@ -2107,11 +2107,19 @@ static void abc_preprocess(ABCHANDLE *h, ABCMACRO *m)
 		k = m->n - m->name;
 		for( i=0; i<14; i++ ) {
             const size_t tlen = SDL_strlen(m->name) + 1;
+#if defined _MSC_VER
+			char t[256]; // CHECKME later
+#else
 			char t[tlen];
+#endif
 			SDL_strlcpy(t, m->name, tlen);
 			t[k] = "CDEFGABcdefgab"[i];
 			l = SDL_strlen(m->subst);
+#if defined _MSC_VER
+			char s[256]; // CHECKME later
+#else
 			char s[2 * l + 1];
+#endif
 			char *p = s;
 			for( j=0; j<l; j++ ) {
 				a = m->subst[j];

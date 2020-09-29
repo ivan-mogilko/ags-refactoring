@@ -137,7 +137,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\Common\libsrc\alfont-2.0.9;..\..\Engine;..\..\Plugins;..\..\Windows\include;..\..\Engine\libsrc\glad\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\Common\libsrc\alfont-2.0.9;..\..\Engine;..\..\Plugins;..\..\Windows\include;..\..\Engine\libsrc\glad\include;..\..\libsrc\SDL2-2.0.12\include;..\..\libsrc\SDL_sound\src;..\..\libsrc\mojoAL;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;ALLEGRO_STATICLINK;ALLEGRO_NO_COMPATIBILITY;ALLEGRO_NO_FIX_ALIASES;ALLEGRO_NO_FIX_CLASS;WINDOWS_VERSION;DISABLE_MPEG_AUDIO;AGS_HAS_CD_AUDIO;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -165,7 +165,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug_XP|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\Common\libsrc\alfont-2.0.9;..\..\Engine;..\..\Plugins;..\..\Windows\include;..\..\Engine\libsrc\glad\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\Common\libsrc\alfont-2.0.9;..\..\Engine;..\..\Plugins;..\..\Windows\include;..\..\Engine\libsrc\glad\include;..\..\libsrc\SDL2-2.0.12\include;..\..\libsrc\SDL_sound\src;..\..\libsrc\mojoAL;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;ALLEGRO_STATICLINK;ALLEGRO_NO_COMPATIBILITY;ALLEGRO_NO_FIX_ALIASES;ALLEGRO_NO_FIX_CLASS;WINDOWS_VERSION;DISABLE_MPEG_AUDIO;AGS_HAS_CD_AUDIO;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -195,7 +195,7 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\Common\libsrc\alfont-2.0.9;..\..\Engine;..\..\Plugins;..\..\Windows\include;..\..\Engine\libsrc\glad\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\Common\libsrc\alfont-2.0.9;..\..\Engine;..\..\Plugins;..\..\Windows\include;..\..\Engine\libsrc\glad\include;..\..\libsrc\SDL2-2.0.12\include;..\..\libsrc\SDL_sound\src;..\..\libsrc\mojoAL;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;ALLEGRO_STATICLINK;ALLEGRO_NO_COMPATIBILITY;ALLEGRO_NO_FIX_ALIASES;ALLEGRO_NO_FIX_CLASS;WINDOWS_VERSION;DISABLE_MPEG_AUDIO;AGS_HAS_CD_AUDIO;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -228,7 +228,7 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\Common\libsrc\alfont-2.0.9;..\..\Engine;..\..\Plugins;..\..\Windows\include;..\..\Engine\libsrc\glad\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\Common\libsrc\alfont-2.0.9;..\..\Engine;..\..\Plugins;..\..\Windows\include;..\..\Engine\libsrc\glad\include;..\..\libsrc\SDL2-2.0.12\include;..\..\libsrc\SDL_sound\src;..\..\libsrc\mojoAL;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;ALLEGRO_STATICLINK;ALLEGRO_NO_COMPATIBILITY;ALLEGRO_NO_FIX_ALIASES;ALLEGRO_NO_FIX_CLASS;WINDOWS_VERSION;DISABLE_MPEG_AUDIO;AGS_HAS_CD_AUDIO;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -264,7 +264,7 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\Common\libsrc\alfont-2.0.9;..\..\Engine;..\..\Plugins;..\..\Windows\include;..\..\Engine\libsrc\glad\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\Common\libsrc\alfont-2.0.9;..\..\Engine;..\..\Plugins;..\..\Windows\include;..\..\Engine\libsrc\glad\include;..\..\libsrc\SDL2-2.0.12\include;..\..\libsrc\SDL_sound\src;..\..\libsrc\mojoAL;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;ALLEGRO_STATICLINK;ALLEGRO_NO_COMPATIBILITY;ALLEGRO_NO_FIX_ALIASES;ALLEGRO_NO_FIX_CLASS;WINDOWS_VERSION;DISABLE_MPEG_AUDIO;AGS_HAS_CD_AUDIO;NO_MP3_PLAYER;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
@@ -579,6 +579,51 @@
     <ClCompile Include="..\..\Engine\test\test_sprintf.cpp" />
     <ClCompile Include="..\..\Engine\test\test_string.cpp" />
     <ClCompile Include="..\..\Engine\test\test_version.cpp" />
+    <ClCompile Include="..\..\libsrc\mojoAL\mojoal.c" />
+    <ClCompile Include="..\..\libsrc\SDL_sound\src\libmodplug\fastmix.c" />
+    <ClCompile Include="..\..\libsrc\SDL_sound\src\libmodplug\load_669.c" />
+    <ClCompile Include="..\..\libsrc\SDL_sound\src\libmodplug\load_abc.c" />
+    <ClCompile Include="..\..\libsrc\SDL_sound\src\libmodplug\load_amf.c" />
+    <ClCompile Include="..\..\libsrc\SDL_sound\src\libmodplug\load_ams.c" />
+    <ClCompile Include="..\..\libsrc\SDL_sound\src\libmodplug\load_dbm.c" />
+    <ClCompile Include="..\..\libsrc\SDL_sound\src\libmodplug\load_dmf.c" />
+    <ClCompile Include="..\..\libsrc\SDL_sound\src\libmodplug\load_dsm.c" />
+    <ClCompile Include="..\..\libsrc\SDL_sound\src\libmodplug\load_far.c" />
+    <ClCompile Include="..\..\libsrc\SDL_sound\src\libmodplug\load_it.c" />
+    <ClCompile Include="..\..\libsrc\SDL_sound\src\libmodplug\load_mdl.c" />
+    <ClCompile Include="..\..\libsrc\SDL_sound\src\libmodplug\load_med.c" />
+    <ClCompile Include="..\..\libsrc\SDL_sound\src\libmodplug\load_mid.c" />
+    <ClCompile Include="..\..\libsrc\SDL_sound\src\libmodplug\load_mod.c" />
+    <ClCompile Include="..\..\libsrc\SDL_sound\src\libmodplug\load_mt2.c" />
+    <ClCompile Include="..\..\libsrc\SDL_sound\src\libmodplug\load_mtm.c" />
+    <ClCompile Include="..\..\libsrc\SDL_sound\src\libmodplug\load_okt.c" />
+    <ClCompile Include="..\..\libsrc\SDL_sound\src\libmodplug\load_pat.c" />
+    <ClCompile Include="..\..\libsrc\SDL_sound\src\libmodplug\load_psm.c" />
+    <ClCompile Include="..\..\libsrc\SDL_sound\src\libmodplug\load_ptm.c" />
+    <ClCompile Include="..\..\libsrc\SDL_sound\src\libmodplug\load_s3m.c" />
+    <ClCompile Include="..\..\libsrc\SDL_sound\src\libmodplug\load_stm.c" />
+    <ClCompile Include="..\..\libsrc\SDL_sound\src\libmodplug\load_ult.c" />
+    <ClCompile Include="..\..\libsrc\SDL_sound\src\libmodplug\load_umx.c" />
+    <ClCompile Include="..\..\libsrc\SDL_sound\src\libmodplug\load_xm.c" />
+    <ClCompile Include="..\..\libsrc\SDL_sound\src\libmodplug\mmcmp.c" />
+    <ClCompile Include="..\..\libsrc\SDL_sound\src\libmodplug\modplug.c" />
+    <ClCompile Include="..\..\libsrc\SDL_sound\src\libmodplug\sndfile.c" />
+    <ClCompile Include="..\..\libsrc\SDL_sound\src\libmodplug\sndmix.c" />
+    <ClCompile Include="..\..\libsrc\SDL_sound\src\libmodplug\snd_dsp.c" />
+    <ClCompile Include="..\..\libsrc\SDL_sound\src\libmodplug\snd_flt.c" />
+    <ClCompile Include="..\..\libsrc\SDL_sound\src\libmodplug\snd_fx.c" />
+    <ClCompile Include="..\..\libsrc\SDL_sound\src\SDL_sound.c" />
+    <ClCompile Include="..\..\libsrc\SDL_sound\src\SDL_sound_aiff.c" />
+    <ClCompile Include="..\..\libsrc\SDL_sound\src\SDL_sound_au.c" />
+    <ClCompile Include="..\..\libsrc\SDL_sound\src\SDL_sound_coreaudio.c" />
+    <ClCompile Include="..\..\libsrc\SDL_sound\src\SDL_sound_flac.c" />
+    <ClCompile Include="..\..\libsrc\SDL_sound\src\SDL_sound_modplug.c" />
+    <ClCompile Include="..\..\libsrc\SDL_sound\src\SDL_sound_mp3.c" />
+    <ClCompile Include="..\..\libsrc\SDL_sound\src\SDL_sound_raw.c" />
+    <ClCompile Include="..\..\libsrc\SDL_sound\src\SDL_sound_shn.c" />
+    <ClCompile Include="..\..\libsrc\SDL_sound\src\SDL_sound_voc.c" />
+    <ClCompile Include="..\..\libsrc\SDL_sound\src\SDL_sound_vorbis.c" />
+    <ClCompile Include="..\..\libsrc\SDL_sound\src\SDL_sound_wav.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Common\ac\animationstruct.h" />
@@ -873,6 +918,17 @@
     <ClInclude Include="..\..\Engine\util\thread_psp.h" />
     <ClInclude Include="..\..\Engine\util\thread_pthread.h" />
     <ClInclude Include="..\..\Engine\util\thread_windows.h" />
+    <ClInclude Include="..\..\libsrc\mojoAL\AL\al.h" />
+    <ClInclude Include="..\..\libsrc\mojoAL\AL\alc.h" />
+    <ClInclude Include="..\..\libsrc\SDL_sound\src\dr_flac.h" />
+    <ClInclude Include="..\..\libsrc\SDL_sound\src\dr_mp3.h" />
+    <ClInclude Include="..\..\libsrc\SDL_sound\src\libmodplug\libmodplug.h" />
+    <ClInclude Include="..\..\libsrc\SDL_sound\src\libmodplug\load_pat.h" />
+    <ClInclude Include="..\..\libsrc\SDL_sound\src\libmodplug\modplug.h" />
+    <ClInclude Include="..\..\libsrc\SDL_sound\src\libmodplug\tables.h" />
+    <ClInclude Include="..\..\libsrc\SDL_sound\src\SDL_sound.h" />
+    <ClInclude Include="..\..\libsrc\SDL_sound\src\SDL_sound_internal.h" />
+    <ClInclude Include="..\..\libsrc\SDL_sound\src\stb_vorbis.h" />
   </ItemGroup>
   <ItemGroup>
     <Xml Include="..\..\Engine\resource\DefaultGDF.gdf.xml" />
@@ -886,6 +942,9 @@
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\Engine\resource\version.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Library Include="..\..\libsrc\SDL2-2.0.12\VisualC\lib\SDL2.lib" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

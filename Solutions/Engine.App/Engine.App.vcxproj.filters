@@ -175,6 +175,21 @@
     <Filter Include="Header Files\platform\windows">
       <UniqueIdentifier>{c3e78d00-def2-49a7-9fa4-d5f693d14655}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Library Sources\SDL_sound">
+      <UniqueIdentifier>{3fd9e576-4c25-45b3-8ddd-b74bf94609b9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Library Sources\MojoAL">
+      <UniqueIdentifier>{b04763fd-6213-43f6-8309-fd556b59eadd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Library Sources\MojoAL\AL">
+      <UniqueIdentifier>{c683eef3-2c8f-4b45-af32-2423f41102ad}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Library Sources\SDL2_static">
+      <UniqueIdentifier>{8882e58e-6c4a-429c-b153-e60c33490817}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Library Sources\SDL_sound\libmodplug">
+      <UniqueIdentifier>{4c3fa1be-c914-462d-b522-2f3993c1d7a3}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Engine\ac\audiochannel.cpp">
@@ -1031,6 +1046,147 @@
     </ClCompile>
     <ClCompile Include="..\..\Engine\ac\route_finder_impl_legacy.cpp">
       <Filter>Source Files\ac</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Engine\media\audio\audio_core.cpp">
+      <Filter>Source Files\media\audio</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Engine\media\audio\openaldecoder.cpp">
+      <Filter>Source Files\media\audio</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\SDL_sound\src\SDL_sound.c">
+      <Filter>Library Sources\SDL_sound</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\SDL_sound\src\SDL_sound_aiff.c">
+      <Filter>Library Sources\SDL_sound</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\SDL_sound\src\SDL_sound_au.c">
+      <Filter>Library Sources\SDL_sound</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\SDL_sound\src\SDL_sound_coreaudio.c">
+      <Filter>Library Sources\SDL_sound</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\SDL_sound\src\SDL_sound_flac.c">
+      <Filter>Library Sources\SDL_sound</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\SDL_sound\src\SDL_sound_modplug.c">
+      <Filter>Library Sources\SDL_sound</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\SDL_sound\src\SDL_sound_mp3.c">
+      <Filter>Library Sources\SDL_sound</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\SDL_sound\src\SDL_sound_raw.c">
+      <Filter>Library Sources\SDL_sound</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\SDL_sound\src\SDL_sound_shn.c">
+      <Filter>Library Sources\SDL_sound</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\SDL_sound\src\SDL_sound_voc.c">
+      <Filter>Library Sources\SDL_sound</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\SDL_sound\src\SDL_sound_vorbis.c">
+      <Filter>Library Sources\SDL_sound</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\SDL_sound\src\SDL_sound_wav.c">
+      <Filter>Library Sources\SDL_sound</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\mojoAL\mojoal.c">
+      <Filter>Library Sources\MojoAL</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\SDL_sound\src\libmodplug\fastmix.c">
+      <Filter>Library Sources\SDL_sound\libmodplug</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\SDL_sound\src\libmodplug\load_669.c">
+      <Filter>Library Sources\SDL_sound\libmodplug</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\SDL_sound\src\libmodplug\load_abc.c">
+      <Filter>Library Sources\SDL_sound\libmodplug</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\SDL_sound\src\libmodplug\load_amf.c">
+      <Filter>Library Sources\SDL_sound\libmodplug</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\SDL_sound\src\libmodplug\load_ams.c">
+      <Filter>Library Sources\SDL_sound\libmodplug</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\SDL_sound\src\libmodplug\load_dbm.c">
+      <Filter>Library Sources\SDL_sound\libmodplug</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\SDL_sound\src\libmodplug\load_dmf.c">
+      <Filter>Library Sources\SDL_sound\libmodplug</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\SDL_sound\src\libmodplug\load_dsm.c">
+      <Filter>Library Sources\SDL_sound\libmodplug</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\SDL_sound\src\libmodplug\load_far.c">
+      <Filter>Library Sources\SDL_sound\libmodplug</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\SDL_sound\src\libmodplug\load_it.c">
+      <Filter>Library Sources\SDL_sound\libmodplug</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\SDL_sound\src\libmodplug\load_mdl.c">
+      <Filter>Library Sources\SDL_sound\libmodplug</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\SDL_sound\src\libmodplug\load_med.c">
+      <Filter>Library Sources\SDL_sound\libmodplug</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\SDL_sound\src\libmodplug\load_mid.c">
+      <Filter>Library Sources\SDL_sound\libmodplug</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\SDL_sound\src\libmodplug\load_mod.c">
+      <Filter>Library Sources\SDL_sound\libmodplug</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\SDL_sound\src\libmodplug\load_mt2.c">
+      <Filter>Library Sources\SDL_sound\libmodplug</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\SDL_sound\src\libmodplug\load_mtm.c">
+      <Filter>Library Sources\SDL_sound\libmodplug</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\SDL_sound\src\libmodplug\load_okt.c">
+      <Filter>Library Sources\SDL_sound\libmodplug</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\SDL_sound\src\libmodplug\load_pat.c">
+      <Filter>Library Sources\SDL_sound\libmodplug</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\SDL_sound\src\libmodplug\load_psm.c">
+      <Filter>Library Sources\SDL_sound\libmodplug</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\SDL_sound\src\libmodplug\load_ptm.c">
+      <Filter>Library Sources\SDL_sound\libmodplug</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\SDL_sound\src\libmodplug\load_s3m.c">
+      <Filter>Library Sources\SDL_sound\libmodplug</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\SDL_sound\src\libmodplug\load_stm.c">
+      <Filter>Library Sources\SDL_sound\libmodplug</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\SDL_sound\src\libmodplug\load_ult.c">
+      <Filter>Library Sources\SDL_sound\libmodplug</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\SDL_sound\src\libmodplug\load_umx.c">
+      <Filter>Library Sources\SDL_sound\libmodplug</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\SDL_sound\src\libmodplug\load_xm.c">
+      <Filter>Library Sources\SDL_sound\libmodplug</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\SDL_sound\src\libmodplug\mmcmp.c">
+      <Filter>Library Sources\SDL_sound\libmodplug</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\SDL_sound\src\libmodplug\modplug.c">
+      <Filter>Library Sources\SDL_sound\libmodplug</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\SDL_sound\src\libmodplug\snd_dsp.c">
+      <Filter>Library Sources\SDL_sound\libmodplug</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\SDL_sound\src\libmodplug\snd_flt.c">
+      <Filter>Library Sources\SDL_sound\libmodplug</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\SDL_sound\src\libmodplug\snd_fx.c">
+      <Filter>Library Sources\SDL_sound\libmodplug</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\SDL_sound\src\libmodplug\sndfile.c">
+      <Filter>Library Sources\SDL_sound\libmodplug</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\SDL_sound\src\libmodplug\sndmix.c">
+      <Filter>Library Sources\SDL_sound\libmodplug</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1910,6 +2066,51 @@
     <ClInclude Include="..\..\Engine\ac\route_finder_impl_legacy.h">
       <Filter>Header Files\ac</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Engine\media\audio\audio_core.h">
+      <Filter>Header Files\media\audio</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Engine\media\audio\openaldecoder.h">
+      <Filter>Header Files\media\audio</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Engine\media\audio\openal.h">
+      <Filter>Header Files\media\audio</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Engine\media\audio\audio_core_defs.h">
+      <Filter>Header Files\media\audio</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libsrc\SDL_sound\src\dr_flac.h">
+      <Filter>Library Sources\SDL_sound</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libsrc\SDL_sound\src\dr_mp3.h">
+      <Filter>Library Sources\SDL_sound</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libsrc\SDL_sound\src\SDL_sound.h">
+      <Filter>Library Sources\SDL_sound</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libsrc\SDL_sound\src\SDL_sound_internal.h">
+      <Filter>Library Sources\SDL_sound</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libsrc\SDL_sound\src\stb_vorbis.h">
+      <Filter>Library Sources\SDL_sound</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libsrc\mojoAL\AL\al.h">
+      <Filter>Library Sources\MojoAL\AL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libsrc\mojoAL\AL\alc.h">
+      <Filter>Library Sources\MojoAL\AL</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libsrc\SDL_sound\src\libmodplug\libmodplug.h">
+      <Filter>Library Sources\SDL_sound\libmodplug</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libsrc\SDL_sound\src\libmodplug\load_pat.h">
+      <Filter>Library Sources\SDL_sound\libmodplug</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libsrc\SDL_sound\src\libmodplug\modplug.h">
+      <Filter>Library Sources\SDL_sound\libmodplug</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\libsrc\SDL_sound\src\libmodplug\tables.h">
+      <Filter>Library Sources\SDL_sound\libmodplug</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Xml Include="..\..\Engine\resource\DefaultGDF.gdf.xml">
@@ -1933,5 +2134,10 @@
     <ResourceCompile Include="..\..\Engine\resource\version.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Library Include="..\..\libsrc\SDL2-2.0.12\VisualC\lib\SDL2.lib">
+      <Filter>Library Sources\SDL2_static</Filter>
+    </Library>
   </ItemGroup>
 </Project>
