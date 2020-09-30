@@ -1188,6 +1188,9 @@
     <ClCompile Include="..\..\libsrc\SDL_sound\src\libmodplug\sndmix.c">
       <Filter>Library Sources\SDL_sound\libmodplug</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Engine\media\audio\clip_openal.cpp">
+      <Filter>Source Files\media\audio</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Engine\ac\asset_helper.h">
@@ -2110,6 +2113,9 @@
     </ClInclude>
     <ClInclude Include="..\..\libsrc\SDL_sound\src\libmodplug\tables.h">
       <Filter>Library Sources\SDL_sound\libmodplug</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Engine\media\audio\clip_openal.h">
+      <Filter>Header Files\media\audio</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
