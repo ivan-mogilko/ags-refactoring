@@ -75,7 +75,6 @@ extern ScreenOverlay screenover[MAX_SCREEN_OVERLAYS];
 extern Bitmap *walkable_areas_temp;
 extern IGraphicsDriver *gfxDriver;
 extern Bitmap **actsps;
-extern int is_text_overlay;
 extern int said_speech_line;
 extern int numscreenover;
 extern int said_text;
@@ -2372,7 +2371,7 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
     if ((speakingChar->view < 0) || (speakingChar->view >= game.numviews))
         quit("!DisplaySpeech: character has invalid view");
 
-    if (is_text_overlay > 0)
+    if (play.text_overlay_on)
     {
         debug_script_warn("DisplaySpeech: speech was already displayed (nested DisplaySpeech, perhaps room script and global script conflict?)");
         return;

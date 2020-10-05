@@ -44,7 +44,6 @@ extern IGraphicsDriver *gfxDriver;
 
 ScreenOverlay screenover[MAX_SCREEN_OVERLAYS];
 int numscreenover=0;
-int is_complete_overlay=0,is_text_overlay=0;
 
 void Overlay_Remove(ScriptOverlay *sco) {
     sco->Remove();
@@ -153,8 +152,8 @@ void remove_screen_overlay_index(int cc) {
         gfxDriver->DestroyDDB(screenover[cc].bmp);
     screenover[cc].bmp = nullptr;
 
-    if (screenover[cc].type==OVER_COMPLETE) is_complete_overlay--;
-    if (screenover[cc].type==OVER_TEXTMSG) is_text_overlay--;
+    if (screenover[cc].type==OVER_COMPLETE) play.complete_overlay_on = false;
+    if (screenover[cc].type==OVER_TEXTMSG) play.text_overlay_on = false;
 
     // if the script didn't actually use the Overlay* return
     // value, dispose of the pointer
@@ -193,8 +192,8 @@ int find_overlay_of_type(int typ) {
 int add_screen_overlay(int x,int y,int type,Bitmap *piccy, bool alphaChannel) {
     if (numscreenover>=MAX_SCREEN_OVERLAYS)
         quit("too many screen overlays created");
-    if (type==OVER_COMPLETE) is_complete_overlay++;
-    if (type==OVER_TEXTMSG) is_text_overlay++;
+    if (type==OVER_COMPLETE) play.complete_overlay_on = true;
+    if (type==OVER_TEXTMSG) play.text_overlay_on = true;
     if (type==OVER_CUSTOM) {
         int uu;  // find an unused custom ID
         for (uu=OVER_CUSTOM+1;uu<OVER_CUSTOM+100;uu++) {

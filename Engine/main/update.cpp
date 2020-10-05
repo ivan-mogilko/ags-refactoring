@@ -63,7 +63,6 @@ extern SpeechLipSyncLine *splipsync;
 extern int numLipLines, curLipLine, curLipLinePhoneme;
 extern ScreenOverlay screenover[MAX_SCREEN_OVERLAYS];
 extern int numscreenover;
-extern int is_text_overlay;
 extern IGraphicsDriver *gfxDriver;
 
 int do_movelist_move(short*mlnum,int*xx,int*yy) {
@@ -414,7 +413,7 @@ void update_sierra_speech()
     }
 
     // is_text_overlay might be 0 if it was only just destroyed this loop
-    if ((updatedFrame) && (is_text_overlay > 0)) {
+    if ((updatedFrame) && (play.text_overlay_on)) {
 
       if (updatedFrame & 1)
         CheckViewFrame (facetalkview, facetalkloop, facetalkframe);

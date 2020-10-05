@@ -64,7 +64,6 @@ extern AnimatingGUIButton animbuts[MAX_ANIMATING_BUTTONS];
 extern int numAnimButs;
 extern int mouse_on_iface;   // mouse cursor is over this interface
 extern int ifacepopped;
-extern int is_text_overlay;
 extern volatile char want_exit, abort_engine;
 extern int proper_exit,our_eip;
 extern int displayed_room, starting_room, in_new_room, new_room_was;
@@ -248,7 +247,7 @@ static void check_mouse_controls()
         if (play.fast_forward || !play.IsUserInputEnabled()) { /* do nothing if skipping cutscene or input disabled */ }
         else if ((play.wait_counter > 0) && (play.key_skip_wait > 1))
             play.wait_counter = -1;
-        else if (is_text_overlay > 0) {
+        else if (play.text_overlay_on) {
             if (play.cant_skip_speech & SKIP_MOUSECLICK)
             {
                 play.wait_skipped_by = SKIP_MOUSECLICK;
@@ -411,7 +410,7 @@ static void check_keyboard_controls()
     }
 
     // skip speech if desired by Speech.SkipStyle
-    if ((is_text_overlay > 0) && (play.cant_skip_speech & SKIP_KEYPRESS)) {
+    if ((play.text_overlay_on) && (play.cant_skip_speech & SKIP_KEYPRESS)) {
         // only allow a key to remove the overlay if the icon bar isn't up
         if (IsGamePaused() == 0) {
             // check if it requires a specific keypress
@@ -495,7 +494,8 @@ static void check_keyboard_controls()
     //     return;
     // }
 
-    if ((kgn == eAGSKeyCodeAltV) && (key[KEY_LCONTROL] || key[KEY_RCONTROL]) && (play.wait_counter < 1) && (is_text_overlay == 0) && (restrict_until == 0)) {
+    if ((kgn == eAGSKeyCodeAltV) && (key[KEY_LCONTROL] || key[KEY_RCONTROL]) && (play.wait_counter < 1) &&
+        (!play.text_overlay_on) && (restrict_until == 0)) {
         // make sure we can't interrupt a Wait()
         // and desync the music to cutscene
         play.debug_mode++;
@@ -884,7 +884,7 @@ static int ShouldStayInWaitMode() {
         if (wkptr[0]<0) retval=0;
     }
     else if (restrict_until==UNTIL_NOOVERLAY) {
-        if (is_text_overlay < 1) retval=0;
+        if (!play.text_overlay_on) retval=0;
     }
     else if (restrict_until==UNTIL_INTIS0) {
         int*wkptr=(int*)user_disabled_data;
