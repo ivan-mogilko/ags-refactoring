@@ -11,7 +11,7 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
+#include "ac/runtime_defines.h"
 #include "screenoverlay.h"
 #include "util/stream.h"
 
@@ -28,7 +28,7 @@ void ScreenOverlay::ReadFromFile(Stream *in)
     x = in->ReadInt32();
     y = in->ReadInt32();
     timeout = in->ReadInt32();
-    bgSpeechForChar = in->ReadInt32();
+    speechForChar = in->ReadInt32();
     associatedOverlayHandle = in->ReadInt32();
     hasAlphaChannel = in->ReadBool();
     positionRelativeToScreen = in->ReadBool();
@@ -43,7 +43,7 @@ void ScreenOverlay::WriteToFile(Stream *out)
     out->WriteInt32(x);
     out->WriteInt32(y);
     out->WriteInt32(timeout);
-    out->WriteInt32(bgSpeechForChar);
+    out->WriteInt32(speechForChar);
     out->WriteInt32(associatedOverlayHandle);
     out->WriteBool(hasAlphaChannel);
     out->WriteBool(positionRelativeToScreen);

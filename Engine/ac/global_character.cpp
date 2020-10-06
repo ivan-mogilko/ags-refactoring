@@ -553,7 +553,7 @@ int DisplaySpeechBackground(int charid, const char*speel) {
     // remove any previous background speech for this character
     int cc;
     for (cc = 0; cc < numscreenover; cc++) {
-        if (screenover[cc].bgSpeechForChar == charid) {
+        if (screenover[cc].isBackgroundSpeech(charid)) {
             remove_screen_overlay_index(cc);
             cc--;
         }
@@ -563,7 +563,7 @@ int DisplaySpeechBackground(int charid, const char*speel) {
         -game.chars[charid].talkcolor, get_translation(speel), DISPLAYTEXT_NORMALOVERLAY);
 
     int scid = find_overlay_of_type(ovrl);
-    screenover[scid].bgSpeechForChar = charid;
+    screenover[scid].speechForChar = charid;
     screenover[scid].timeout = GetTextDisplayTime(speel, 1);
     return ovrl;
 }

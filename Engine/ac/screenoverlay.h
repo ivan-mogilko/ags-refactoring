@@ -28,11 +28,23 @@ struct ScreenOverlay {
     Engine::IDriverDependantBitmap *bmp;
     Common::Bitmap *pic;
     int type,x,y,timeout;
-    int bgSpeechForChar;
+    int speechForChar;
     int associatedOverlayHandle;
     bool hasAlphaChannel;
     bool positionRelativeToScreen;
     bool hasSerializedBitmap;
+
+    /*
+    inline bool isBlockingSpeech(int charid) const
+    {
+        return type == OVER_TEXTMSG && speechForChar == charid;
+    }
+    */
+
+    inline bool isBackgroundSpeech(int charid) const
+    {
+        return type >= OVER_CUSTOM && speechForChar == charid;
+    }
 
     void ReadFromFile(Common::Stream *in);
     void WriteToFile(Common::Stream *out);
