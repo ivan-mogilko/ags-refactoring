@@ -2625,8 +2625,11 @@ builtin struct Game {
 //#ifdef SCRIPT_API_v351
   /// Gets/sets whether user input is enabled in game
   import static attribute bool UserInputEnabled;
-  /// Gets an arbitrary ID of a currently displayed blocking text (speech or another message), or 0 if none is display at the moment
+  /// Gets an arbitrary ID of a currently displayed blocking text (speech or another message), or 0 if none is displayed at the moment.
+  /// FIXME: remove if overlay works
   import static readonly attribute int BlockingTextIndex;
+  /// Gets the overlay representing displayed blocking text, or null if no such text none is displayed at the moment.
+  import static readonly attribute Overlay* BlockingTextOverlay;
   /// Gets the code which describes how was the last blocking state skipped by a user (or autotimer).
   import static readonly attribute int BlockingWaitSkipped;
 //#endif

@@ -969,6 +969,12 @@ int Game_BlockingTextIndex()
     return play.GetBlockingTextID();
 }
 
+extern ScriptOverlay *blocking_text_scover;
+ScriptOverlay* Game_BlockingTextOverlay()
+{
+    return blocking_text_scover;
+}
+
 int Game_BlockingWaitSkipped()
 {
     return play.GetBlockingWaitSkipResult();
@@ -2467,6 +2473,11 @@ RuntimeScriptValue Sc_Game_BlockingTextIndex(const RuntimeScriptValue *params, i
     API_SCALL_INT(Game_BlockingTextIndex);
 }
 
+RuntimeScriptValue Sc_Game_BlockingTextOverlay(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_OBJAUTO(ScriptOverlay, Game_BlockingTextOverlay);
+}
+
 RuntimeScriptValue Sc_Game_BlockingWaitSkipped(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_INT(Game_BlockingWaitSkipped);
@@ -2528,6 +2539,7 @@ void RegisterGameAPI()
     ccAddExternalStaticFunction("Game::get_UserInputEnabled",                   Sc_Game_GetUserInputEnabled);
     ccAddExternalStaticFunction("Game::set_UserInputEnabled",                   Sc_Game_SetUserInputEnabled);
     ccAddExternalStaticFunction("Game::get_BlockingTextIndex",                  Sc_Game_BlockingTextIndex);
+    ccAddExternalStaticFunction("Game::get_BlockingTextOverlay",                Sc_Game_BlockingTextOverlay);
     ccAddExternalStaticFunction("Game::get_BlockingWaitSkipped",                Sc_Game_BlockingWaitSkipped);
 
     ccAddExternalStaticFunction("Game::get_Camera",                             Sc_Game_GetCamera);

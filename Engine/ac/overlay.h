@@ -38,6 +38,8 @@ void remove_screen_overlay(int type);
 // Calculates overlay position in screen coordinates
 void get_overlay_position(int overlayidx, int *x, int *y);
 int  add_screen_overlay(int x,int y,int type,Common::Bitmap *piccy, bool alphaChannel = false);
+// Creates and registers a managed script object for existing internal overlay
+ScriptOverlay* add_scriptobj_for_overlay(int over_idx);
 void remove_screen_overlay_index(int cc);
 void recreate_overlay_ddbs();
 

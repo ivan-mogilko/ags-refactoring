@@ -44,6 +44,9 @@ extern IGraphicsDriver *gfxDriver;
 
 ScreenOverlay screenover[MAX_SCREEN_OVERLAYS];
 int numscreenover=0;
+// Blocking text overlay managed object, for accessing in scripts
+ScriptOverlay *blocking_text_scover = nullptr;
+
 
 void Overlay_Remove(ScriptOverlay *sco) {
     sco->Remove();
@@ -153,11 +156,20 @@ void remove_screen_overlay_index(int cc) {
     screenover[cc].bmp = nullptr;
 
     if (screenover[cc].type==OVER_COMPLETE) play.complete_overlay_on = false;
-    if (screenover[cc].type==OVER_TEXTMSG) play.text_overlay_on = false;
+    else if (screenover[cc].type==OVER_TEXTMSG)
+    {
+        play.text_overlay_on = false;
+        if (blocking_text_scover)
+        {
+            // invalidate existing script object to let user know that previous overlay is gone
+            blocking_text_scover->overlayId = -1;
+            blocking_text_scover = nullptr;
+            // release engine's internal reference, script object may exist while there are user refs
+            ccReleaseObjectReference(screenover[cc].associatedOverlayHandle);
+        }
+    }
 
-    // if the script didn't actually use the Overlay* return
-    // value, dispose of the pointer
-    if (screenover[cc].associatedOverlayHandle)
+    if (screenover[cc].associatedOverlayHandle) // will dispose if no more refs
         ccAttemptDisposeObject(screenover[cc].associatedOverlayHandle);
 
     numscreenover--;
@@ -192,8 +204,7 @@ int find_overlay_of_type(int typ) {
 int add_screen_overlay(int x,int y,int type,Bitmap *piccy, bool alphaChannel) {
     if (numscreenover>=MAX_SCREEN_OVERLAYS)
         quit("too many screen overlays created");
-    if (type==OVER_COMPLETE) play.complete_overlay_on = true;
-    if (type==OVER_TEXTMSG) play.text_overlay_on = true;
+
     if (type==OVER_CUSTOM) {
         int uu;  // find an unused custom ID
         for (uu=OVER_CUSTOM+1;uu<OVER_CUSTOM+100;uu++) {
@@ -206,14 +217,33 @@ int add_screen_overlay(int x,int y,int type,Bitmap *piccy, bool alphaChannel) {
     screenover[numscreenover].y=y;
     screenover[numscreenover].type=type;
     screenover[numscreenover].timeout=0;
-    screenover[numscreenover].bgSpeechForChar = -1;
+    screenover[numscreenover].speechForChar = -1;
     screenover[numscreenover].associatedOverlayHandle = 0;
     screenover[numscreenover].hasAlphaChannel = alphaChannel;
     screenover[numscreenover].positionRelativeToScreen = true;
+
+    if (type == OVER_COMPLETE) play.complete_overlay_on = true;
+    else if (type == OVER_TEXTMSG)
+    {
+        play.text_overlay_on = true;
+        blocking_text_scover = add_scriptobj_for_overlay(numscreenover);
+        // add engine's internal reference to prevent script object from getting disposed
+        ccAddObjectReference(screenover[numscreenover].associatedOverlayHandle);
+    }
+
     numscreenover++;
     return numscreenover-1;
 }
 
+ScriptOverlay* add_scriptobj_for_overlay(int over_idx)
+{
+    ScriptOverlay *scover = new ScriptOverlay();
+    ScreenOverlay &over = screenover[over_idx];
+    scover->overlayId = over.type;
+    int handl = ccRegisterManagedObject(scover, scover);
+    over.associatedOverlayHandle = handl;
+    return scover;
+}
 
 
 void get_overlay_position(int overlayidx, int *x, int *y) {
