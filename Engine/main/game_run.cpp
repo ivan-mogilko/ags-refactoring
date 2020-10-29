@@ -18,6 +18,7 @@
 
 #include <limits>
 #include <chrono>
+#include <SDL.h>
 #include "ac/common.h"
 #include "ac/characterextras.h"
 #include "ac/characterinfo.h"
@@ -556,6 +557,8 @@ static void check_keyboard_controls()
 static void check_controls() {
     our_eip = 1007;
 
+    sys_evt_process_pending();
+
     check_mouse_controls();
     check_keyboard_controls();
 }
@@ -753,6 +756,8 @@ void set_loop_counter(unsigned int new_counter) {
 void UpdateGameOnce(bool checkControls, IDriverDependantBitmap *extraBitmap, int extraX, int extraY) {
 
     int res;
+
+    sys_evt_process_pending();
 
     numEventsAtStartOfFunction = numevents;
 
@@ -1036,6 +1041,8 @@ void RunGameUntilAborted()
 
 void update_polled_stuff_if_runtime()
 {
+    SDL_PumpEvents();
+
     if (want_exit) {
         want_exit = 0;
         quit("||exit!");
