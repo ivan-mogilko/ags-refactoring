@@ -240,7 +240,7 @@ static void check_mouse_controls()
         wasbutdown=0;
     }
 
-    int mbut = NONE;
+    int mbut = MouseNone;
     int mwheelz = 0;
     if (run_service_mb_controls(mbut, mwheelz) && mbut >= 0) {
 
@@ -373,7 +373,7 @@ bool run_service_mb_controls(int &mbut, int &mwheelz)
 {
     int mb = ags_mgetbutton();
     int mz = ags_check_mouse_wheel();
-    if (mb == NONE && mz == 0)
+    if (mb == MouseNone && mz == 0)
         return false;
     lock_mouse_on_click(); // do not claim
     mbut = mb;
@@ -813,7 +813,6 @@ void UpdateGameOnce(bool checkControls, IDriverDependantBitmap *extraBitmap, int
 
     our_eip=7;
 
-    //    if (ags_mgetbutton()>NONE) break;
     update_polled_stuff_if_runtime();
 
     game_loop_update_background_animation();
