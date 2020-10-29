@@ -1008,6 +1008,9 @@
     <ClCompile Include="..\..\Engine\media\audio\clip_openal.cpp">
       <Filter>Source Files\media\audio</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Engine\platform\base\sys_main.cpp">
+      <Filter>Source Files\platform\base</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Engine\ac\asset_helper.h">
@@ -1906,6 +1909,9 @@
     </ClInclude>
     <ClInclude Include="..\..\Engine\media\audio\clip_openal.h">
       <Filter>Header Files\media\audio</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Engine\platform\base\sys_main.h">
+      <Filter>Header Files\platform\base</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
