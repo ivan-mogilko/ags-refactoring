@@ -481,7 +481,7 @@
     <ClCompile Include="..\..\Engine\main\game_start.cpp" />
     <ClCompile Include="..\..\Engine\main\graphics_mode.cpp" />
     <ClCompile Include="..\..\Engine\main\main.cpp" />
-    <ClCompile Include="..\..\Engine\main\main_allegro.cpp" />
+    <ClCompile Include="..\..\Engine\main\main_sdl2.cpp" />
     <ClCompile Include="..\..\Engine\main\quit.cpp" />
     <ClCompile Include="..\..\Engine\main\update.cpp" />
     <ClCompile Include="..\..\Engine\media\audio\ambientsound.cpp" />
