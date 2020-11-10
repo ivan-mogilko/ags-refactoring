@@ -137,8 +137,8 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\Common\libsrc\alfont-2.0.9;..\..\Engine;..\..\Plugins;..\..\Windows\include;..\..\Engine\libsrc\glad\include;..\..\Engine\libsrc\libcda-0.5;..\..\Engine\libsrc\apeg-1.2.1;..\..\libsrc\SDL2-2.0.12\include;..\..\libsrc\SDL_sound\src;..\..\libsrc\mojoAL;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;ALLEGRO_STATICLINK;ALLEGRO_NO_COMPATIBILITY;ALLEGRO_NO_FIX_ALIASES;ALLEGRO_NO_FIX_CLASS;ALLEGRO_NO_MAGIC_MAIN;WINDOWS_VERSION;DISABLE_MPEG_AUDIO;AGS_HAS_CD_AUDIO;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\Common\libsrc\alfont-2.0.9;..\..\Engine;..\..\Plugins;..\..\Windows\include;..\..\Engine\libsrc\glad\include;..\..\Engine\libsrc\libcda-0.5;..\..\Engine\libsrc\apeg-1.2.1;..\..\libsrc\SDL2-2.0.12\include;..\..\libsrc\SDL_sound\src;..\..\libsrc\mojoAL;..\..\libsrc\allegro\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;ALLEGRO_STATICLINK;ALLEGRO_NO_COMPATIBILITY;ALLEGRO_NO_FIX_ALIASES;ALLEGRO_NO_FIX_CLASS;ALLEGRO_NO_MAGIC_MAIN;ALLEGRO_MSVC;WINDOWS_VERSION;DISABLE_MPEG_AUDIO;AGS_HAS_CD_AUDIO;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -150,7 +150,7 @@
       <TreatSpecificWarningsAsErrors>4013; 4150; 4477</TreatSpecificWarningsAsErrors>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>Common_d.lib;alleg-debug-static-mt.lib;ddraw.lib;dinput.lib;dsound.lib;dxguid.lib;d3d9.lib;amstrmid.lib;quartz.lib;shlwapi.lib;winmm.lib;opengl32.lib;libogg_static.lib;libvorbis_static.lib;libvorbisfile_static.lib;libtheora_static.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Common_d.lib;ddraw.lib;dinput.lib;dsound.lib;dxguid.lib;d3d9.lib;amstrmid.lib;quartz.lib;shlwapi.lib;winmm.lib;opengl32.lib;libogg_static.lib;libvorbis_static.lib;libvorbisfile_static.lib;libtheora_static.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
       <AdditionalLibraryDirectories>$(SolutionDir)\.lib\$(Configuration);%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>LIBC;LIBCD;msvcrt;LIBCMT.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
@@ -165,8 +165,8 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug_XP|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\Common\libsrc\alfont-2.0.9;..\..\Engine;..\..\Plugins;..\..\Windows\include;..\..\Engine\libsrc\glad\include;..\..\Engine\libsrc\libcda-0.5;..\..\Engine\libsrc\apeg-1.2.1;..\..\libsrc\SDL2-2.0.12\include;..\..\libsrc\SDL_sound\src;..\..\libsrc\mojoAL;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;ALLEGRO_STATICLINK;ALLEGRO_NO_COMPATIBILITY;ALLEGRO_NO_FIX_ALIASES;ALLEGRO_NO_FIX_CLASS;ALLEGRO_NO_MAGIC_MAIN;WINDOWS_VERSION;DISABLE_MPEG_AUDIO;AGS_HAS_CD_AUDIO;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\Common\libsrc\alfont-2.0.9;..\..\Engine;..\..\Plugins;..\..\Windows\include;..\..\Engine\libsrc\glad\include;..\..\Engine\libsrc\libcda-0.5;..\..\Engine\libsrc\apeg-1.2.1;..\..\libsrc\SDL2-2.0.12\include;..\..\libsrc\SDL_sound\src;..\..\libsrc\mojoAL;..\..\libsrc\allegro\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;ALLEGRO_STATICLINK;ALLEGRO_NO_COMPATIBILITY;ALLEGRO_NO_FIX_ALIASES;ALLEGRO_NO_FIX_CLASS;ALLEGRO_NO_MAGIC_MAIN;ALLEGRO_MSVC;WINDOWS_VERSION;DISABLE_MPEG_AUDIO;AGS_HAS_CD_AUDIO;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -195,8 +195,8 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\Common\libsrc\alfont-2.0.9;..\..\Engine;..\..\Plugins;..\..\Windows\include;..\..\Engine\libsrc\glad\include;..\..\Engine\libsrc\libcda-0.5;..\..\Engine\libsrc\apeg-1.2.1;..\..\libsrc\SDL2-2.0.12\include;..\..\libsrc\SDL_sound\src;..\..\libsrc\mojoAL;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;ALLEGRO_STATICLINK;ALLEGRO_NO_COMPATIBILITY;ALLEGRO_NO_FIX_ALIASES;ALLEGRO_NO_FIX_CLASS;ALLEGRO_NO_MAGIC_MAIN;WINDOWS_VERSION;DISABLE_MPEG_AUDIO;AGS_HAS_CD_AUDIO;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\Common\libsrc\alfont-2.0.9;..\..\Engine;..\..\Plugins;..\..\Windows\include;..\..\Engine\libsrc\glad\include;..\..\Engine\libsrc\libcda-0.5;..\..\Engine\libsrc\apeg-1.2.1;..\..\libsrc\SDL2-2.0.12\include;..\..\libsrc\SDL_sound\src;..\..\libsrc\mojoAL;..\..\libsrc\allegro\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;ALLEGRO_STATICLINK;ALLEGRO_NO_COMPATIBILITY;ALLEGRO_NO_FIX_ALIASES;ALLEGRO_NO_FIX_CLASS;ALLEGRO_NO_MAGIC_MAIN;ALLEGRO_MSVC;WINDOWS_VERSION;DISABLE_MPEG_AUDIO;AGS_HAS_CD_AUDIO;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <PrecompiledHeader />
@@ -228,8 +228,8 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\Common\libsrc\alfont-2.0.9;..\..\Engine;..\..\Plugins;..\..\Windows\include;..\..\Engine\libsrc\glad\include;..\..\Engine\libsrc\libcda-0.5;..\..\Engine\libsrc\apeg-1.2.1;..\..\libsrc\SDL2-2.0.12\include;..\..\libsrc\SDL_sound\src;..\..\libsrc\mojoAL;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;ALLEGRO_STATICLINK;ALLEGRO_NO_COMPATIBILITY;ALLEGRO_NO_FIX_ALIASES;ALLEGRO_NO_FIX_CLASS;ALLEGRO_NO_MAGIC_MAIN;WINDOWS_VERSION;DISABLE_MPEG_AUDIO;AGS_HAS_CD_AUDIO;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\Common\libsrc\alfont-2.0.9;..\..\Engine;..\..\Plugins;..\..\Windows\include;..\..\Engine\libsrc\glad\include;..\..\Engine\libsrc\libcda-0.5;..\..\Engine\libsrc\apeg-1.2.1;..\..\libsrc\SDL2-2.0.12\include;..\..\libsrc\SDL_sound\src;..\..\libsrc\mojoAL;..\..\libsrc\allegro\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;ALLEGRO_STATICLINK;ALLEGRO_NO_COMPATIBILITY;ALLEGRO_NO_FIX_ALIASES;ALLEGRO_NO_FIX_CLASS;ALLEGRO_NO_MAGIC_MAIN;ALLEGRO_MSVC;WINDOWS_VERSION;DISABLE_MPEG_AUDIO;AGS_HAS_CD_AUDIO;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <PrecompiledHeader>
@@ -264,8 +264,8 @@
     <ClCompile>
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\Common\libsrc\alfont-2.0.9;..\..\Engine;..\..\Plugins;..\..\Windows\include;..\..\Engine\libsrc\glad\include;..\..\Engine\libsrc\libcda-0.5;..\..\Engine\libsrc\apeg-1.2.1;..\..\libsrc\SDL2-2.0.12\include;..\..\libsrc\SDL_sound\src;..\..\libsrc\mojoAL;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;ALLEGRO_STATICLINK;ALLEGRO_NO_COMPATIBILITY;ALLEGRO_NO_FIX_ALIASES;ALLEGRO_NO_FIX_CLASS;ALLEGRO_NO_MAGIC_MAIN;WINDOWS_VERSION;DISABLE_MPEG_AUDIO;AGS_HAS_CD_AUDIO;NO_MP3_PLAYER;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\Common\libsrc\alfont-2.0.9;..\..\Engine;..\..\Plugins;..\..\Windows\include;..\..\Engine\libsrc\glad\include;..\..\Engine\libsrc\libcda-0.5;..\..\Engine\libsrc\apeg-1.2.1;..\..\libsrc\SDL2-2.0.12\include;..\..\libsrc\SDL_sound\src;..\..\libsrc\mojoAL;..\..\libsrc\allegro\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;ALLEGRO_STATICLINK;ALLEGRO_NO_COMPATIBILITY;ALLEGRO_NO_FIX_ALIASES;ALLEGRO_NO_FIX_CLASS;ALLEGRO_NO_MAGIC_MAIN;ALLEGRO_MSVC;WINDOWS_VERSION;DISABLE_MPEG_AUDIO;AGS_HAS_CD_AUDIO;NO_MP3_PLAYER;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <PrecompiledHeader />
@@ -524,6 +524,61 @@
     <ClCompile Include="..\..\Engine\test\test_sprintf.cpp" />
     <ClCompile Include="..\..\Engine\test\test_string.cpp" />
     <ClCompile Include="..\..\Engine\test\test_version.cpp" />
+    <ClCompile Include="..\..\libsrc\allegro\src\allegro.c" />
+    <ClCompile Include="..\..\libsrc\allegro\src\blit.c" />
+    <ClCompile Include="..\..\libsrc\allegro\src\bmp.c" />
+    <ClCompile Include="..\..\libsrc\allegro\src\colblend.c" />
+    <ClCompile Include="..\..\libsrc\allegro\src\color.c" />
+    <ClCompile Include="..\..\libsrc\allegro\src\c\cblit16.c" />
+    <ClCompile Include="..\..\libsrc\allegro\src\c\cblit24.c" />
+    <ClCompile Include="..\..\libsrc\allegro\src\c\cblit32.c" />
+    <ClCompile Include="..\..\libsrc\allegro\src\c\cblit8.c" />
+    <ClCompile Include="..\..\libsrc\allegro\src\c\cgfx15.c" />
+    <ClCompile Include="..\..\libsrc\allegro\src\c\cgfx16.c" />
+    <ClCompile Include="..\..\libsrc\allegro\src\c\cgfx24.c" />
+    <ClCompile Include="..\..\libsrc\allegro\src\c\cgfx32.c" />
+    <ClCompile Include="..\..\libsrc\allegro\src\c\cgfx8.c" />
+    <ClCompile Include="..\..\libsrc\allegro\src\c\cmisc.c" />
+    <ClCompile Include="..\..\libsrc\allegro\src\c\cscan15.c" />
+    <ClCompile Include="..\..\libsrc\allegro\src\c\cscan16.c" />
+    <ClCompile Include="..\..\libsrc\allegro\src\c\cscan24.c" />
+    <ClCompile Include="..\..\libsrc\allegro\src\c\cscan32.c" />
+    <ClCompile Include="..\..\libsrc\allegro\src\c\cscan8.c" />
+    <ClCompile Include="..\..\libsrc\allegro\src\c\cspr15.c" />
+    <ClCompile Include="..\..\libsrc\allegro\src\c\cspr16.c" />
+    <ClCompile Include="..\..\libsrc\allegro\src\c\cspr24.c" />
+    <ClCompile Include="..\..\libsrc\allegro\src\c\cspr32.c" />
+    <ClCompile Include="..\..\libsrc\allegro\src\c\cspr8.c" />
+    <ClCompile Include="..\..\libsrc\allegro\src\c\cstretch.c" />
+    <ClCompile Include="..\..\libsrc\allegro\src\c\czscan15.c" />
+    <ClCompile Include="..\..\libsrc\allegro\src\c\czscan16.c" />
+    <ClCompile Include="..\..\libsrc\allegro\src\c\czscan24.c" />
+    <ClCompile Include="..\..\libsrc\allegro\src\c\czscan32.c" />
+    <ClCompile Include="..\..\libsrc\allegro\src\c\czscan8.c" />
+    <ClCompile Include="..\..\libsrc\allegro\src\dataregi.c" />
+    <ClCompile Include="..\..\libsrc\allegro\src\dither.c" />
+    <ClCompile Include="..\..\libsrc\allegro\src\file.c" />
+    <ClCompile Include="..\..\libsrc\allegro\src\fli.c" />
+    <ClCompile Include="..\..\libsrc\allegro\src\flood.c" />
+    <ClCompile Include="..\..\libsrc\allegro\src\gfx.c" />
+    <ClCompile Include="..\..\libsrc\allegro\src\graphics.c" />
+    <ClCompile Include="..\..\libsrc\allegro\src\inline.c" />
+    <ClCompile Include="..\..\libsrc\allegro\src\libc.c" />
+    <ClCompile Include="..\..\libsrc\allegro\src\math.c" />
+    <ClCompile Include="..\..\libsrc\allegro\src\pcx.c" />
+    <ClCompile Include="..\..\libsrc\allegro\src\polygon.c" />
+    <ClCompile Include="..\..\libsrc\allegro\src\quantize.c" />
+    <ClCompile Include="..\..\libsrc\allegro\src\readbmp.c" />
+    <ClCompile Include="..\..\libsrc\allegro\src\rotate.c" />
+    <ClCompile Include="..\..\libsrc\allegro\src\unicode.c" />
+    <ClCompile Include="..\..\libsrc\allegro\src\vtable.c" />
+    <ClCompile Include="..\..\libsrc\allegro\src\vtable15.c" />
+    <ClCompile Include="..\..\libsrc\allegro\src\vtable16.c" />
+    <ClCompile Include="..\..\libsrc\allegro\src\vtable24.c" />
+    <ClCompile Include="..\..\libsrc\allegro\src\vtable32.c" />
+    <ClCompile Include="..\..\libsrc\allegro\src\vtable8.c" />
+    <ClCompile Include="..\..\libsrc\allegro\src\win\wfile.c" />
+    <ClCompile Include="..\..\libsrc\allegro\src\win\wsystem.c" />
     <ClCompile Include="..\..\libsrc\mojoAL\mojoal.c" />
     <ClCompile Include="..\..\libsrc\SDL_sound\src\libmodplug\fastmix.c" />
     <ClCompile Include="..\..\libsrc\SDL_sound\src\libmodplug\load_669.c" />
