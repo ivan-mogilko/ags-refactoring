@@ -1035,9 +1035,6 @@
     <ClCompile Include="..\..\libsrc\allegro\src\dither.c">
       <Filter>Library Sources\allegro</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\libsrc\allegro\src\file.c">
-      <Filter>Library Sources\allegro</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\libsrc\allegro\src\fli.c">
       <Filter>Library Sources\allegro</Filter>
     </ClCompile>
@@ -1054,9 +1051,6 @@
       <Filter>Library Sources\allegro</Filter>
     </ClCompile>
     <ClCompile Include="..\..\libsrc\allegro\src\libc.c">
-      <Filter>Library Sources\allegro</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\libsrc\allegro\src\math.c">
       <Filter>Library Sources\allegro</Filter>
     </ClCompile>
     <ClCompile Include="..\..\libsrc\allegro\src\pcx.c">
@@ -1178,6 +1172,12 @@
     </ClCompile>
     <ClCompile Include="..\..\libsrc\allegro\src\win\wsystem.c">
       <Filter>Library Sources\allegro\win</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\allegro\src\al_file.c">
+      <Filter>Library Sources\allegro</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\libsrc\allegro\src\al_math.c">
+      <Filter>Library Sources\allegro</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
