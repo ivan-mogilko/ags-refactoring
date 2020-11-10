@@ -138,7 +138,7 @@
     <ClCompile>
       <Optimization>Disabled</Optimization>
       <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\Common\libsrc\alfont-2.0.9;..\..\Engine;..\..\Plugins;..\..\Windows\include;..\..\Engine\libsrc\glad\include;..\..\Engine\libsrc\libcda-0.5;..\..\Engine\libsrc\apeg-1.2.1;..\..\libsrc\SDL2-2.0.12\include;..\..\libsrc\SDL_sound\src;..\..\libsrc\mojoAL;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;ALLEGRO_STATICLINK;ALLEGRO_NO_COMPATIBILITY;ALLEGRO_NO_FIX_ALIASES;ALLEGRO_NO_FIX_CLASS;WINDOWS_VERSION;DISABLE_MPEG_AUDIO;AGS_HAS_CD_AUDIO;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;ALLEGRO_STATICLINK;ALLEGRO_NO_COMPATIBILITY;ALLEGRO_NO_FIX_ALIASES;ALLEGRO_NO_FIX_CLASS;ALLEGRO_NO_MAGIC_MAIN;WINDOWS_VERSION;DISABLE_MPEG_AUDIO;AGS_HAS_CD_AUDIO;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -166,7 +166,7 @@
     <ClCompile>
       <Optimization>Disabled</Optimization>
       <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\Common\libsrc\alfont-2.0.9;..\..\Engine;..\..\Plugins;..\..\Windows\include;..\..\Engine\libsrc\glad\include;..\..\Engine\libsrc\libcda-0.5;..\..\Engine\libsrc\apeg-1.2.1;..\..\libsrc\SDL2-2.0.12\include;..\..\libsrc\SDL_sound\src;..\..\libsrc\mojoAL;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;ALLEGRO_STATICLINK;ALLEGRO_NO_COMPATIBILITY;ALLEGRO_NO_FIX_ALIASES;ALLEGRO_NO_FIX_CLASS;WINDOWS_VERSION;DISABLE_MPEG_AUDIO;AGS_HAS_CD_AUDIO;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;ALLEGRO_STATICLINK;ALLEGRO_NO_COMPATIBILITY;ALLEGRO_NO_FIX_ALIASES;ALLEGRO_NO_FIX_CLASS;ALLEGRO_NO_MAGIC_MAIN;WINDOWS_VERSION;DISABLE_MPEG_AUDIO;AGS_HAS_CD_AUDIO;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -196,7 +196,7 @@
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\Common\libsrc\alfont-2.0.9;..\..\Engine;..\..\Plugins;..\..\Windows\include;..\..\Engine\libsrc\glad\include;..\..\Engine\libsrc\libcda-0.5;..\..\Engine\libsrc\apeg-1.2.1;..\..\libsrc\SDL2-2.0.12\include;..\..\libsrc\SDL_sound\src;..\..\libsrc\mojoAL;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;ALLEGRO_STATICLINK;ALLEGRO_NO_COMPATIBILITY;ALLEGRO_NO_FIX_ALIASES;ALLEGRO_NO_FIX_CLASS;WINDOWS_VERSION;DISABLE_MPEG_AUDIO;AGS_HAS_CD_AUDIO;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;ALLEGRO_STATICLINK;ALLEGRO_NO_COMPATIBILITY;ALLEGRO_NO_FIX_ALIASES;ALLEGRO_NO_FIX_CLASS;ALLEGRO_NO_MAGIC_MAIN;WINDOWS_VERSION;DISABLE_MPEG_AUDIO;AGS_HAS_CD_AUDIO;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <PrecompiledHeader />
@@ -229,7 +229,7 @@
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\Common\libsrc\alfont-2.0.9;..\..\Engine;..\..\Plugins;..\..\Windows\include;..\..\Engine\libsrc\glad\include;..\..\Engine\libsrc\libcda-0.5;..\..\Engine\libsrc\apeg-1.2.1;..\..\libsrc\SDL2-2.0.12\include;..\..\libsrc\SDL_sound\src;..\..\libsrc\mojoAL;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;ALLEGRO_STATICLINK;ALLEGRO_NO_COMPATIBILITY;ALLEGRO_NO_FIX_ALIASES;ALLEGRO_NO_FIX_CLASS;WINDOWS_VERSION;DISABLE_MPEG_AUDIO;AGS_HAS_CD_AUDIO;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;ALLEGRO_STATICLINK;ALLEGRO_NO_COMPATIBILITY;ALLEGRO_NO_FIX_ALIASES;ALLEGRO_NO_FIX_CLASS;ALLEGRO_NO_MAGIC_MAIN;WINDOWS_VERSION;DISABLE_MPEG_AUDIO;AGS_HAS_CD_AUDIO;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <PrecompiledHeader>
@@ -265,7 +265,7 @@
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <AdditionalIncludeDirectories>..\..\Common;..\..\Common\libinclude;..\..\Common\libsrc\alfont-2.0.9;..\..\Engine;..\..\Plugins;..\..\Windows\include;..\..\Engine\libsrc\glad\include;..\..\Engine\libsrc\libcda-0.5;..\..\Engine\libsrc\apeg-1.2.1;..\..\libsrc\SDL2-2.0.12\include;..\..\libsrc\SDL_sound\src;..\..\libsrc\mojoAL;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;ALLEGRO_STATICLINK;ALLEGRO_NO_COMPATIBILITY;ALLEGRO_NO_FIX_ALIASES;ALLEGRO_NO_FIX_CLASS;WINDOWS_VERSION;DISABLE_MPEG_AUDIO;AGS_HAS_CD_AUDIO;NO_MP3_PLAYER;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_CRT_SECURE_NO_WARNINGS;ALLEGRO_STATICLINK;ALLEGRO_NO_COMPATIBILITY;ALLEGRO_NO_FIX_ALIASES;ALLEGRO_NO_FIX_CLASS;ALLEGRO_NO_MAGIC_MAIN;WINDOWS_VERSION;DISABLE_MPEG_AUDIO;AGS_HAS_CD_AUDIO;NO_MP3_PLAYER;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <PrecompiledHeader />
