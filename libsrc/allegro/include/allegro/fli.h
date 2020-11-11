@@ -34,10 +34,6 @@ struct BITMAP;
 #define FLI_ERROR       -2
 #define FLI_NOT_OPEN    -3
 
-AL_FUNC(int, play_fli, (AL_CONST char *filename, struct BITMAP *bmp, int loop, AL_METHOD(int, callback, (void))));
-AL_FUNC(int, play_fli_pf, (PACKFILE *pf, struct BITMAP *bmp, AL_METHOD(int, callback, (void))));
-AL_FUNC(int, play_memory_fli, (void *fli_data, struct BITMAP *bmp, int loop, AL_METHOD(int, callback, (void))));
-
 AL_FUNC(int, open_fli, (AL_CONST char *filename));
 AL_FUNC(int, open_fli_pf, (PACKFILE *pf));
 AL_FUNC(int, open_memory_fli, (void *fli_data));
