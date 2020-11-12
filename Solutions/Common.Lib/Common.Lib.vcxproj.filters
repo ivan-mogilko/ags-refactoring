@@ -449,9 +449,6 @@
     <ClCompile Include="..\..\libsrc\allegro\src\win\wfile.c">
       <Filter>Library Sources\allegro\win</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\libsrc\allegro\src\win\wsystem.c">
-      <Filter>Library Sources\allegro\win</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\libsrc\allegro\src\al_file.c">
       <Filter>Library Sources\allegro</Filter>
     </ClCompile>

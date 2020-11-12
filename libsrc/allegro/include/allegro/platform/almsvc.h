@@ -40,15 +40,6 @@
 #define ALLEGRO_GUESS_INTTYPES_OK
 #define ALLEGRO_MULTITHREADED
 
-#ifdef ALLEGRO_USE_CONSOLE
-   #define ALLEGRO_CONSOLE_OK
-   #define ALLEGRO_NO_MAGIC_MAIN
-#endif
-
-#ifdef ALLEGRO_AND_MFC
-   #define ALLEGRO_NO_MAGIC_MAIN
-#endif
-
 
 /* describe how function prototypes look to MSVC */
 #if defined ALLEGRO_STATICLINK
@@ -98,8 +89,3 @@
    #define S_IWUSR   S_IWRITE
 #endif
 
-
-/* arrange for other headers to be included later on */
-#define ALLEGRO_EXTRA_HEADER     "allegro/platform/alwin.h"
-#define ALLEGRO_INTERNAL_HEADER  "allegro/platform/aintwin.h"
-#define ALLEGRO_ASMCAPA_HEADER   "obj/msvc/asmcapa.h"

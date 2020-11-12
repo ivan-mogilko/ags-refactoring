@@ -24,9 +24,6 @@
 #define ALLEGRO_CONSOLE_OK
 #define ALLEGRO_VRAM_SINGLE_SURFACE
 
-#define ALLEGRO_EXTRA_HEADER "allegro/platform/alunix.h"
-#define ALLEGRO_INTERNAL_HEADER "allegro/platform/aintunix.h"
-
 /* These defines will be provided by configure script.  */
 #undef ALLEGRO_COLOR8
 #undef ALLEGRO_COLOR16

@@ -449,7 +449,6 @@
     <ClCompile Include="..\..\libsrc\allegro\src\vtable8.c" />
     <ClCompile Include="..\..\libsrc\allegro\src\win\gdi.c" />
     <ClCompile Include="..\..\libsrc\allegro\src\win\wfile.c" />
-    <ClCompile Include="..\..\libsrc\allegro\src\win\wsystem.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Common\ac\audiocliptype.h" />

@@ -56,8 +56,5 @@
 	#define ALLEGRO_NO_ASM
 #endif
 
-/* Arrange for other headers to be included later on */
-#define ALLEGRO_EXTRA_HEADER     "allegro/platform/alosx.h"
-
 
 #endif

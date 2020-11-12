@@ -20,23 +20,11 @@
 #ifndef ALIOSCFG_H
 #define ALIOSCFG_H
 
-#define ALLEGRO_EXTRA_HEADER "allegro/platform/alios.h"
-
 #ifndef SCAN_DEPEND
    #include <fcntl.h>
    #include <unistd.h>
 #endif
 
-
-#ifndef ALLEGRO_NO_MAGIC_MAIN
-   #define ALLEGRO_MAGIC_MAIN
-   #define main _mangled_main
-   #undef END_OF_MAIN
-   #define END_OF_MAIN() void *_mangled_main_address = (void *) _mangled_main;
-#else
-   #undef END_OF_MAIN
-   #define END_OF_MAIN() void *_mangled_main_address;
-#endif
 
 #include <stdio.h>
 

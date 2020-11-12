@@ -68,29 +68,6 @@
 #endif
 
 
-/* external graphics driver support */
-typedef struct WIN_GFX_DRIVER {
-   int has_backing_store;
-   AL_METHOD(void, switch_in, (void));
-   AL_METHOD(void, switch_out, (void));
-   AL_METHOD(void, enter_sysmode, (void));
-   AL_METHOD(void, exit_sysmode, (void));
-   AL_METHOD(void, move, (int x, int y, int w, int h));
-   AL_METHOD(void, iconify, (void));
-   AL_METHOD(void, paint, (RECT *rect));
-} WIN_GFX_DRIVER;
-
-AL_VAR(WIN_GFX_DRIVER *, win_gfx_driver);
-
-AL_FUNC(void, win_grab_input, (void));
-
-
-/* external window support */
-AL_FUNC(HWND, win_get_window, (void));
-AL_FUNC(void, win_set_window, (HWND wnd));
-AL_FUNC(void, win_set_wnd_create_proc, (AL_METHOD(HWND, proc, (WNDPROC))));
-AL_FUNC(void, win_set_msg_pre_proc, (AL_METHOD(int, proc, (HWND, UINT, WPARAM, LPARAM, int *))));
-
 /* GDI to DirectDraw routines */
 AL_FUNC(HDC, win_get_dc, (BITMAP *bmp));
 AL_FUNC(void, win_release_dc, (BITMAP *bmp, HDC dc));
@@ -108,7 +85,6 @@ AL_FUNC(void, blit_to_hdc, (BITMAP *bitmap, HDC dc, int src_x, int src_y, int de
 AL_FUNC(void, stretch_blit_to_hdc, (BITMAP *bitmap, HDC dc, int src_x, int src_y, int src_w, int src_h, int dest_x, int dest_y, int dest_w, int dest_h));
 AL_FUNC(void, blit_from_hdc, (HDC dc, BITMAP *bitmap, int src_x, int src_y, int dest_x, int dest_y, int w, int h));
 AL_FUNC(void, stretch_blit_from_hdc, (HDC hdc, BITMAP *bitmap, int src_x, int src_y, int src_w, int src_h, int dest_x, int dest_y, int dest_w, int dest_h));
-
 
 #ifdef __cplusplus
    }
