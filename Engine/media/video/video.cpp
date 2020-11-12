@@ -224,8 +224,8 @@ void play_flc_file(int numb,int playflags) {
     {
         // This is not a fatal error that should prevent the game from continuing
         Debug::Printf("FLI/FLC animation play error");
-        pack_fclose(pf);
     }
+    pack_fclose(pf);
     
 
     video_type = kVideoNone;
