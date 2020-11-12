@@ -19,7 +19,6 @@
 #ifndef ALLEGRO_GFX_H
 #define ALLEGRO_GFX_H
 
-#include "3d.h"
 #include "base.h"
 #include "fixed.h"
 
@@ -118,12 +117,12 @@ typedef struct GFX_VTABLE        /* functions for drawing onto bitmaps */
    AL_METHOD(void, arc, (struct BITMAP *bmp, int x, int y, fixed ang1, fixed ang2, int r, int color));
    AL_METHOD(void, spline, (struct BITMAP *bmp, AL_CONST int points[8], int color));
    AL_METHOD(void, floodfill, (struct BITMAP *bmp, int x, int y, int color));
-   AL_METHOD(void, polygon3d, (struct BITMAP *bmp, int type, struct BITMAP *texture, int vc, V3D *vtx[]));
-   AL_METHOD(void, polygon3d_f, (struct BITMAP *bmp, int type, struct BITMAP *texture, int vc, V3D_f *vtx[]));
-   AL_METHOD(void, triangle3d, (struct BITMAP *bmp, int type, struct BITMAP *texture, V3D *v1, V3D *v2, V3D *v3));
-   AL_METHOD(void, triangle3d_f, (struct BITMAP *bmp, int type, struct BITMAP *texture, V3D_f *v1, V3D_f *v2, V3D_f *v3));
-   AL_METHOD(void, quad3d, (struct BITMAP *bmp, int type, struct BITMAP *texture, V3D *v1, V3D *v2, V3D *v3, V3D *v4));
-   AL_METHOD(void, quad3d_f, (struct BITMAP *bmp, int type, struct BITMAP *texture, V3D_f *v1, V3D_f *v2, V3D_f *v3, V3D_f *v4));
+   AL_METHOD(void, __reserved1_, (struct BITMAP *bmp));
+   AL_METHOD(void, __reserved2_, (struct BITMAP *bmp));
+   AL_METHOD(void, __reserved3_, (struct BITMAP *bmp));
+   AL_METHOD(void, __reserved4_, (struct BITMAP *bmp));
+   AL_METHOD(void, __reserved5_, (struct BITMAP *bmp));
+   AL_METHOD(void, __reserved6_, (struct BITMAP *bmp));
 
    AL_METHOD(void, draw_sprite_ex, (struct BITMAP *bmp, struct BITMAP *sprite, int x, int y, int mode, int flip ));
 } GFX_VTABLE;

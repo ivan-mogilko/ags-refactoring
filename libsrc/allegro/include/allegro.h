@@ -41,11 +41,6 @@
 
 #include "allegro/fixed.h"
 #include "allegro/fmaths.h"
-#include "allegro/matrix.h"
-#include "allegro/quat.h"
-
-#include "allegro/3d.h"
-#include "allegro/3dmaths.h"
 
 #ifdef ALLEGRO_EXTRA_HEADER
    #include ALLEGRO_EXTRA_HEADER

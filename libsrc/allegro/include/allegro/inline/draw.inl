@@ -20,7 +20,6 @@
 #define ALLEGRO_DRAW_INL
 
 #include "allegro/debug.h"
-#include "allegro/3d.h"
 #include "gfx.inl"
 
 #ifdef __cplusplus

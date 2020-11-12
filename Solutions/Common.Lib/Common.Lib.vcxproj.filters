@@ -398,21 +398,6 @@
     <ClCompile Include="..\..\libsrc\allegro\src\c\cmisc.c">
       <Filter>Library Sources\allegro\c</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\libsrc\allegro\src\c\cscan15.c">
-      <Filter>Library Sources\allegro\c</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\libsrc\allegro\src\c\cscan16.c">
-      <Filter>Library Sources\allegro\c</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\libsrc\allegro\src\c\cscan24.c">
-      <Filter>Library Sources\allegro\c</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\libsrc\allegro\src\c\cscan32.c">
-      <Filter>Library Sources\allegro\c</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\libsrc\allegro\src\c\cscan8.c">
-      <Filter>Library Sources\allegro\c</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\libsrc\allegro\src\c\cspr15.c">
       <Filter>Library Sources\allegro\c</Filter>
     </ClCompile>
@@ -429,21 +414,6 @@
       <Filter>Library Sources\allegro\c</Filter>
     </ClCompile>
     <ClCompile Include="..\..\libsrc\allegro\src\c\cstretch.c">
-      <Filter>Library Sources\allegro\c</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\libsrc\allegro\src\c\czscan15.c">
-      <Filter>Library Sources\allegro\c</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\libsrc\allegro\src\c\czscan16.c">
-      <Filter>Library Sources\allegro\c</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\libsrc\allegro\src\c\czscan24.c">
-      <Filter>Library Sources\allegro\c</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\libsrc\allegro\src\c\czscan32.c">
-      <Filter>Library Sources\allegro\c</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\libsrc\allegro\src\c\czscan8.c">
       <Filter>Library Sources\allegro\c</Filter>
     </ClCompile>
     <ClCompile Include="..\..\libsrc\allegro\src\win\wfile.c">

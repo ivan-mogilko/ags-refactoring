@@ -94,19 +94,5 @@
 #define FUNC_LINEAR_DRAW_SPRITE_END         _linear_draw_sprite32_end
 #define FUNC_LINEAR_BLIT_END                _linear_blit32_end
 
-#define FUNC_POLY_SCANLINE_GRGB             _poly_scanline_grgb32
-#define FUNC_POLY_SCANLINE_ATEX             _poly_scanline_atex32
-#define FUNC_POLY_SCANLINE_ATEX_MASK        _poly_scanline_atex_mask32
-#define FUNC_POLY_SCANLINE_ATEX_LIT         _poly_scanline_atex_lit32
-#define FUNC_POLY_SCANLINE_ATEX_MASK_LIT    _poly_scanline_atex_mask_lit32
-#define FUNC_POLY_SCANLINE_PTEX             _poly_scanline_ptex32
-#define FUNC_POLY_SCANLINE_PTEX_MASK        _poly_scanline_ptex_mask32
-#define FUNC_POLY_SCANLINE_PTEX_LIT         _poly_scanline_ptex_lit32
-#define FUNC_POLY_SCANLINE_PTEX_MASK_LIT    _poly_scanline_ptex_mask_lit32
-#define FUNC_POLY_SCANLINE_ATEX_TRANS       _poly_scanline_atex_trans32
-#define FUNC_POLY_SCANLINE_ATEX_MASK_TRANS  _poly_scanline_atex_mask_trans32
-#define FUNC_POLY_SCANLINE_PTEX_TRANS       _poly_scanline_ptex_trans32
-#define FUNC_POLY_SCANLINE_PTEX_MASK_TRANS  _poly_scanline_ptex_mask_trans32
-
 #endif /* !__bma_cdefs32_h */
 
