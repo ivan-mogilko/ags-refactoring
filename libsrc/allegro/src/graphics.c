@@ -231,7 +231,7 @@ int _color_load_depth(int depth, int hasalpha)
 
    int i;
 
-   ASSERT((_gfx_mode_set_count > 0) || (color_conv_set));
+   ASSERT(color_conv_set);
 
    if (depth == _color_depth)
       return depth;
