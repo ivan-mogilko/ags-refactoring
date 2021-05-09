@@ -161,6 +161,8 @@ public:
     String ReadType(DocElem elem) override { return "Dialog"; }
     int ReadID(DocElem elem) override { return ReadInt(elem, "ID", -1); }
     String ReadScriptName(DocElem elem) override { return ReadString(elem, "Name"); }
+
+    String ReadScript(DocElem elem) { return ReadString(elem, "Script"); }
 };
 
 // Font data parser
