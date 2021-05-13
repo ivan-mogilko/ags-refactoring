@@ -920,9 +920,10 @@ void D3DGraphicsDriver::CreateVirtualScreen()
   direct3ddevice->ColorFill(pNativeSurface, NULL, 0);
 
   // create initial stage screen for plugin raw drawing
-  _stageVirtualScreen = CreateStageScreen(0, _srcRect.GetSize());
+  CreateStageScreen(0, _srcRect.GetSize());
+  _stageScreen = GetStageScreen(0);
   // we must set Allegro's screen pointer to **something**
-  screen = (BITMAP*)_stageVirtualScreen->GetAllegroBitmap();
+  screen = (BITMAP*)_stageScreen.Bitmap->GetAllegroBitmap();
 }
 
 HRESULT D3DGraphicsDriver::ResetD3DDevice()
@@ -1438,11 +1439,11 @@ void D3DGraphicsDriver::RenderSpriteBatches()
         {
             direct3ddevice->SetRenderState(D3DRS_SCISSORTESTENABLE, FALSE);
         }
-        _stageVirtualScreen = GetStageScreen(i);
+        _stageScreen = GetStageScreen(i);
         RenderSpriteBatch(batch);
     }
 
-    _stageVirtualScreen = GetStageScreen(0);
+    _stageScreen = GetStageScreen(0);
     direct3ddevice->SetRenderState(D3DRS_SCISSORTESTENABLE, FALSE);
 }
 
@@ -1460,7 +1461,7 @@ void D3DGraphicsDriver::RenderSpriteBatch(const D3DSpriteBatch &batch)
     if (listToDraw[i].bitmap == NULL)
     {
       if (DoNullSpriteCallback(listToDraw[i].x, (int)direct3ddevice))
-        stageEntry = D3DDrawListEntry((D3DBitmap*)_stageVirtualScreenDDB);
+        stageEntry = D3DDrawListEntry((D3DBitmap*)_stageScreen.DDB);
       else
         continue;
       sprite = &stageEntry;

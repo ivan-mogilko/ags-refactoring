@@ -989,9 +989,10 @@ void OGLGraphicsDriver::CreateVirtualScreen()
   if (!IsModeSet() || !IsNativeSizeValid())
     return;
   // create initial stage screen for plugin raw drawing
-  _stageVirtualScreen = CreateStageScreen(0, _srcRect.GetSize());
+  CreateStageScreen(0, _srcRect.GetSize());
+  _stageScreen = GetStageScreen(0);
   // we must set Allegro's screen pointer to **something**
-  screen = (BITMAP*)_stageVirtualScreen->GetAllegroBitmap();
+  screen = (BITMAP*)_stageScreen.Bitmap->GetAllegroBitmap();
 }
 
 bool OGLGraphicsDriver::SetNativeSize(const Size &src_size)
@@ -1451,11 +1452,11 @@ void OGLGraphicsDriver::RenderSpriteBatches()
         {
             glScissor(main_viewport.Left, main_viewport.Top, main_viewport.GetWidth(), main_viewport.GetHeight());
         }
-        _stageVirtualScreen = GetStageScreen(i);
+        _stageScreen = GetStageScreen(i);
         RenderSpriteBatch(batch);
     }
 
-    _stageVirtualScreen = GetStageScreen(0);
+    _stageScreen = GetStageScreen(0);
     glScissor(main_viewport.Left, main_viewport.Top, main_viewport.GetWidth(), main_viewport.GetHeight());
     if (_do_render_to_texture)
         glDisable(GL_SCISSOR_TEST);
@@ -1475,7 +1476,7 @@ void OGLGraphicsDriver::RenderSpriteBatch(const OGLSpriteBatch &batch)
     if (listToDraw[i].bitmap == nullptr)
     {
       if (DoNullSpriteCallback(listToDraw[i].x, listToDraw[i].y))
-        stageEntry = OGLDrawListEntry((OGLBitmap*)_stageVirtualScreenDDB);
+        stageEntry = OGLDrawListEntry((OGLBitmap*)_stageScreen.DDB);
       else
         continue;
       sprite = &stageEntry;
