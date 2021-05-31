@@ -101,6 +101,22 @@ void INIwritestring(ConfigTree &cfg, const String &sectn, const String &item, co
 }
 
 
+WindowSetup parse_window_mode(const String &option)
+{
+    if (option.CompareNoCase("max") == 0)
+        return WindowSetup();
+    size_t at = option.FindChar('x');
+    if (at == -1)
+        return WindowSetup();
+    // NOTE: this will result in "max" again if any toInt conversion had failed
+    if (at == 0)
+        return WindowSetup(Size(), StrUtil::StringToInt(option.Mid(1)));
+    return WindowSetup(Size(
+        StrUtil::StringToInt(option.Mid(0, at)),
+        StrUtil::StringToInt(option.Mid(at + 1)))
+        , 0);
+}
+
 // Legacy screen size definition
 enum ScreenSizeDefinition
 {
@@ -380,6 +396,9 @@ void apply_config(const ConfigTree &cfg)
         usetup.Screen.DriverID = INIreadstring(cfg, "graphics", "driver", usetup.Screen.DriverID);
 
         usetup.Screen.Windowed = INIreadint(cfg, "graphics", "windowed") > 0;
+
+        usetup.Screen.FullscreenSize = parse_window_mode(INIreadstring(cfg, "graphics", "fullscreen", "max"));
+        usetup.Screen.WindowSize = parse_window_mode(INIreadstring(cfg, "graphics", "window", "max"));
 
         // TODO: move to config overrides (replace values during config load)
 #if AGS_PLATFORM_OS_MACOS
