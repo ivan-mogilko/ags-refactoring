@@ -227,5 +227,29 @@ void StrUtil::WriteCStr(const String &s, Stream *out)
     out->Write(s.GetCStr(), s.GetLength() + 1);
 }
 
+void StrUtil::ReadStringMap(StringMap &map, Stream *in)
+{
+    size_t count = in->ReadInt32();
+    for (size_t i = 0; i < count; ++i)
+    {
+        map.insert(
+            std::make_pair(
+                StrUtil::ReadString(in),
+                StrUtil::ReadString(in)
+            )
+        );
+    }
+}
+
+void StrUtil::WriteStringMap(const StringMap &map, Stream *out)
+{
+    out->WriteInt32(map.size());
+    for (const auto &kv : map)
+    {
+        StrUtil::WriteString(kv.first, out);
+        StrUtil::WriteString(kv.second, out);
+    }
+}
+
 } // namespace Common
 } // namespace AGS
