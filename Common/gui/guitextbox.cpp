@@ -71,7 +71,12 @@ void GUITextBox::OnKeyPress(const KeyInput &ki)
     // backspace, remove character
     if (keycode == eAGSKeyCodeBackspace)
     {
-        Text.ClipRight(1);
+        // FIXME: a proper utility function!
+        // Find where the last utf8 char begins
+        const char *ptr_end = Text.GetCStr() + Text.GetLength();
+        const char *ptr = ptr_end - 1;
+        for (; ptr > Text.GetCStr() && ((*ptr & 0xC0) == 0x80); --ptr);
+        Text.ClipRight(ptr_end - ptr);
         return;
     }
     // return/enter
@@ -81,7 +86,7 @@ void GUITextBox::OnKeyPress(const KeyInput &ki)
         return;
     }
 
-    Text.AppendChar(keycode);
+    Text.Append(ki.Text);
     // if the new string is too long, remove the new character
     if (wgettextwidth(Text.GetCStr(), Font) > (Width - (6 + 5)))
         Text.ClipRight(1);
