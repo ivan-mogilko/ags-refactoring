@@ -30,7 +30,7 @@ using namespace AGS::Engine;
 extern GameSetupStruct game;
 
 // Converts SDL scan and key codes to the ags keycode
-eAGSKeyCode ags_keycode_from_sdl(const SDL_Event &event)
+KeyInput ags_keycode_from_sdl(const SDL_Event &event)
 {
     // Printable ASCII characters are returned only from SDL_TEXTINPUT event,
     // as it has key presses + mods correctly converted using current system locale already,
@@ -38,14 +38,14 @@ eAGSKeyCode ags_keycode_from_sdl(const SDL_Event &event)
     // NOTE: keycodes such as SDLK_EXCLAIM ('!') could be misleading, as they are NOT
     // received when user presses for example Shift + 1 on regular keyboard, but only on
     // systems where single keypress can produce that symbol.
-    // NOTE: following will not work for Unicode, will need to reimplement whole thing
     if (event.type == SDL_TEXTINPUT)
     {
+        KeyInput key;
         unsigned char textch = event.text.text[0];
-        if (textch >= 32 && textch <= 255) {
-            return static_cast<eAGSKeyCode>(textch);
-        }
-        return eAGSKeyCodeNone;
+        strncpy(key.Text, event.text.text, KeyInput::UTF8_ARR_SIZE);
+        if (textch >= 32 && textch <= 255)
+            key.Key = static_cast<eAGSKeyCode>(textch);
+        return key;
     }
 
     if (event.type != SDL_KEYDOWN)

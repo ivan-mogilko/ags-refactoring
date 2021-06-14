@@ -755,15 +755,18 @@ bool DialogOptions::Run()
         run_function_on_non_blocking_thread(&runDialogOptionRepExecFunc);
       }
 
-      int gkey;
-      if (run_service_key_controls(gkey) && !play.IsIgnoringInput()) {
+      KeyInput ki;
+      if (run_service_key_controls(ki) && !play.IsIgnoringInput()) {
+        eAGSKeyCode gkey = ki.Key;
         if (parserInput) {
           wantRefresh = true;
           // type into the parser 
+          // TODO: find out what are these key commands, and are these documented?
           if ((gkey == eAGSKeyCodeF3) || ((gkey == eAGSKeyCodeSpace) && (parserInput->Text.GetLength() == 0))) {
             // write previous contents into textbox (F3 or Space when box is empty)
+            // TODO: unicode support: probably take all the entry and pass as a whole string?
             for (unsigned int i = parserInput->Text.GetLength(); i < strlen(play.lastParserEntry); i++) {
-              parserInput->OnKeyPress(play.lastParserEntry[i]);
+              parserInput->OnKeyPress((eAGSKeyCode)play.lastParserEntry[i]);
             }
             //ags_domouse(DOMOUSE_DISABLE);
             Redraw();
@@ -788,9 +791,9 @@ bool DialogOptions::Run()
         else if (game.options[OPT_DIALOGNUMBERED] >= kDlgOptKeysOnly &&
                  gkey >= '1' && gkey <= '9')
         {
-          gkey -= '1';
-          if (gkey < numdisp) {
-            chose = disporder[gkey];
+          int numkey = gkey - '1';
+          if (numkey < numdisp) {
+            chose = disporder[numkey];
             return false; // end dialog options running loop
           }
         }

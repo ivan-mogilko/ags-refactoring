@@ -246,6 +246,19 @@ enum eAGSKeyCode
 };
 
 
+// Combined key code and a textual representation in UTF-8
+struct KeyInput
+{
+    const static size_t UTF8_ARR_SIZE = 5;
+
+    eAGSKeyCode Key = eAGSKeyCodeNone;
+    char        Text[UTF8_ARR_SIZE] = { 0 };
+
+    KeyInput() = default;
+    KeyInput(eAGSKeyCode key) : Key(key), Text{ 0 } { }
+};
+
+
 // Converts eAGSKeyCode to script API code, for "on_key_press" and similar callbacks
 int AGSKeyToScriptKey(int keycode);
 // Converts eAGSKeyCode to ASCII text representation with the range check; returns 0 on failure
