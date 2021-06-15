@@ -296,7 +296,7 @@ size_t break_up_text_into_lines(const char *todis, SplitLines &lines, int wii, i
     // write it as normal
     if (game.options[OPT_RIGHTLEFTWRITE])
         for (size_t rr = 0; rr < lines.Count(); rr++) {
-            lines[rr].Reverse();
+            lines[rr].ReverseUTF8();
             line_length = wgettextwidth_compensate(lines[rr].GetCStr(), fonnt);
             if (line_length > longestline)
                 longestline = line_length;
