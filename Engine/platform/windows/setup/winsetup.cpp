@@ -40,6 +40,11 @@
 #include "util/file.h"
 #include "util/string_utils.h"
 
+
+// TODO: find a good place to share this
+#define MAX_PATH_UTF8 (MAX_PATH * 4)
+
+
 #define AL_ID(a,b,c,d)     (((a)<<24) | ((b)<<16) | ((c)<<8) | (d))
 
 #define DIGI_DIRECTAMX(n)        AL_ID('A','X','A'+(n),' ')
@@ -304,7 +309,7 @@ DWORD_PTR GetCurItemData(HWND hwnd, DWORD_PTR def_value = 0)
 
 String GetText(HWND hwnd)
 {
-    TCHAR short_buf[MAX_PATH + 1];
+    TCHAR short_buf[MAX_PATH_UTF8];
     int len = SendMessage(hwnd, WM_GETTEXTLENGTH, 0, 0);
     if (len > 0)
     {
@@ -379,7 +384,7 @@ bool BrowseForFolder(String &dir_buf)
     LPITEMIDLIST pidl = SHBrowseForFolder ( &bi );
     if (pidl)
     {
-        char path[MAX_PATH];
+        char path[MAX_PATH_UTF8];
         if (SHGetPathFromIDList(pidl, path) != FALSE)
         {
             dir_buf = path;
@@ -596,8 +601,8 @@ INT_PTR WinSetupDialog::OnInitDialog(HWND hwnd)
     if (!has_save_dir)
         custom_save_dir = _winCfg.DataDirectory;
     SetCheck(_hCustomSaveDirCheck, has_save_dir);
-    char full_save_dir[MAX_PATH] = {0};
-    MakeFullLongPath(custom_save_dir.GetCStr(), full_save_dir, MAX_PATH);
+    char full_save_dir[MAX_PATH_UTF8] = {0};
+    MakeFullLongPath(custom_save_dir.GetCStr(), full_save_dir, MAX_PATH_UTF8);
     SetText(_hCustomSaveDir, full_save_dir);
     EnableWindow(_hCustomSaveDir, has_save_dir ? TRUE : FALSE);
     EnableWindow(_hCustomSaveDirBtn, has_save_dir ? TRUE : FALSE);
@@ -1095,11 +1100,11 @@ void WinSetupDialog::SaveSetup()
         // directory if user moves game elsewhere.
         String save_dir;
         save_dir = GetText(_hCustomSaveDir);
-        char full_data_dir[MAX_PATH] = {0};
-        char full_save_dir[MAX_PATH] = {0};
-        MakeFullLongPath(STR(_winCfg.DataDirectory), full_data_dir, MAX_PATH);
-        MakeFullLongPath(STR(save_dir), full_save_dir, MAX_PATH);
-        char rel_save_dir[MAX_PATH] = {0};
+        char full_data_dir[MAX_PATH_UTF8] = {0};
+        char full_save_dir[MAX_PATH_UTF8] = {0};
+        MakeFullLongPath(STR(_winCfg.DataDirectory), full_data_dir, MAX_PATH_UTF8);
+        MakeFullLongPath(STR(save_dir), full_save_dir, MAX_PATH_UTF8);
+        char rel_save_dir[MAX_PATH_UTF8] = {0};
         if (PathRelativePathTo(rel_save_dir, full_data_dir, FILE_ATTRIBUTE_DIRECTORY, full_save_dir, FILE_ATTRIBUTE_DIRECTORY) &&
             strstr(rel_save_dir, "..") == NULL)
         {

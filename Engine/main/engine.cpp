@@ -125,6 +125,7 @@ bool engine_init_backend()
     
     // Initialize stripped allegro library
     set_uformat(U_UTF8);
+    set_filename_encoding(U_UNICODE);
     if (install_allegro(SYSTEM_NONE, &errno, atexit))
     {
         platform->DisplayAlert("Internal error: unable to initialize stripped Allegro 4 library.");
@@ -999,6 +1000,7 @@ HError define_gamedata_location_checkall(String &data_path, String &startup_dir)
     // First try if they provided a startup option
     if (!cmdGameDataPath.IsEmpty())
     {
+        String cur_dir = Directory::GetCurrentDirectory();
         // If not a valid path - bail out
         if (!Path::IsFileOrDir(cmdGameDataPath))
             return new Error(String::FromFormat("Provided game location is not a valid path.\n Cwd: %s\n Path: %s",

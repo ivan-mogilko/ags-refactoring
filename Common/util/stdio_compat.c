@@ -50,7 +50,9 @@ file_off_t ags_ftell(FILE * stream)
 int  ags_file_exists(const char *path) 
 {
 #if AGS_PLATFORM_OS_WINDOWS
-    return PathFileExistsA(path) && ! PathIsDirectoryA(path);
+    WCHAR wstr[MAX_PATH] = { 0 };
+    MultiByteToWideChar(CP_UTF8, 0, path, -1, wstr, MAX_PATH);
+    return PathFileExistsW(wstr) && !PathIsDirectoryW(wstr);
 #else
     struct stat path_stat;
     if (stat(path, &path_stat) != 0) {
@@ -63,7 +65,9 @@ int  ags_file_exists(const char *path)
 int ags_directory_exists(const char *path)
 {
 #if AGS_PLATFORM_OS_WINDOWS
-    return PathFileExistsA(path) && PathIsDirectoryA(path);
+    WCHAR wstr[MAX_PATH] = { 0 };
+    MultiByteToWideChar(CP_UTF8, 0, path, -1, wstr, MAX_PATH);
+    return PathFileExistsW(wstr) && PathIsDirectoryW(wstr);
 #else
     struct stat path_stat;
     if (stat(path, &path_stat) != 0) {
@@ -75,22 +79,34 @@ int ags_directory_exists(const char *path)
 
 int ags_path_exists(const char *path)
 {
-    #if AGS_PLATFORM_OS_WINDOWS
-        return PathFileExistsA(path);
-    #else
-        struct stat path_stat;
-        if (stat(path, &path_stat) != 0) {
-            return 0;
-        }
-        return S_ISREG(path_stat.st_mode) || S_ISDIR(path_stat.st_mode);
-    #endif
+#if AGS_PLATFORM_OS_WINDOWS
+    WCHAR wstr[MAX_PATH] = { 0 };
+    MultiByteToWideChar(CP_UTF8, 0, path, -1, wstr, MAX_PATH);
+    return PathFileExistsW(wstr);
+#else
+    struct stat path_stat;
+    if (stat(path, &path_stat) != 0) {
+        return 0;
+    }
+    return S_ISREG(path_stat.st_mode) || S_ISDIR(path_stat.st_mode);
+#endif
 }
 
 file_off_t ags_file_size(const char *path)
 {
+#if AGS_PLATFORM_OS_WINDOWS
+    WCHAR wstr[MAX_PATH] = { 0 };
+    MultiByteToWideChar(CP_UTF8, 0, path, -1, wstr, MAX_PATH);
+    struct _stat path_stat;
+    if (_wstat(wstr, &path_stat) != 0) {
+        return -1;
+    }
+    return path_stat.st_size;
+#else
     struct stat path_stat;
     if (stat(path, &path_stat) != 0) {
         return -1;
     }
     return path_stat.st_size;
+#endif
 }

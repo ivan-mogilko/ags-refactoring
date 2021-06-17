@@ -400,6 +400,7 @@ void main_set_gamedir(int argc, char*argv[])
     appPath = GetPathFromCmdArg(0);
     appDirectory = Path::GetDirectoryPath(appPath);
 
+    /*
     // TODO: remove following when supporting unicode paths
     {
         // It looks like Allegro library does not like ANSI (ACP) paths.
@@ -414,17 +415,18 @@ void main_set_gamedir(int argc, char*argv[])
         else
             Debug::Printf(kDbgMsg_Error, "Unable to determine current directory: GetPathInASCII failed.\nArg: %s", cur_dir.GetCStr());
     }
+    */
 }
 
 String GetPathFromCmdArg(int arg_index)
 {
     if (arg_index < 0 || arg_index >= global_argc)
         return "";
-    String path = Path::GetCmdLinePathInASCII(global_argv[arg_index], arg_index);
-    if (!path.IsEmpty())
+    String path = global_argv[arg_index];/*Path::GetCmdLinePathInASCII(global_argv[arg_index], arg_index);*/
+    //if (!path.IsEmpty())
         return Path::MakeAbsolutePath(path);
-    Debug::Printf(kDbgMsg_Error, "Unable to determine path: GetCmdLinePathInASCII failed.\nCommand line argument %i: %s", arg_index, global_argv[arg_index]);
-    return global_argv[arg_index];
+    //Debug::Printf(kDbgMsg_Error, "Unable to determine path: GetCmdLinePathInASCII failed.\nCommand line argument %i: %s", arg_index, global_argv[arg_index]);
+    //return global_argv[arg_index];
 }
 
 int ags_entry_point(int argc, char *argv[]) { 

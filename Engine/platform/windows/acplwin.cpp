@@ -47,6 +47,11 @@
 #include "util/string_compat.h"
 #include "media/audio/audio_system.h"
 
+
+// TODO: find a good place to share this
+#define MAX_PATH_UTF8 (MAX_PATH * 4)
+
+
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
@@ -62,8 +67,8 @@ extern RGB palette[256];
 #define CSIDL_COMMON_APPDATA       0x0023
 #endif
 
-char win32SavedGamesDirectory[MAX_PATH] = "\0";
-char win32AppDataDirectory[MAX_PATH] = "\0";
+char win32SavedGamesDirectory[MAX_PATH_UTF8] = "\0";
+char win32AppDataDirectory[MAX_PATH_UTF8] = "\0";
 String win32OutputDirectory;
 
 const unsigned int win32TimerPeriod = 1;
@@ -216,20 +221,20 @@ void AGSWin32::get_tasks_directory(char *pathBuffer, const char *guidAsText, boo
 
 void AGSWin32::add_tasks_for_game(const char *guidAsText, const char *gameEXE, const char *workingFolder, bool allUsers)
 {
-  char pathBuffer[MAX_PATH];
+  char pathBuffer[MAX_PATH_UTF8];
   get_tasks_directory(pathBuffer, guidAsText, allUsers);
   strcat(pathBuffer, "\\");
   strcat(pathBuffer, "0");
   mkdir(pathBuffer);
 
   // Remove any existing "Play.lnk" from a previous version
-  char shortcutLocation[MAX_PATH];
+  char shortcutLocation[MAX_PATH_UTF8];
   sprintf(shortcutLocation, "%s\\Play.lnk", pathBuffer);
   File::DeleteFile(shortcutLocation);
 
   // Generate the shortcut file name (because it can appear on
   // the start menu's Recent area)
-  char sanitisedGameName[MAX_PATH];
+  char sanitisedGameName[MAX_PATH_UTF8];
   CopyStringAndRemoveInvalidFilenameChars(game.gamename, sanitisedGameName);
   if (sanitisedGameName[0] == 0)
     strcpy(sanitisedGameName, "Play");
@@ -249,17 +254,17 @@ void AGSWin32::add_game_to_game_explorer(IGameExplorer* pFwGameExplorer, GUID *g
   WCHAR wstrTemp[MAX_PATH] = {0};
   bool hadError = false;
 
-  char theexename[MAX_PATH];
-  GetModuleFileName(NULL, theexename, MAX_PATH);
+  char theexename[MAX_PATH_UTF8];
+  GetModuleFileName(NULL, theexename, MAX_PATH_UTF8);
 
-  MultiByteToWideChar(CP_ACP, 0, theexename, MAX_PATH, wstrTemp, MAX_PATH);
+  MultiByteToWideChar(CP_ACP, 0, theexename, MAX_PATH_UTF8, wstrTemp, MAX_PATH);
   BSTR bstrGDFBinPath = SysAllocString(wstrTemp);
 
-  char gameDirectory[MAX_PATH];
+  char gameDirectory[MAX_PATH_UTF8];
   strcpy(gameDirectory, theexename);
   strrchr(gameDirectory, '\\')[0] = 0;
 
-  MultiByteToWideChar(CP_ACP, 0, gameDirectory, MAX_PATH, wstrTemp, MAX_PATH);
+  MultiByteToWideChar(CP_ACP, 0, gameDirectory, MAX_PATH_UTF8, wstrTemp, MAX_PATH);
   BSTR bstrGameDirectory = SysAllocString(wstrTemp);
 
   HRESULT hr = pFwGameExplorer->AddGame(bstrGDFBinPath, bstrGameDirectory, allUsers ? GIS_ALL_USERS : GIS_CURRENT_USER, guid);
@@ -345,7 +350,7 @@ void AGSWin32::update_game_explorer(bool add)
 
 void AGSWin32::unregister_file_extension()
 {
-  char keyname[MAX_PATH];
+  char keyname[MAX_PATH_UTF8];
   sprintf(keyname, ".%s", game.saveGameFileExtension);
   if (SHDeleteKey(HKEY_CLASSES_ROOT, keyname) != ERROR_SUCCESS)
   {
@@ -365,10 +370,10 @@ void AGSWin32::unregister_file_extension()
 
 void AGSWin32::register_file_extension(const char *exePath)
 {
-  DWORD valType, valBufLen = MAX_PATH;
+  DWORD valType, valBufLen = MAX_PATH_UTF8;
   valType = REG_SZ;
-  char valBuf[MAX_PATH], keyname[MAX_PATH];
-  char saveGameRegistryType[MAX_PATH];
+  char valBuf[MAX_PATH_UTF8], keyname[MAX_PATH_UTF8];
+  char saveGameRegistryType[MAX_PATH_UTF8];
   sprintf(saveGameRegistryType, "AGS.SaveGames.%s", game.saveGameFileExtension);
 
   // write HKEY_CLASSES_ROOT\.Extension = AGS.SaveGames.Extension
@@ -427,8 +432,8 @@ void AGSWin32::RegisterGameWithGameExplorer()
 
   if (game.saveGameFileExtension[0] != 0)
   {
-    char theexename[MAX_PATH];
-    GetModuleFileName(NULL, theexename, MAX_PATH);
+    char theexename[MAX_PATH_UTF8];
+    GetModuleFileName(NULL, theexename, MAX_PATH_UTF8);
 
     register_file_extension(theexename);
   }
@@ -499,7 +504,7 @@ void determine_app_data_folder()
     platform->DisplayAlert("Unable to get App Data dir: GetShortPathNameW failed");
     return;
   }
-  WideCharToMultiByte(CP_ACP, 0, unicodeShortPath, -1, win32AppDataDirectory, MAX_PATH, NULL, NULL);
+  WideCharToMultiByte(CP_ACP, 0, unicodeShortPath, -1, win32AppDataDirectory, MAX_PATH_UTF8, NULL, NULL);
 
   strcat(win32AppDataDirectory, "\\Adventure Game Studio");
   mkdir(win32AppDataDirectory);
@@ -527,7 +532,7 @@ void determine_saved_games_folder()
       if (SUCCEEDED(Dynamic_SHGetKnownFolderPath(FOLDERID_SAVEDGAMES, 0, NULL, &path)))
       {
         if (GetShortPathNameW(path, unicodeShortSaveGameDir, MAX_PATH) > 0) {
-          WideCharToMultiByte(CP_ACP, 0, unicodeShortSaveGameDir, -1, win32SavedGamesDirectory, MAX_PATH, NULL, NULL);
+          WideCharToMultiByte(CP_ACP, 0, unicodeShortSaveGameDir, -1, win32SavedGamesDirectory, MAX_PATH_UTF8, NULL, NULL);
         }
         CoTaskMemFree(path);
       }
@@ -543,7 +548,7 @@ void determine_saved_games_folder()
     // with Russian Windows) -- so use Short File Name instead
     if (GetShortPathNameW(unicodeSaveGameDir, unicodeShortSaveGameDir, MAX_PATH) > 0)
     {
-      WideCharToMultiByte(CP_ACP, 0, unicodeShortSaveGameDir, -1, win32SavedGamesDirectory, MAX_PATH, NULL, NULL);
+      WideCharToMultiByte(CP_ACP, 0, unicodeShortSaveGameDir, -1, win32SavedGamesDirectory, MAX_PATH_UTF8, NULL, NULL);
       strcat(win32SavedGamesDirectory, "\\My Saved Games");
       mkdir(win32SavedGamesDirectory);
     }
@@ -576,8 +581,8 @@ void DetermineAppOutputDirectory()
 
   if (!log_to_saves_dir)
   {
-    char theexename[MAX_PATH + 1] = {0};
-    GetModuleFileName(NULL, theexename, MAX_PATH);
+    char theexename[MAX_PATH_UTF8] = {0};
+    GetModuleFileName(NULL, theexename, MAX_PATH_UTF8);
     PathRemoveFileSpec(theexename);
     win32OutputDirectory = theexename;
   }

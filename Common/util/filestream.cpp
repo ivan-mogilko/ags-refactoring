@@ -11,10 +11,12 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
 #include "util/filestream.h"
-
 #include <stdexcept>
+#if AGS_PLATFORM_OS_WINDOWS
+#define NOMINMAX
+#include <windows.h>
+#endif
 #include "util/stdio_compat.h"
 #include "util/string.h"
 
@@ -171,7 +173,15 @@ void FileStream::Open(const String &file_name, FileOpenMode open_mode, FileWorkM
     String mode = File::GetCMode(open_mode, work_mode);
     if (mode.IsEmpty())
         throw std::runtime_error("Error determining open mode");
+#if AGS_PLATFORM_OS_WINDOWS
+    WCHAR wpath[MAX_PATH] = { 0 };
+    MultiByteToWideChar(CP_UTF8, 0, file_name.GetCStr(), -1, wpath, MAX_PATH);
+    WCHAR wmode[10] = { 0 };
+    MultiByteToWideChar(CP_ACP, 0, mode.GetCStr(), -1, wmode, MAX_PATH);
+    _file = _wfopen(wpath, wmode);
+#else
     _file = fopen(file_name.GetCStr(), mode.GetCStr());
+#endif
     if (_file == nullptr)
         throw std::runtime_error("Error opening file.");
 }

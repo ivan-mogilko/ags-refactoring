@@ -82,9 +82,9 @@ namespace Path
     String  FixupSharedFilename(const String &filename);
 
     // Converts filepath into ASCII variant; returns empty string on failure
-    String  GetPathInASCII(const String &path);
+    //String  GetPathInASCII(const String &path);
     // Converts filepath from command line's argument into ASCII variant
-    String  GetCmdLinePathInASCII(const char *arg, int arg_index);
+    //String  GetCmdLinePathInASCII(const char *arg, int arg_index);
 } // namespace Path
 
 } // namespace Common

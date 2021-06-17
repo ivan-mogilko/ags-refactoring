@@ -1,4 +1,3 @@
-
 #include "core/platform.h"
 #if AGS_PLATFORM_OS_WINDOWS
 #define NOMINMAX
@@ -12,6 +11,9 @@
 #ifndef MAX_PATH
 #define MAX_PATH 512
 #endif
+// TODO: find a good place to share this
+#define MAX_PATH_UTF8 (MAX_PATH * 4)
+
 
 namespace AGS
 {
@@ -56,11 +58,13 @@ int ComparePaths(const String &path1, const String &path2)
     String fixed_path1 = MakeAbsolutePath(path1);
     String fixed_path2 = MakeAbsolutePath(path2);
 
+    /*
 #if AGS_PLATFORM_OS_WINDOWS
     // On Windows make sure both are represented as short names (at least until we support wide paths)
     fixed_path1 = GetPathInASCII(fixed_path1);
     fixed_path2 = GetPathInASCII(fixed_path2);
 #endif
+    */
 
     fixed_path1.TrimRight('/');
     fixed_path2.TrimRight('/');
@@ -92,15 +96,15 @@ String GetDirectoryPath(const String &path)
 
 bool IsSameOrSubDir(const String &parent, const String &path)
 {
-    char can_parent[MAX_PATH];
-    char can_path[MAX_PATH];
-    char relative[MAX_PATH];
+    char can_parent[MAX_PATH_UTF8];
+    char can_path[MAX_PATH_UTF8];
+    char relative[MAX_PATH_UTF8];
     // canonicalize_filename treats "." as "./." (file in working dir)
     const char *use_parent = parent == "." ? "./" : parent.GetCStr();
     const char *use_path   = path   == "." ? "./" : path.GetCStr();
-    canonicalize_filename(can_parent, use_parent, MAX_PATH);
-    canonicalize_filename(can_path, use_path, MAX_PATH);
-    const char *pstr = make_relative_filename(relative, can_parent, can_path, MAX_PATH);
+    canonicalize_filename(can_parent, use_parent, MAX_PATH_UTF8);
+    canonicalize_filename(can_path, use_path, MAX_PATH_UTF8);
+    const char *pstr = make_relative_filename(relative, can_parent, can_path, MAX_PATH_UTF8);
     if (!pstr)
         return false;
     for (pstr = strstr(pstr, ".."); pstr && *pstr; pstr = strstr(pstr, ".."))
@@ -158,6 +162,7 @@ String MakeAbsolutePath(const String &path)
     }
     // canonicalize_filename treats "." as "./." (file in working dir)
     String abs_path = path == "." ? "./" : path;
+    /*
 #if AGS_PLATFORM_OS_WINDOWS
     // NOTE: cannot use long path names in the engine, because it does not have unicode strings support
     //
@@ -167,8 +172,9 @@ String MakeAbsolutePath(const String &path)
     //    abs_path = long_path_buffer;
     //}
 #endif
-    char buf[MAX_PATH];
-    canonicalize_filename(buf, abs_path.GetCStr(), MAX_PATH);
+    */
+    char buf[MAX_PATH_UTF8];
+    canonicalize_filename(buf, abs_path.GetCStr(), MAX_PATH_UTF8);
     abs_path = buf;
     FixupPath(abs_path);
     return abs_path;
@@ -176,15 +182,15 @@ String MakeAbsolutePath(const String &path)
 
 String MakeRelativePath(const String &base, const String &path)
 {
-    char can_parent[MAX_PATH];
-    char can_path[MAX_PATH];
-    char relative[MAX_PATH];
+    char can_parent[MAX_PATH_UTF8];
+    char can_path[MAX_PATH_UTF8];
+    char relative[MAX_PATH_UTF8];
     // canonicalize_filename treats "." as "./." (file in working dir)
     const char *use_parent = base == "." ? "./" : base.GetCStr();
     const char *use_path = path == "." ? "./" : path.GetCStr(); // FIXME?
-    canonicalize_filename(can_parent, use_parent, MAX_PATH);
-    canonicalize_filename(can_path, use_path, MAX_PATH);
-    String rel_path = make_relative_filename(relative, can_parent, can_path, MAX_PATH);
+    canonicalize_filename(can_parent, use_parent, MAX_PATH_UTF8);
+    canonicalize_filename(can_path, use_path, MAX_PATH_UTF8);
+    String rel_path = make_relative_filename(relative, can_parent, can_path, MAX_PATH_UTF8);
     FixupPath(rel_path);
     return rel_path;
 }
@@ -239,6 +245,7 @@ String FixupSharedFilename(const String &filename)
     return fixed_name;
 }
 
+/*
 String GetPathInASCII(const String &path)
 {
 #if AGS_PLATFORM_OS_WINDOWS
@@ -286,6 +293,7 @@ String GetCmdLinePathInASCII(const char *arg, int arg_index)
     return arg;
 #endif
 }
+*/
 
 } // namespace Path
 
