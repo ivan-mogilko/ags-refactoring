@@ -19,6 +19,7 @@
 #define __AGS_EE_AC__KEYCODE_H
 
 #include "core/platform.h"
+#include "core/types.h"
 
 #define EXTENDED_KEY_CODE ('\0')
 #define EXTENDED_KEY_CODE_MACOS ('?')
