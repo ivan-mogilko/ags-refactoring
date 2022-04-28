@@ -296,6 +296,9 @@ typedef void ALvoid;
  */
 #define AL_CONE_OUTER_GAIN                       0x1022
 
+// JUST FOR TEST
+#define AL_EXT_BALANCE                           0xF001
+
 /**
  * Source maximum distance.
  * Type:    ALfloat

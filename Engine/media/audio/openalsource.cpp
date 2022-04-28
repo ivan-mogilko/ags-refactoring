@@ -305,17 +305,29 @@ void OpenAlSource::SetPlaybackPosMs(float pos_ms)
 
 void OpenAlSource::SetPanning(float panning)
 {
-    if (panning != 0.0f) {
-        // https://github.com/kcat/openal-soft/issues/194
-        alSourcei(_source, AL_SOURCE_RELATIVE, AL_TRUE);
-        dump_al_errors();
-        alSource3f(_source, AL_POSITION, panning, 0.0f, -sqrtf(1.0f - panning*panning));
-        dump_al_errors();
+    if (panning != 0.0f)
+    {
+        if (_recvFmt.channels == 1)
+        {
+            // https://github.com/kcat/openal-soft/issues/194
+            alSourcei(_source, AL_SOURCE_RELATIVE, AL_TRUE);
+            dump_al_errors();
+            alSource3f(_source, AL_POSITION, panning, 0.0f, -sqrtf(1.0f - panning*panning));
+            dump_al_errors();
+        }
+        else
+        {
+            alSourcef(_source, AL_EXT_BALANCE, panning);
+            dump_al_errors();
+        }
     }
-    else {
+    else
+    {
         alSourcei(_source, AL_SOURCE_RELATIVE, AL_FALSE);
         dump_al_errors();
         alSource3f(_source, AL_POSITION, 0.0f, 0.0f, 0.0f);
+        dump_al_errors();
+        alSourcef(_source, AL_EXT_BALANCE, 0.f);
         dump_al_errors();
     }
 }
