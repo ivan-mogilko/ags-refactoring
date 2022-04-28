@@ -12,6 +12,7 @@
 //
 //=============================================================================
 #include "media/audio/sdldecoder.h"
+#include <algorithm>
 
 namespace AGS
 {
@@ -131,6 +132,51 @@ SoundBuffer SDLDecoder::GetData()
     }
     return SoundBuffer(_sample->buffer, sz, static_cast<float>(old_pos), static_cast<float>(
         SoundHelper::MillisecondsFromBytes(sz, _sample->desired.format, _sample->desired.channels, _sample->desired.rate)));
+}
+
+
+size_t SoundHelper::SplitChannels(const uint8_t *src, size_t src_len, uint8_t *dst1,
+    uint8_t *dst2, size_t dst_len, SDL_AudioFormat format)
+{
+    size_t bps = BytesPerSample(format);
+    src_len = std::min(src_len / 2, dst_len) * 2;
+    switch (bps)
+    {
+    case 1:
+        for (const uint8_t *src_end = src + src_len; src != src_end;)
+        {
+            *(dst1++) = *(src++);
+            *(dst2++) = *(src++);
+        }
+        break;
+    case 2:
+        {
+            const uint16_t *u16src = reinterpret_cast<const uint16_t*>(src);
+            uint16_t *u16dst1 = reinterpret_cast<uint16_t*>(dst1);
+            uint16_t *u16dst2 = reinterpret_cast<uint16_t*>(dst2);
+            for (const uint16_t *src_end = u16src + src_len / sizeof(uint16_t); u16src != src_end;)
+            {
+                *(u16dst1++) = *(u16src++);
+                *(u16dst2++) = *(u16src++);
+            }
+        }
+        break;
+    case 4:
+        {
+            const uint32_t *u32src = reinterpret_cast<const uint32_t*>(src);
+            uint32_t *u32dst1 = reinterpret_cast<uint32_t*>(dst1);
+            uint32_t *u32dst2 = reinterpret_cast<uint32_t*>(dst2);
+            for (const uint32_t *src_end = u32src + src_len / sizeof(uint32_t); u32src != src_end;)
+            {
+                *(u32dst1++) = *(u32src++);
+                *(u32dst2++) = *(u32src++);
+            }
+        }
+        break;
+    default:
+        return 0;
+    }
+    return src_len / 2;
 }
 
 } // namespace Engine

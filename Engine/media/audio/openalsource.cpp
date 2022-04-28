@@ -30,6 +30,7 @@ static ALenum OpenAlFormatFromSDLFormat(const Sound_AudioInfo &input, Sound_Audi
     conv.rate = input.rate;
     conv.channels = std::min<uint8_t>(2, input.channels);
     conv.format = input.format;
+    const int use_channels = 1; /*conv.channels*/ // ALWAYS MONO FOR PANNING!!
 
     switch (input.format)
     {
@@ -37,14 +38,14 @@ static ALenum OpenAlFormatFromSDLFormat(const Sound_AudioInfo &input, Sound_Audi
     case AUDIO_U8:
     case AUDIO_S8:
         conv.format = AUDIO_U8;
-        return conv.channels == 1 ? AL_FORMAT_MONO8 : AL_FORMAT_STEREO8;
+        return use_channels == 1 ? AL_FORMAT_MONO8 : AL_FORMAT_STEREO8;
     /* 16-bit integer samples */
     case AUDIO_U16LSB:
     case AUDIO_S16LSB:
     case AUDIO_U16MSB:
     case AUDIO_S16MSB:
         conv.format = AUDIO_S16SYS;
-        return conv.channels == 1 ? AL_FORMAT_MONO16 : AL_FORMAT_STEREO16;
+        return use_channels == 1 ? AL_FORMAT_MONO16 : AL_FORMAT_STEREO16;
     /* 32-bit integer and float samples */
     case AUDIO_S32LSB:
     case AUDIO_S32MSB:
@@ -53,14 +54,14 @@ static ALenum OpenAlFormatFromSDLFormat(const Sound_AudioInfo &input, Sound_Audi
         if (alIsExtensionPresent("AL_EXT_float32"))
         {
             conv.format = AUDIO_F32SYS;
-            return conv.channels == 1 ?
+            return use_channels == 1 ?
                 alGetEnumValue("AL_FORMAT_MONO_FLOAT32") :
                 alGetEnumValue("AL_FORMAT_STEREO_FLOAT32");
         }
         /* fall-through */
     default:
         conv.format = AUDIO_S16SYS;
-        return conv.channels == 1 ? AL_FORMAT_MONO16 : AL_FORMAT_STEREO16;
+        return use_channels == 1 ? AL_FORMAT_MONO16 : AL_FORMAT_STEREO16;
     }
 }
 
@@ -176,8 +177,14 @@ size_t OpenAlSource::PutData(const SoundBuffer data)
             input_buf = SoundBuffer(conv, conv_sz);
         }
     }
+    std::vector<uint8_t> split[2];
+    split[0].resize(input_buf.Size / 2);
+    split[1].resize(input_buf.Size / 2);
+    size_t written = SoundHelper::SplitChannels((uint8_t*)input_buf.Data, input_buf.Size,
+        &split[0][0], &split[1][0], input_buf.Size / 2, _recvFmt.format);
     // Fill the buffer and queue into AL; note that the al's buffer is auto-resizing
-    alBufferData(buf_id, _alFormat, input_buf.Data, input_buf.Size, _recvFmt.rate);
+    //alBufferData(buf_id, _alFormat, input_buf.Data, input_buf.Size, _recvFmt.rate);
+    alBufferData(buf_id, _alFormat, &split[1][0], written, _recvFmt.rate);
     dump_al_errors();
     alSourceQueueBuffers(_source, 1, &buf_id);
     dump_al_errors();

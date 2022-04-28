@@ -149,7 +149,7 @@ private:
 namespace SoundHelper
 {
     // Tells bytes per sample from SDL_Audio format
-    inline size_t BytesPerSample(SDL_AudioFormat format) { return SDL_AUDIO_BITSIZE(format); }
+    inline size_t BytesPerSample(SDL_AudioFormat format) { return SDL_AUDIO_BITSIZE(format) / 8; }
     // Calculate number of bytes of sound data per millisecond
     inline size_t BytesPerMs(uint32_t ms, SDL_AudioFormat format, int chans, int freq)
     {
@@ -162,6 +162,9 @@ namespace SoundHelper
         return static_cast<uint32_t>(
             (static_cast<uint64_t>(bytes) * 8 * 1000) / (SDL_AUDIO_BITSIZE(format) * chans * freq));
     }
+
+    size_t SplitChannels(const uint8_t *src, size_t src_len, uint8_t *dst1,
+        uint8_t *dst2, size_t dst_len, SDL_AudioFormat format);
 } // namespace SoundHelper
 
 } // namespace Engine
