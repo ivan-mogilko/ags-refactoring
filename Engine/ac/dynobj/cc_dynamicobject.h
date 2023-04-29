@@ -22,10 +22,6 @@
 #include "core/types.h"
 
 
-// A pair of managed handle and abstract object pointer
-typedef std::pair<int32_t, void*> DynObjectRef;
-
-
 // OBJECT-BASED SCRIPTING RUNTIME FUNCTIONS
 // interface
 struct ICCDynamicObject {
@@ -73,6 +69,20 @@ protected:
     ICCDynamicObject() = default;
     ~ICCDynamicObject() = default;
 };
+
+
+// DynObjectRef groups a handle, object and object's manager together.
+struct DynObjectRef
+{
+    int32_t Handle = 0;
+    void *Obj = nullptr;
+    ICCDynamicObject *Mgr = nullptr;
+
+    DynObjectRef() = default;
+    DynObjectRef(int handle, void *obj, ICCDynamicObject *mgr)
+        : Handle(handle), Obj(obj), Mgr(mgr) {}
+};
+
 
 struct ICCObjectReader {
     // TODO: pass savegame format version

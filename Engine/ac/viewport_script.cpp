@@ -18,7 +18,7 @@
 
 #include "ac/dynobj/scriptcamera.h"
 #include "ac/dynobj/scriptviewport.h"
-#include "ac/dynobj/scriptuserobject.h"
+#include "ac/dynobj/cc_dynamicstruct.h"
 #include "ac/draw.h"
 #include "ac/gamestate.h"
 #include "debug/debug_log.h"
@@ -360,26 +360,35 @@ void Viewport_SetPosition(ScriptViewport *scv, int x, int y, int width, int heig
     play.GetRoomViewport(scv->GetID())->SetRect(RectWH(x, y, width, height));
 }
 
-ScriptUserObject *Viewport_ScreenToRoomPoint(ScriptViewport *scv, int scrx, int scry, bool clipViewport)
+DynObjectRef Viewport_ScreenToRoomPoint(ScriptViewport *scv, int scrx, int scry, bool clipViewport)
 {
-    if (scv->GetID() < 0) { debug_script_warn("Viewport.ScreenToRoomPoint: trying to use deleted viewport"); return nullptr; }
-    data_to_game_coords(&scrx, &scry);
+    if (scv->GetID() < 0)
+    {
+        debug_script_warn("Viewport.ScreenToRoomPoint: trying to use deleted viewport");
+        return DynObjectRef();
+    }
 
+    data_to_game_coords(&scrx, &scry);
     VpPoint vpt = play.GetRoomViewport(scv->GetID())->ScreenToRoom(scrx, scry, clipViewport);
     if (vpt.second < 0)
-        return nullptr;
+        return DynObjectRef();
 
     game_to_data_coords(vpt.first.X, vpt.first.Y);
     return ScriptStructHelpers::CreatePoint(vpt.first.X, vpt.first.Y);
 }
 
-ScriptUserObject *Viewport_RoomToScreenPoint(ScriptViewport *scv, int roomx, int roomy, bool clipViewport)
+DynObjectRef Viewport_RoomToScreenPoint(ScriptViewport *scv, int roomx, int roomy, bool clipViewport)
 {
-    if (scv->GetID() < 0) { debug_script_warn("Viewport.RoomToScreenPoint: trying to use deleted viewport"); return nullptr; }
+    if (scv->GetID() < 0)
+    {
+        debug_script_warn("Viewport.RoomToScreenPoint: trying to use deleted viewport");
+        return DynObjectRef();
+    }
+
     data_to_game_coords(&roomx, &roomy);
     Point pt = play.RoomToScreen(roomx, roomy);
     if (clipViewport && !play.GetRoomViewport(scv->GetID())->GetRect().IsInside(pt.X, pt.Y))
-        return nullptr;
+        return DynObjectRef();
 
     game_to_data_coords(pt.X, pt.Y);
     return ScriptStructHelpers::CreatePoint(pt.X, pt.Y);
@@ -477,12 +486,18 @@ RuntimeScriptValue Sc_Viewport_SetPosition(void *self, const RuntimeScriptValue 
 
 RuntimeScriptValue Sc_Viewport_ScreenToRoomPoint(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_OBJAUTO_PINT2_PBOOL(ScriptViewport, ScriptUserObject, Viewport_ScreenToRoomPoint);
+    ASSERT_OBJ_PARAM_COUNT(Viewport_ScreenToRoomPoint, 3);
+    auto ref = Viewport_ScreenToRoomPoint((ScriptViewport*)self, params[0].IValue,
+        params[1].IValue, params[2].GetAsBool());
+    return RuntimeScriptValue().SetDynamicObject(ref.Obj, ref.Mgr);
 }
 
 RuntimeScriptValue Sc_Viewport_RoomToScreenPoint(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_OBJAUTO_PINT2_PBOOL(ScriptViewport, ScriptUserObject, Viewport_RoomToScreenPoint);
+    ASSERT_OBJ_PARAM_COUNT(Viewport_RoomToScreenPoint, 3);
+    auto ref = Viewport_RoomToScreenPoint((ScriptViewport*)self, params[0].IValue,
+        params[1].IValue, params[2].GetAsBool());
+    return RuntimeScriptValue().SetDynamicObject(ref.Obj, ref.Mgr);
 }
 
 

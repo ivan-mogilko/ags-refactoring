@@ -17,7 +17,7 @@
 #include "ac/dynobj/all_scriptclasses.h"
 #include "ac/dynobj/dynobj_manager.h"
 #include "ac/dynobj/cc_dynamicarray.h"
-#include "ac/dynobj/scriptuserobject.h"
+#include "ac/dynobj/cc_dynamicstruct.h"
 #include "ac/dynobj/scriptcamera.h"
 #include "ac/dynobj/scriptcontainers.h"
 #include "ac/dynobj/scriptfile.h"
@@ -68,9 +68,8 @@ void AGSDeSerializer::Unserialize(int index, const char *objectType, const char 
     if (strcmp(objectType, CCDynamicArray::TypeName) == 0) {
         globalDynamicArray.Unserialize(index, &mems, data_sz);
     }
-    else if (strcmp(objectType, ScriptUserObject::TypeName) == 0) {
-        ScriptUserObject *suo = new ScriptUserObject();
-        suo->Unserialize(index, &mems, data_sz);
+    else if (strcmp(objectType, CCDynamicStruct::TypeName) == 0) {
+        globalDynamicStruct.Unserialize(index, &mems, data_sz);
     }
     else if (strcmp(objectType, "GUIObject") == 0) {
         ccDynamicGUIObject.Unserialize(index, &mems, data_sz);

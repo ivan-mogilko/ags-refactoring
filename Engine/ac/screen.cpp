@@ -20,7 +20,7 @@
 #include "ac/global_screen.h"
 #include "ac/screen.h"
 #include "ac/dynobj/scriptviewport.h"
-#include "ac/dynobj/scriptuserobject.h"
+#include "ac/dynobj/cc_dynamicstruct.h"
 #include "script/script_runtime.h"
 #include "platform/base/agsplatformdriver.h"
 #include "plugin/agsplugin.h"
@@ -148,19 +148,18 @@ ScriptViewport* Screen_GetAnyViewport(int index)
     return play.GetScriptViewport(index);
 }
 
-ScriptUserObject* Screen_ScreenToRoomPoint(int scrx, int scry, bool restrict)
+DynObjectRef Screen_ScreenToRoomPoint(int scrx, int scry, bool restrict)
 {
     data_to_game_coords(&scrx, &scry);
-
     VpPoint vpt = play.ScreenToRoom(scrx, scry, restrict);
     if (vpt.second < 0)
-        return nullptr;
+        return DynObjectRef();
 
     game_to_data_coords(vpt.first.X, vpt.first.Y);
     return ScriptStructHelpers::CreatePoint(vpt.first.X, vpt.first.Y);
 }
 
-ScriptUserObject *Screen_RoomToScreenPoint(int roomx, int roomy)
+DynObjectRef Screen_RoomToScreenPoint(int roomx, int roomy)
 {
     data_to_game_coords(&roomx, &roomy);
     Point pt = play.RoomToScreen(roomx, roomy);
@@ -206,18 +205,22 @@ RuntimeScriptValue Sc_Screen_GetAnyViewport(const RuntimeScriptValue *params, in
 RuntimeScriptValue Sc_Screen_ScreenToRoomPoint2(const RuntimeScriptValue *params, int32_t param_count)
 {
     ASSERT_PARAM_COUNT(FUNCTION, 2);
-    ScriptUserObject* obj = Screen_ScreenToRoomPoint(params[0].IValue, params[1].IValue, true);
-    return RuntimeScriptValue().SetDynamicObject(obj, obj);
+    auto ref = Screen_ScreenToRoomPoint(params[0].IValue, params[1].IValue, true);
+    return RuntimeScriptValue().SetDynamicObject(ref.Obj, ref.Mgr);
 }
 
 RuntimeScriptValue Sc_Screen_ScreenToRoomPoint3(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_OBJAUTO_PINT3(ScriptUserObject, Screen_ScreenToRoomPoint);
+    ASSERT_PARAM_COUNT(FUNCTION, 3);
+    auto ref = Screen_ScreenToRoomPoint(params[0].IValue, params[1].IValue, params[2].GetAsBool());
+    return RuntimeScriptValue().SetDynamicObject(ref.Obj, ref.Mgr);
 }
 
 RuntimeScriptValue Sc_Screen_RoomToScreenPoint(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_OBJAUTO_PINT2(ScriptUserObject, Screen_RoomToScreenPoint);
+    ASSERT_PARAM_COUNT(FUNCTION, 2);
+    auto ref = Screen_RoomToScreenPoint(params[0].IValue, params[1].IValue);
+    return RuntimeScriptValue().SetDynamicObject(ref.Obj, ref.Mgr);
 }
 
 void RegisterScreenAPI()

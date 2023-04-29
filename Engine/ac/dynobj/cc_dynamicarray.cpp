@@ -86,14 +86,13 @@ DynObjectRef CCDynamicArray::Create(int numElements, int elementSize, bool isMan
     hdr.ElemCount = numElements | (ARRAY_MANAGED_TYPE_FLAG * isManagedType);
     hdr.TotalSize = elementSize * numElements;
     void *obj_ptr = &new_arr[MemHeaderSz];
-    // TODO: investigate if it's possible to register real object ptr directly
     int32_t handle = ccRegisterManagedObject(obj_ptr, this);
     if (handle == 0)
     {
         delete[] new_arr;
-        return DynObjectRef(0, nullptr);
+        return DynObjectRef();
     }
-    return DynObjectRef(handle, obj_ptr);
+    return DynObjectRef(handle, obj_ptr, this);
 }
 
 
@@ -159,17 +158,17 @@ DynObjectRef DynamicArrayHelpers::CreateStringArray(const std::vector<const char
 {
     // NOTE: we need element size of "handle" for array of managed pointers
     DynObjectRef arr = globalDynamicArray.Create(items.size(), sizeof(int32_t), true);
-    if (!arr.second)
+    if (!arr.Obj)
         return arr;
     // Create script strings and put handles into array
-    int32_t *slots = static_cast<int32_t*>(arr.second);
+    int32_t *slots = static_cast<int32_t*>(arr.Obj);
     for (auto s : items)
     {
         DynObjectRef str = stringClassImpl->CreateString(s);
         // We must add reference count, because the string is going to be saved
         // within another object (array), not returned to script directly
-        ccAddObjectReference(str.first);
-        *(slots++) = str.first;
+        ccAddObjectReference(str.Handle);
+        *(slots++) = str.Handle;
     }
     return arr;
 }

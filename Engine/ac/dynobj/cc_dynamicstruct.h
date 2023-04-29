@@ -15,26 +15,28 @@
 // Managed object, which size and contents are defined by user script
 //
 //=============================================================================
-#ifndef __AGS_EE_DYNOBJ__SCRIPTUSERSTRUCT_H
-#define __AGS_EE_DYNOBJ__SCRIPTUSERSTRUCT_H
+#ifndef __AGS_EE_DYNOBJ__CCDYNAMICSTRUCT_H
+#define __AGS_EE_DYNOBJ__CCDYNAMICSTRUCT_H
 
 #include "ac/dynobj/cc_dynamicobject.h"
 #include "util/stream.h"
 
 
-struct ScriptUserObject final : ICCDynamicObject
+struct CCDynamicStruct final : ICCDynamicObject
 {
 public:
     static const char *TypeName;
 
-    ScriptUserObject();
-    
-protected:
-    virtual ~ScriptUserObject();
+    struct Header
+    {
+        // Size of the object's data
+        uint32_t Size = 0u;
+    };
 
-public:
-    static ScriptUserObject *CreateManaged(size_t size);
-    void Create(const char *data, AGS::Common::Stream *in, size_t size);
+    inline static const Header &GetHeader(const char *address)
+    {
+        return reinterpret_cast<const Header&>(*(address - MemHeaderSz));
+    }
 
     // return the type name of the object
     const char *GetType() override;
@@ -43,6 +45,9 @@ public:
     // return number of bytes used
     int Serialize(const char *address, char *buffer, int bufsize) override;
     void Unserialize(int index, AGS::Common::Stream *in, size_t data_sz);
+
+    // Create managed object and return a pointer to the beginning of a buffer
+    DynObjectRef Create(size_t size);
 
     // Support for reading and writing object values by their relative offset
     const char* GetFieldPtr(const char *address, intptr_t offset) override;
@@ -58,22 +63,20 @@ public:
     void    WriteFloat(const char *address, intptr_t offset, float val) override;
 
 private:
-    // NOTE: we use signed int for Size at the moment, because the managed
-    // object interface's Serialize() function requires the object to return
-    // negative value of size in case the provided buffer was not large
-    // enough. Since this interface is also a part of Plugin API, we would
-    // need more significant change to program before we could use different
-    // approach.
-    int32_t  _size;
-    char    *_data;
+    // The size of the object's header in memory, prepended to the object data
+    static const size_t MemHeaderSz = sizeof(uint32_t) * 1;
+    // The size of the serializedheader
+    static const size_t FileHeaderSz = sizeof(uint32_t) * 0;
 };
 
+extern CCDynamicStruct globalDynamicStruct;
 
-// Helper functions for setting up custom managed structs based on ScriptUserObject.
+
+// Helper functions for setting up custom managed structs based on CCDynamicStruct.
 namespace ScriptStructHelpers
 {
     // Creates a managed Point object, represented as a pair of X and Y coordinates.
-    ScriptUserObject *CreatePoint(int x, int y);
+    DynObjectRef CreatePoint(int x, int y);
 };
 
-#endif // __AGS_EE_DYNOBJ__SCRIPTUSERSTRUCT_H
+#endif // __AGS_EE_DYNOBJ__CCDYNAMICSTRUCT_H

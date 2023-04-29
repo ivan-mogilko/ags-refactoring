@@ -46,6 +46,7 @@ public:
     // return number of bytes used
     int Serialize(const char *address, char *buffer, int bufsize) override;
     void Unserialize(int index, AGS::Common::Stream *in, size_t data_sz);
+
     // Create managed array object and return a pointer to the beginning of a buffer
     DynObjectRef Create(int numElements, int elementSize, bool isManagedType);
 
@@ -70,6 +71,7 @@ private:
 };
 
 extern CCDynamicArray globalDynamicArray;
+
 
 // Helper functions for setting up dynamic arrays.
 namespace DynamicArrayHelpers

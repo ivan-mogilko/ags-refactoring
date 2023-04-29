@@ -31,7 +31,7 @@
 #include "util/stream.h"
 #include "util/textstreamwriter.h"
 #include "ac/dynobj/scriptstring.h"
-#include "ac/dynobj/scriptuserobject.h"
+#include "ac/dynobj/cc_dynamicstruct.h"
 #include "ac/statobj/agsstaticobject.h"
 #include "ac/statobj/staticarray.h"
 #include "util/file.h"
@@ -1461,7 +1461,7 @@ int ccInstance::Run(int32_t curpc)
                   return -1;
               }
               DynObjectRef ref = globalDynamicArray.Create(numElements, arg_elsize, arg_managed);
-              reg1.SetDynamicObject(ref.second, &globalDynamicArray);
+              reg1.SetDynamicObject(ref.Obj, ref.Mgr);
               break;
           }
       case SCMD_NEWUSEROBJECT:
@@ -1473,8 +1473,8 @@ int ccInstance::Run(int32_t curpc)
                   cc_error("Invalid size for user object; requested: %d (or %d), range: 0..%d", arg_size, arg_size, INT_MAX);
                   return -1;
               }
-              ScriptUserObject *suo = ScriptUserObject::CreateManaged(arg_size);
-              reg1.SetDynamicObject(suo, suo);
+              DynObjectRef ref =  globalDynamicStruct.Create(arg_size);
+              reg1.SetDynamicObject(ref.Obj, ref.Mgr);
               break;
           }
       case SCMD_FADD:
@@ -1584,9 +1584,8 @@ int ccInstance::Run(int32_t curpc)
           else
           {
               const char *ptr = (const char*)reg1.GetDirectPtr();
-              reg1.SetDynamicObject(
-                  stringClassImpl->CreateString(ptr).second,
-                  &myScriptStringImpl);
+              auto ref = stringClassImpl->CreateString(ptr);
+              reg1.SetDynamicObject(ref.Obj, ref.Mgr);
           }
           break;
       }

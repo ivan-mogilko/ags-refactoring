@@ -63,6 +63,8 @@ target_sources(engine
     ac/dynobj/cc_dialog.h
     ac/dynobj/cc_dynamicarray.cpp
     ac/dynobj/cc_dynamicarray.h
+	ac/dynobj/cc_dynamicstruct.cpp
+    ac/dynobj/cc_dynamicstruct.h
     ac/dynobj/cc_dynamicobject.h
     ac/dynobj/cc_gui.cpp
     ac/dynobj/cc_gui.h
@@ -112,8 +114,6 @@ target_sources(engine
     ac/dynobj/scriptstring.cpp
     ac/dynobj/scriptstring.h
     ac/dynobj/scriptsystem.h
-    ac/dynobj/scriptuserobject.cpp
-    ac/dynobj/scriptuserobject.h
     ac/dynobj/scriptviewframe.cpp
     ac/dynobj/scriptviewframe.h
     ac/dynobj/scriptviewport.cpp

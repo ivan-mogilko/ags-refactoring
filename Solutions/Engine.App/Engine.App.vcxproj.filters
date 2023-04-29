@@ -510,9 +510,6 @@
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptstring.cpp">
       <Filter>Source Files\ac\dynobj</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\dynobj\scriptuserobject.cpp">
-      <Filter>Source Files\ac\dynobj</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptviewframe.cpp">
       <Filter>Source Files\ac\dynobj</Filter>
     </ClCompile>
@@ -814,6 +811,9 @@
       <Filter>Source Files\util</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Engine\ac\dynobj\dynobj_manager.cpp">
+      <Filter>Source Files\ac\dynobj</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Engine\ac\dynobj\cc_dynamicstruct.cpp">
       <Filter>Source Files\ac\dynobj</Filter>
     </ClCompile>
   </ItemGroup>
@@ -1191,9 +1191,6 @@
       <Filter>Header Files\ac\dynobj</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptsystem.h">
-      <Filter>Header Files\ac\dynobj</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\dynobj\scriptuserobject.h">
       <Filter>Header Files\ac\dynobj</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptviewframe.h">
@@ -1641,6 +1638,9 @@
       <Filter>Header Files\util</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\ac\dynobj\dynobj_manager.h">
+      <Filter>Header Files\ac\dynobj</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Engine\ac\dynobj\cc_dynamicstruct.h">
       <Filter>Header Files\ac\dynobj</Filter>
     </ClInclude>
   </ItemGroup>

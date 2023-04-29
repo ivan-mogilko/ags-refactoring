@@ -488,7 +488,7 @@
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptfile.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptoverlay.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptstring.cpp" />
-    <ClCompile Include="..\..\Engine\ac\dynobj\scriptuserobject.cpp" />
+    <ClCompile Include="..\..\Engine\ac\dynobj\cc_dynamicstruct.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptviewframe.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptviewport.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptset.cpp" />
@@ -754,7 +754,7 @@
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptset.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptstring.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptsystem.h" />
-    <ClInclude Include="..\..\Engine\ac\dynobj\scriptuserobject.h" />
+    <ClInclude Include="..\..\Engine\ac\dynobj\cc_dynamicstruct.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptviewframe.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptviewport.h" />
     <ClInclude Include="..\..\Engine\ac\event.h" />
