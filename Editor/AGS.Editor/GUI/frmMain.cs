@@ -40,6 +40,7 @@ namespace AGS.Editor
 
             _dockPanes.AddRange(GetStartupPanes());
             _layoutManager = new WindowsLayoutManager(mainContainer, _dockPanes);
+            mainContainer.ActiveContentChanged += MainContainer_ActiveContentChanged;
             _activeDocumentChanged = new TabbedDocumentManager.ActiveDocumentChangeHandler(tabbedDocumentContainer1_ActiveDocumentChanged);
             _activeDocumentChanging = new TabbedDocumentManager.ActiveDocumentChangeHandler(tabbedDocumentContainer1_ActiveDocumentChanging);
             tabbedDocumentContainer1.ActiveDocumentChanged += _activeDocumentChanged;
@@ -91,6 +92,12 @@ namespace AGS.Editor
             }
         }
 
+        public void SetPropertyGridObject(object propertyObject)
+        {
+            SetPropertyObjectList(null);
+            SetPropertyObject(propertyObject);
+        }
+
         public void RefreshPropertyGridForDocument(ContentDocument document)
         {
             if (document == null)
@@ -131,7 +138,7 @@ namespace AGS.Editor
                 {
                     tabbedDocumentContainer1.ActiveDocument.SelectedPropertyGridItem = 
                         propertiesPanel.propertiesGrid.SelectedGridItem.Label;
-                }                
+                }
             }
         }
 
@@ -190,6 +197,32 @@ namespace AGS.Editor
                     }
                     propertiesPanel.propertiesGrid.SelectedGridItem = itemToSelect;
                 }
+            }
+        }
+
+        private void MainContainer_ActiveContentChanged(object sender, EventArgs e)
+        {
+            if (mainContainer.ActiveContent == null)
+                return;
+            // Don't change anything if activated property grid itself
+            if (mainContainer.ActiveContent is PropertiesPanel)
+                return;
+
+            // TODO: this logic requires adjustment, as there are cases
+            // when ActiveDocument is not receiving activate event again
+            // after focus is shifting from the DockContent,
+            // unless clicked on tab title, input fields or certain regions.
+            // Implement a uniform mechanism, merging with the ActiveDocumentChanged()
+            // and RefreshPropertyGridForDocument().
+            IPropertyObjectProvider provider = mainContainer.ActiveContent as IPropertyObjectProvider;
+            if (provider != null)
+            {
+                SetPropertyGridObject(provider.PropertyGridObject);
+            }
+            else if (tabbedDocumentContainer1.ActiveDocument != null)
+            {
+                // Simulate a ContentDocument tab was activated
+                tabbedDocumentContainer1_ActiveDocumentChanged(tabbedDocumentContainer1.ActiveDocument);
             }
         }
 
