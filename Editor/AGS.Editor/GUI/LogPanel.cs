@@ -5,7 +5,7 @@ using AGS.Types;
 
 namespace AGS.Editor
 {
-    public partial class LogPanel : DockContent
+    public partial class LogPanel : DockContent, IPropertyObjectProvider
     {
         private LogBuffer _logBuffer = new LogBuffer();
         // Styling
@@ -31,6 +31,12 @@ namespace AGS.Editor
 
             timerLogBufferSync.Start();
             Run();
+        }
+
+        public object PropertyGridObject
+        {
+            get;
+            set;
         }
 
         public string LogFont

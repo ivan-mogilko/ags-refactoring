@@ -21,6 +21,7 @@ namespace AGS.Editor.Components
             _logPanel = new LogPanel();
             _logConfig = new DebugLog();
 
+            _logPanel.PropertyGridObject = _logConfig;
             _guiController.AddDockPane(_logPanel, new DockData(DockingState.DockBottom, Rectangle.Empty));
             _guiController.SetLogPanel(_logPanel);
 
