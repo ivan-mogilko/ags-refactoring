@@ -37,6 +37,10 @@ namespace AGS.Editor
             this.btnRun = new System.Windows.Forms.ToolStripButton();
             this.btnPause = new System.Windows.Forms.ToolStripButton();
             this.btnGlue = new System.Windows.Forms.ToolStripButton();
+            this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
+            this.btnCopySelected = new System.Windows.Forms.ToolStripButton();
+            this.btnCopyAll = new System.Windows.Forms.ToolStripButton();
+            this.btnClear = new System.Windows.Forms.ToolStripButton();
             this.toolStrip.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -67,7 +71,11 @@ namespace AGS.Editor
             this.toolStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.btnRun,
             this.btnPause,
-            this.btnGlue});
+            this.btnGlue,
+            this.toolStripSeparator1,
+            this.btnCopySelected,
+            this.btnCopyAll,
+            this.btnClear});
             this.toolStrip.Location = new System.Drawing.Point(0, 0);
             this.toolStrip.Name = "toolStrip";
             this.toolStrip.Size = new System.Drawing.Size(1059, 27);
@@ -106,6 +114,44 @@ namespace AGS.Editor
             this.btnGlue.ToolTipText = "Scroll down with the log automatically";
             this.btnGlue.Click += new System.EventHandler(this.btnGlue_Click);
             // 
+            // toolStripSeparator1
+            // 
+            this.toolStripSeparator1.Name = "toolStripSeparator1";
+            this.toolStripSeparator1.Size = new System.Drawing.Size(6, 27);
+            // 
+            // btnCopySelected
+            // 
+            this.btnCopySelected.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.btnCopySelected.Image = ((System.Drawing.Image)(resources.GetObject("btnCopySelected.Image")));
+            this.btnCopySelected.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.btnCopySelected.Name = "btnCopySelected";
+            this.btnCopySelected.Size = new System.Drawing.Size(24, 24);
+            this.btnCopySelected.Text = "toolStripButton1";
+            this.btnCopySelected.ToolTipText = "Copy selected text to clipboard";
+            this.btnCopySelected.Click += new System.EventHandler(this.btnCopySelected_Click);
+            // 
+            // btnCopyAll
+            // 
+            this.btnCopyAll.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.btnCopyAll.Image = ((System.Drawing.Image)(resources.GetObject("btnCopyAll.Image")));
+            this.btnCopyAll.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.btnCopyAll.Name = "btnCopyAll";
+            this.btnCopyAll.Size = new System.Drawing.Size(24, 24);
+            this.btnCopyAll.Text = "toolStripButton2";
+            this.btnCopyAll.ToolTipText = "Copy all to clipboard";
+            this.btnCopyAll.Click += new System.EventHandler(this.btnCopyAll_Click);
+            // 
+            // btnClear
+            // 
+            this.btnClear.DisplayStyle = System.Windows.Forms.ToolStripItemDisplayStyle.Image;
+            this.btnClear.Image = ((System.Drawing.Image)(resources.GetObject("btnClear.Image")));
+            this.btnClear.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.btnClear.Name = "btnClear";
+            this.btnClear.Size = new System.Drawing.Size(24, 24);
+            this.btnClear.Text = "toolStripButton3";
+            this.btnClear.ToolTipText = "Clear log";
+            this.btnClear.Click += new System.EventHandler(this.btnClear_Click);
+            // 
             // LogPanel
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -132,5 +178,9 @@ namespace AGS.Editor
         private System.Windows.Forms.ToolStripButton btnRun;
         private System.Windows.Forms.ToolStripButton btnPause;
         private System.Windows.Forms.ToolStripButton btnGlue;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
+        private System.Windows.Forms.ToolStripButton btnCopySelected;
+        private System.Windows.Forms.ToolStripButton btnCopyAll;
+        private System.Windows.Forms.ToolStripButton btnClear;
     }
 }
