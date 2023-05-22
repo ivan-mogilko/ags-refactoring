@@ -655,6 +655,10 @@ builtin managed struct DrawingSurface {
 #endif
   /// Gets the width of the surface.
   readonly import attribute int Width;
+
+
+  import char[] GetPixelArray();
+  import int[] GetPixelArray32();
 };
 
 #ifdef SCRIPT_API_v3507
