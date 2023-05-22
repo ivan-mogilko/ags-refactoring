@@ -120,7 +120,7 @@ DynObjectRef CCDynamicArray::CreateImpl(uint8_t *data, int numElements, int elem
         (ARRAY_SHARED_MEMORY * shared);
     void *obj_ptr = data;
     // TODO: investigate if it's possible to register real object ptr directly
-    int32_t handle = ccRegisterManagedObject(obj_ptr, arr_obj);
+    int32_t handle = ccRegisterManagedObject(obj_ptr, arr_obj, kScValScriptObjectBuf);
     if (handle == 0)
     {
         if (!shared)

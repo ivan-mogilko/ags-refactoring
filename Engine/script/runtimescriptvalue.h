@@ -38,6 +38,9 @@ enum ScriptValueType
     kScValStringLiteral,// as a pointer to literal string (array of chars)
     kScValStaticArray,  // as a pointer to static global array (of static or dynamic objects)
     kScValScriptObject, // as a pointer to managed script object
+    kScValScriptObjectBuf, // as a pointer to managed script object that may be accessed
+                        // as a raw memory buffer
+                        // TODO: can merge with kScValPluginObject?
     kScValPluginObject, // as a pointer to object managed by plugin (similar to
                         // kScValScriptObject, but has backward-compatible limitations)
     kScValStaticFunction,// as a pointer to static function

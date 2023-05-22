@@ -1140,6 +1140,7 @@ int ccInstance::Run(int32_t curpc)
                 address = reg1.ArrMgr->GetElementPtr(reg1.Ptr, reg1.IValue);
                 break;
             case kScValScriptObject:
+            case kScValScriptObjectBuf:
             case kScValPluginObject:
                 address = reg1.Ptr;
                 break;
@@ -1180,6 +1181,7 @@ int ccInstance::Run(int32_t curpc)
                 address = reg1.ArrMgr->GetElementPtr(reg1.Ptr, reg1.IValue);
                 break;
             case kScValScriptObject:
+            case kScValScriptObjectBuf:
             case kScValPluginObject:
                 address = reg1.Ptr;
                 break;
@@ -1415,8 +1417,9 @@ int ccInstance::Run(int32_t curpc)
             }
             switch (reg1.Type)
             {
-                // This might be a static object, passed to the user-defined extender function
+                // This might be a script object, passed to the user-defined extender function
             case kScValScriptObject:
+            case kScValScriptObjectBuf:
             case kScValPluginObject:
             case kScValPluginArg:
                 // This might be an object of USER-DEFINED type, calling its MEMBER-FUNCTION.
@@ -1749,6 +1752,7 @@ void ccInstance::DumpInstruction(const ScriptOperation &op) const
                 break;
             case kScValStaticArray:
             case kScValScriptObject:
+            case kScValScriptObjectBuf:
             case kScValStaticFunction:
             case kScValObjectFunction:
             case kScValPluginFunction:

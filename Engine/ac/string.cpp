@@ -266,7 +266,7 @@ DynObjectRef CreateNewScriptStringObj(const char *fromText, bool reAllocate)
         str = new ScriptString((char*)fromText, true);
     }
     void *obj_ptr = str->GetTextPtr();
-    int32_t handle = ccRegisterManagedObject(obj_ptr, str);
+    int32_t handle = ccRegisterManagedObject(obj_ptr, str, kScValScriptObjectBuf);
     if (handle == 0)
     {
         delete str;
