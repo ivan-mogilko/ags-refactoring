@@ -20,6 +20,7 @@
 
 
 #define ARRAY_MANAGED_TYPE_FLAG    0x80000000
+#define ARRAY_SHARED_MEMORY        0x40000000
 
 struct CCDynamicArray final : AGSCCDynamicObject
 {
@@ -28,10 +29,10 @@ public:
 
     struct Header
     {
-        // May contain ARRAY_MANAGED_TYPE_FLAG
         uint32_t ElemCount = 0u;
         // TODO: refactor and store "elem size" instead
         uint32_t TotalSize = 0u;
+        uint32_t Flags = 0u;
     };
 
     inline const Header &GetHeader(void *address) const
@@ -47,13 +48,16 @@ public:
     void Unserialize(int index, AGS::Common::Stream *in, size_t data_sz);
     // Create managed array object and return a pointer to the beginning of a buffer
     static DynObjectRef Create(int numElements, int elementSize, bool isManagedType);
+    static DynObjectRef Create(uint8_t *shared_data, int numElements, int elementSize, bool isManagedType);
 
 private:
     Header _hdr;
     uint8_t *_data = nullptr;
 
     // The size of the serialized header
-    static const size_t FileHeaderSz = sizeof(uint32_t) * 2;
+    static const size_t FileHeaderSz = sizeof(uint32_t) * 3;
+
+    static DynObjectRef CreateImpl(uint8_t *data, int numElements, int elementSize, bool isManagedType, bool shared);
 
     // Savegame serialization
     // Calculate and return required space for serialization, in bytes

@@ -1100,15 +1100,14 @@ int ccInstance::Run(int32_t curpc)
             if ((reg1.IValue < 0) ||
                 (static_cast<uint32_t>(reg1.IValue) >= hdr.TotalSize))
             {
-                int elem_count = hdr.ElemCount & (~ARRAY_MANAGED_TYPE_FLAG);
-                if (elem_count <= 0)
+                if (hdr.ElemCount <= 0)
                 {
-                    cc_error("!Array has an invalid size (%d) and cannot be accessed", elem_count);
+                    cc_error("!Array has an invalid size (%d) and cannot be accessed", hdr.ElemCount);
                 }
                 else
                 {
-                    int elementSize = (hdr.TotalSize / elem_count);
-                    cc_error("!Array index out of bounds (index: %d, bounds: 0..%d)", reg1.IValue / elementSize, elem_count - 1);
+                    const int elem_size = (hdr.TotalSize / hdr.ElemCount);
+                    cc_error("!Array index out of bounds (index: %d, bounds: 0..%d)", reg1.IValue / elem_size, hdr.ElemCount - 1);
                 }
                 return -1;
             }

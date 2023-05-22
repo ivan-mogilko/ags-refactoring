@@ -28,7 +28,8 @@ const char *CCDynamicArray::GetType()
 
 CCDynamicArray::~CCDynamicArray()
 {
-    delete[] _data;
+    if ((_hdr.Flags & ARRAY_SHARED_MEMORY) == 0)
+        delete[] _data;
 }
 
 int CCDynamicArray::Dispose(void *address, bool force)
@@ -39,8 +40,8 @@ int CCDynamicArray::Dispose(void *address, bool force)
     if (!force)
     {
         const Header &hdr = GetHeader(address);
-        bool is_managed = (hdr.ElemCount & ARRAY_MANAGED_TYPE_FLAG) != 0;
-        const uint32_t el_count = hdr.ElemCount & (~ARRAY_MANAGED_TYPE_FLAG);
+        bool is_managed = (hdr.Flags & ARRAY_MANAGED_TYPE_FLAG) != 0;
+        const uint32_t el_count = hdr.ElemCount;
 
         if (is_managed)
         { // Dynamic array of managed pointers: subref them directly
@@ -68,34 +69,62 @@ void CCDynamicArray::Serialize(void *address, AGS::Common::Stream *out)
     const Header &hdr = GetHeader(address);
     out->WriteInt32(hdr.ElemCount);
     out->WriteInt32(hdr.TotalSize);
+    out->WriteInt32(hdr.Flags);
     out->Write(address, hdr.TotalSize); // elements
 }
 
 void CCDynamicArray::Unserialize(int index, Stream *in, size_t data_sz)
 {
-    char *new_arr = new char[(data_sz - FileHeaderSz)];
-    Header &hdr = reinterpret_cast<Header&>(*new_arr);
-    hdr.ElemCount = in->ReadInt32();
-    hdr.TotalSize = in->ReadInt32();
-    in->Read(new_arr, data_sz - FileHeaderSz);
-    ccRegisterUnserializedObject(index, &new_arr, this);
+    _hdr.ElemCount = in->ReadInt32();
+    _hdr.TotalSize = in->ReadInt32();
+    _hdr.Flags = in->ReadInt32();
+    _data = nullptr;
+
+    if ((_hdr.Flags & ARRAY_SHARED_MEMORY) == 0)
+    {
+        uint8_t *new_arr = new uint8_t[(data_sz - FileHeaderSz)];
+        in->Read(new_arr, data_sz - FileHeaderSz);
+        _data = new_arr;
+    }
+
+    // FIXME: how to unserialized shared data?
+    // This is similar to DrawingSurface. Need some info about how to retrieve
+    // this back from the engine??
+    // ALTERNATIVE: don't serialize, and force user to restore shared
+    // arrays on "save restored" event
+
+    ccRegisterUnserializedObject(index, _data, this);
 }
 
 DynObjectRef CCDynamicArray::Create(int numElements, int elementSize, bool isManagedType)
 {
-    CCDynamicArray *arr_obj = new CCDynamicArray();
     uint8_t *new_arr = new uint8_t[numElements * elementSize];
     memset(new_arr, 0, numElements * elementSize);
-    arr_obj->_data = new_arr;
+    return CreateImpl(new_arr, numElements, elementSize, isManagedType, false);
+}
+
+DynObjectRef CCDynamicArray::Create(uint8_t *shared_data, int numElements, int elementSize, bool isManagedType)
+{
+    return CreateImpl(shared_data, numElements, elementSize, isManagedType, true);
+}
+
+DynObjectRef CCDynamicArray::CreateImpl(uint8_t *data, int numElements, int elementSize, bool isManagedType, bool shared)
+{
+    CCDynamicArray *arr_obj = new CCDynamicArray();
+    arr_obj->_data = data;
     Header &hdr = arr_obj->_hdr;
-    hdr.ElemCount = numElements | (ARRAY_MANAGED_TYPE_FLAG * isManagedType);
+    hdr.ElemCount = numElements;
     hdr.TotalSize = elementSize * numElements;
-    void *obj_ptr = new_arr;
+    hdr.Flags =
+        (ARRAY_MANAGED_TYPE_FLAG * isManagedType) |
+        (ARRAY_SHARED_MEMORY * shared);
+    void *obj_ptr = data;
     // TODO: investigate if it's possible to register real object ptr directly
     int32_t handle = ccRegisterManagedObject(obj_ptr, arr_obj);
     if (handle == 0)
     {
-        delete[] new_arr;
+        if (!shared)
+            delete[] data;
         return DynObjectRef();
     }
     return DynObjectRef(handle, obj_ptr, arr_obj);
