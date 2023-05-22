@@ -66,7 +66,8 @@ void AGSDeSerializer::Unserialize(int index, const char *objectType, const char 
     // TODO: should we support older save versions here (DynArray, UserObj)?
     // might have to use older class names to distinguish save formats
     if (strcmp(objectType, CCDynamicArray::TypeName) == 0) {
-        globalDynamicArray.Unserialize(index, &mems, data_sz);
+        CCDynamicArray *arr = new CCDynamicArray();
+        arr->Unserialize(index, &mems, data_sz);
     }
     else if (strcmp(objectType, ScriptUserObject::TypeName) == 0) {
         ScriptUserObject *suo = new ScriptUserObject();

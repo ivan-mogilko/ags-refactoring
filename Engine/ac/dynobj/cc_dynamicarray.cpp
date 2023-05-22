@@ -26,6 +26,11 @@ const char *CCDynamicArray::GetType()
     return TypeName;
 }
 
+CCDynamicArray::~CCDynamicArray()
+{
+    delete[] _data;
+}
+
 int CCDynamicArray::Dispose(void *address, bool force)
 {
     // If it's an array of managed objects, release their ref counts;
@@ -48,7 +53,7 @@ int CCDynamicArray::Dispose(void *address, bool force)
         }
     }
 
-    delete[] (static_cast<uint8_t*>(address) - MemHeaderSz);
+    delete this;
     return 1;
 }
 
@@ -68,51 +73,50 @@ void CCDynamicArray::Serialize(void *address, AGS::Common::Stream *out)
 
 void CCDynamicArray::Unserialize(int index, Stream *in, size_t data_sz)
 {
-    char *new_arr = new char[(data_sz - FileHeaderSz) + MemHeaderSz];
+    char *new_arr = new char[(data_sz - FileHeaderSz)];
     Header &hdr = reinterpret_cast<Header&>(*new_arr);
     hdr.ElemCount = in->ReadInt32();
     hdr.TotalSize = in->ReadInt32();
-    in->Read(new_arr + MemHeaderSz, data_sz - FileHeaderSz);
-    ccRegisterUnserializedObject(index, &new_arr[MemHeaderSz], this);
+    in->Read(new_arr, data_sz - FileHeaderSz);
+    ccRegisterUnserializedObject(index, &new_arr, this);
 }
 
 DynObjectRef CCDynamicArray::Create(int numElements, int elementSize, bool isManagedType)
 {
-    char *new_arr = new char[numElements * elementSize + MemHeaderSz];
-    memset(new_arr, 0, numElements * elementSize + MemHeaderSz);
-    Header &hdr = reinterpret_cast<Header&>(*new_arr);
+    CCDynamicArray *arr_obj = new CCDynamicArray();
+    uint8_t *new_arr = new uint8_t[numElements * elementSize];
+    memset(new_arr, 0, numElements * elementSize);
+    arr_obj->_data = new_arr;
+    Header &hdr = arr_obj->_hdr;
     hdr.ElemCount = numElements | (ARRAY_MANAGED_TYPE_FLAG * isManagedType);
     hdr.TotalSize = elementSize * numElements;
-    void *obj_ptr = &new_arr[MemHeaderSz];
+    void *obj_ptr = new_arr;
     // TODO: investigate if it's possible to register real object ptr directly
-    int32_t handle = ccRegisterManagedObject(obj_ptr, this);
+    int32_t handle = ccRegisterManagedObject(obj_ptr, arr_obj);
     if (handle == 0)
     {
         delete[] new_arr;
-        return DynObjectRef(0, nullptr);
+        return DynObjectRef();
     }
-    return DynObjectRef(handle, obj_ptr);
+    return DynObjectRef(handle, obj_ptr, arr_obj);
 }
-
-
-CCDynamicArray globalDynamicArray;
 
 
 DynObjectRef DynamicArrayHelpers::CreateStringArray(const std::vector<const char*> items)
 {
     // NOTE: we need element size of "handle" for array of managed pointers
-    DynObjectRef arr = globalDynamicArray.Create(items.size(), sizeof(int32_t), true);
-    if (!arr.second)
-        return arr;
+    DynObjectRef arr = CCDynamicArray::Create(items.size(), sizeof(int32_t), true);
+    if (!arr.Obj)
+        return DynObjectRef();
     // Create script strings and put handles into array
-    int32_t *slots = static_cast<int32_t*>(arr.second);
+    int32_t *slots = static_cast<int32_t*>(arr.Obj);
     for (auto s : items)
     {
         DynObjectRef str = stringClassImpl->CreateString(s);
         // We must add reference count, because the string is going to be saved
         // within another object (array), not returned to script directly
-        ccAddObjectReference(str.first);
-        *(slots++) = str.first;
+        ccAddObjectReference(str.Handle);
+        *(slots++) = str.Handle;
     }
     return arr;
 }

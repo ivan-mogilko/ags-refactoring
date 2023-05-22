@@ -34,21 +34,24 @@ public:
         uint32_t TotalSize = 0u;
     };
 
-    inline static const Header &GetHeader(void *address)
+    inline const Header &GetHeader(void *address) const
     {
-        return reinterpret_cast<const Header&>(*(static_cast<uint8_t*>(address) - MemHeaderSz));
+        return _hdr;
     }
 
+    CCDynamicArray() = default; // ?
+    ~CCDynamicArray();
     // return the type name of the object
     const char *GetType() override;
     int Dispose(void *address, bool force) override;
     void Unserialize(int index, AGS::Common::Stream *in, size_t data_sz);
     // Create managed array object and return a pointer to the beginning of a buffer
-    DynObjectRef Create(int numElements, int elementSize, bool isManagedType);
+    static DynObjectRef Create(int numElements, int elementSize, bool isManagedType);
 
 private:
-    // The size of the array's header in memory, prepended to the element data
-    static const size_t MemHeaderSz = sizeof(Header);
+    Header _hdr;
+    uint8_t *_data = nullptr;
+
     // The size of the serialized header
     static const size_t FileHeaderSz = sizeof(uint32_t) * 2;
 
@@ -58,8 +61,6 @@ private:
     // Write object data into the provided stream
     void Serialize(void *address, AGS::Common::Stream *out) override;
 };
-
-extern CCDynamicArray globalDynamicArray;
 
 // Helper functions for setting up dynamic arrays.
 namespace DynamicArrayHelpers

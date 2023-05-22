@@ -26,8 +26,18 @@
 #include "core/types.h"
 
 
-// A pair of managed handle and abstract object pointer
-typedef std::pair<int32_t, void*> DynObjectRef;
+struct IScriptObject;
+
+struct DynObjectRef
+{
+    const int Handle = 0;
+    void * const Obj = nullptr;
+    IScriptObject * const Mgr = nullptr;
+
+    DynObjectRef() = default;
+    DynObjectRef(int handle, void *obj, IScriptObject *mgr)
+        : Handle(handle), Obj(obj), Mgr(mgr) {}
+};
 
 
 struct IScriptObject

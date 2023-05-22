@@ -115,24 +115,24 @@ int Dict_GetItemCount(ScriptDictBase *dic)
     return dic->GetItemCount();
 }
 
-void *Dict_GetKeysAsArray(ScriptDictBase *dic)
+DynObjectRef Dict_GetKeysAsArray(ScriptDictBase *dic)
 {
     std::vector<const char*> items;
     dic->GetKeys(items);
     if (items.size() == 0)
-        return nullptr;
+        return DynObjectRef();
     DynObjectRef arr = DynamicArrayHelpers::CreateStringArray(items);
-    return arr.second;
+    return arr;
 }
 
-void *Dict_GetValuesAsArray(ScriptDictBase *dic)
+DynObjectRef Dict_GetValuesAsArray(ScriptDictBase *dic)
 {
     std::vector<const char*> items;
     dic->GetValues(items);
     if (items.size() == 0)
-        return nullptr;
+        return DynObjectRef();
     DynObjectRef arr = DynamicArrayHelpers::CreateStringArray(items);
-    return arr.second;
+    return arr;
 }
 
 RuntimeScriptValue Sc_Dict_Create(const RuntimeScriptValue *params, int32_t param_count)
@@ -182,12 +182,16 @@ RuntimeScriptValue Sc_Dict_GetItemCount(void *self, const RuntimeScriptValue *pa
 
 RuntimeScriptValue Sc_Dict_GetKeysAsArray(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_OBJ(ScriptDictBase, void, globalDynamicArray, Dict_GetKeysAsArray);
+    ASSERT_SELF(Dict_GetKeysAsArray);
+    auto ref = Dict_GetKeysAsArray((ScriptDictBase*)self);
+    return RuntimeScriptValue().SetScriptObject(ref.Obj, ref.Mgr);
 }
 
 RuntimeScriptValue Sc_Dict_GetValuesAsArray(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_OBJ(ScriptDictBase, void, globalDynamicArray, Dict_GetValuesAsArray);
+    ASSERT_SELF(Dict_GetValuesAsArray);
+    auto ref = Dict_GetValuesAsArray((ScriptDictBase*)self);
+    return RuntimeScriptValue().SetScriptObject(ref.Obj, ref.Mgr);
 }
 
 //=============================================================================
@@ -270,14 +274,14 @@ int Set_GetItemCount(ScriptSetBase *set)
     return set->GetItemCount();
 }
 
-void *Set_GetItemsAsArray(ScriptSetBase *set)
+DynObjectRef Set_GetItemsAsArray(ScriptSetBase *set)
 {
     std::vector<const char*> items;
     set->GetItems(items);
     if (items.size() == 0)
-        return nullptr;
+        return DynObjectRef();
     DynObjectRef arr = DynamicArrayHelpers::CreateStringArray(items);
-    return arr.second;
+    return arr;
 }
 
 RuntimeScriptValue Sc_Set_Create(const RuntimeScriptValue *params, int32_t param_count)
@@ -322,7 +326,9 @@ RuntimeScriptValue Sc_Set_GetItemCount(void *self, const RuntimeScriptValue *par
 
 RuntimeScriptValue Sc_Set_GetItemsAsArray(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_OBJ(ScriptSetBase, void, globalDynamicArray, Set_GetItemsAsArray);
+    ASSERT_SELF(Set_GetItemsAsArray);
+    auto ref = Set_GetItemsAsArray((ScriptSetBase*)self);
+    return RuntimeScriptValue().SetScriptObject(ref.Obj, ref.Mgr);
 }
 
 
