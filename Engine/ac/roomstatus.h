@@ -28,6 +28,16 @@ namespace AGS { namespace Common { class Stream; } }
 using AGS::Common::Stream;
 using AGS::Common::Interaction;
 
+// Savegame data format for RoomStatus
+// TODO: fill in other versions (lookup the code history)
+enum RoomStatSvgVersion
+{
+    kRoomStatSvgVersion_Initial  = 0,
+    kRoomStatSvgVersion_36025    = 3,
+    kRoomStatSvgVersion_36041    = 4,
+    kRoomStatSvgVersion_Current  = kRoomStatSvgVersion_36041
+};
+
 // This struct is saved in the save games - it contains everything about
 // a room that could change
 struct RoomStatus {
@@ -64,7 +74,8 @@ struct RoomStatus {
 
     void ReadFromFile_v321(Common::Stream *in);
     void ReadRoomObjects_Aligned(Common::Stream *in);
-    void ReadFromSavegame(Common::Stream *in);
+    void ReadFromSavegame(Common::Stream *in, RoomStatSvgVersion save_ver);
+    void ReadHotspotState(Common::Stream *in, int index, int save_ver);
     void WriteToSavegame(Common::Stream *out) const;
 };
 

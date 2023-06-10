@@ -17,7 +17,7 @@
 
 using AGS::Common::Stream;
 
-void CharacterExtras::ReadFromFile(Stream *in)
+void CharacterExtras::ReadFromFile(Stream *in, int save_ver)
 {
     in->ReadArrayOfInt16(invorder, MAX_INVORDER);
     invorder_count = in->ReadInt16();
@@ -34,6 +34,13 @@ void CharacterExtras::ReadFromFile(Stream *in)
     process_idle_this_time = in->ReadInt8();
     slow_move_counter = in->ReadInt8();
     animwait = in->ReadInt16();
+    if (save_ver >= 2) // expanded at ver 2
+    {
+        in->ReadInt8(); // anim_volume
+        in->ReadInt8(); // cur_anim_volume
+        in->ReadInt8(); // reserved to fill int32
+        in->ReadInt8();
+    }
 }
 
 void CharacterExtras::WriteToFile(Stream *out)

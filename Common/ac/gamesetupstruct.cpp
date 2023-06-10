@@ -283,7 +283,7 @@ void GameSetupStruct::ReadCharacters_Aligned(Stream *in)
     AlignedStream align_s(in, Common::kAligned_Read);
     for (int iteratorCount = 0; iteratorCount < numcharacters; ++iteratorCount)
     {
-        chars[iteratorCount].ReadFromFile(&align_s);
+        chars[iteratorCount].ReadFromFile(&align_s, kGameVersion_Undefined, -1);
         align_s.Reset();
     }
 }

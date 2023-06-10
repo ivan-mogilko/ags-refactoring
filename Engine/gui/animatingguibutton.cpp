@@ -13,11 +13,12 @@
 //=============================================================================
 
 #include "gui/animatingguibutton.h"
+#include "gui/guidefines.h"
 #include "util/stream.h"
 
-using AGS::Common::Stream;
+using namespace AGS::Common;
 
-void AnimatingGUIButton::ReadFromFile(Stream *in)
+void AnimatingGUIButton::ReadFromFile(Stream *in, int cmp_ver)
 {
     buttonid = in->ReadInt16();
     ongui = in->ReadInt16();
@@ -28,6 +29,14 @@ void AnimatingGUIButton::ReadFromFile(Stream *in)
     speed = in->ReadInt16();
     repeat = in->ReadInt16();
     wait = in->ReadInt16();
+
+    if (cmp_ver >= kGuiSvgVersion_36025)
+    {
+        in->ReadInt8(); // volume
+        in->ReadInt8(); // reserved to fill int32
+        in->ReadInt8();
+        in->ReadInt8();
+    }
 }
 
 void AnimatingGUIButton::WriteToFile(Stream *out)

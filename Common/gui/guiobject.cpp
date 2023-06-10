@@ -182,6 +182,13 @@ void GUIObject::ReadFromSavegame(Stream *in, GuiSvgVersion svg_ver)
     ZOrder = in->ReadInt32();
     // Dynamic state
     IsActivated = in->ReadBool() ? 1 : 0;
+    if (svg_ver >= kGuiSvgVersion_36023)
+    {
+        in->ReadInt32(); // _transparency
+        in->ReadInt32(); // reserve 3 ints
+        in->ReadInt32();
+        in->ReadInt32();
+    }
 }
 
 void GUIObject::WriteToSavegame(Stream *out) const

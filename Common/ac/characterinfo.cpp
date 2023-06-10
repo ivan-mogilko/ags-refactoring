@@ -11,7 +11,7 @@
 // http://www.opensource.org/licenses/artistic-license-2.0.php
 //
 //=============================================================================
-
+#include "ac/game_version.h"
 #include <string.h>
 #include "ac/characterinfo.h"
 #include "util/stream.h"
@@ -19,7 +19,7 @@
 using AGS::Common::Stream;
 
 
-void CharacterInfo::ReadFromFile(Stream *in)
+void CharacterInfo::ReadFromFile(Stream *in, GameDataVersion data_ver, int save_ver)
 {
     defview = in->ReadInt32();
     talkview = in->ReadInt32();
@@ -49,9 +49,9 @@ void CharacterInfo::ReadFromFile(Stream *in)
     z = in->ReadInt32();
     walkwait = in->ReadInt32();
     speech_anim_speed = in->ReadInt16();
-    reserved1 = in->ReadInt16();
+    in->ReadInt16(); // reserved
     blocking_width = in->ReadInt16();
-    blocking_height = in->ReadInt16();;
+    blocking_height = in->ReadInt16();
     index_id = in->ReadInt32();
     pic_xoffs = in->ReadInt16();
     walkwaitcounter = in->ReadInt16();
@@ -67,6 +67,12 @@ void CharacterInfo::ReadFromFile(Stream *in)
     in->Read(name, 40);
     in->Read(scrname, MAX_SCRIPT_NAME_LEN);
     on = in->ReadInt8();
+
+    if ((data_ver > kGameVersion_Undefined && data_ver < kGameVersion_360_16) ||
+        ((data_ver == kGameVersion_Undefined) && save_ver >= 0 && save_ver < 2))
+    {
+        //idle_anim_speed = animspeed + 5;
+    }
 }
 
 void CharacterInfo::WriteToFile(Stream *out)

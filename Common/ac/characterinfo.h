@@ -16,6 +16,7 @@
 #define __AC_CHARACTERINFO_H
 
 #include "ac/common_defines.h" // constants
+#include "ac/game_version.h"
 
 namespace AGS { namespace Common { class Stream; } }
 using namespace AGS; // FIXME later
@@ -109,7 +110,7 @@ struct CharacterInfo {
 	void update_character_idle(CharacterExtras *chex, int &doing_nothing);
 	void update_character_follower(int &char_index, int &numSheep, int *followingAsSheep, int &doing_nothing);
 
-    void ReadFromFile(Common::Stream *in);
+    void ReadFromFile(Common::Stream *in, GameDataVersion data_ver, int save_ver = -1);
     void WriteToFile(Common::Stream *out);
 };
 

@@ -215,7 +215,7 @@ static void ReadCharacterExtras_Aligned(Stream *in)
     AlignedStream align_s(in, Common::kAligned_Read);
     for (int i = 0; i < game.numcharacters; ++i)
     {
-        charextra[i].ReadFromFile(&align_s);
+        charextra[i].ReadFromFile(&align_s, 0);
         align_s.Reset();
     }
 }
@@ -245,7 +245,7 @@ static void ReadAnimatedButtons_Aligned(Stream *in)
     AlignedStream align_s(in, Common::kAligned_Read);
     for (int i = 0; i < numAnimButs; ++i)
     {
-        animbuts[i].ReadFromFile(&align_s);
+        animbuts[i].ReadFromFile(&align_s, 0);
         align_s.Reset();
     }
 }
@@ -311,7 +311,7 @@ static void ReadOverlays_Aligned(Stream *in)
     AlignedStream align_s(in, Common::kAligned_Read);
     for (int i = 0; i < numscreenover; ++i)
     {
-        screenover[i].ReadFromFile(&align_s, 0);
+        screenover[i].ReadFromFile(&align_s, screenover[i].hasSerializedBitmap, 0);
         align_s.Reset();
     }
 }

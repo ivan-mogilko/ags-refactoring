@@ -188,7 +188,10 @@ enum GUITextBoxFlags
 enum GuiSvgVersion
 {
     kGuiSvgVersion_Initial  = 0,
-    kGuiSvgVersion_350      = 1
+    kGuiSvgVersion_350      = 1,
+    kGuiSvgVersion_36020,
+    kGuiSvgVersion_36023,
+    kGuiSvgVersion_36025
 };
 
 } // namespace Common

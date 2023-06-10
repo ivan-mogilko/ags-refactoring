@@ -22,6 +22,7 @@
 #include "main/update.h"
 #include "util/math.h"
 #include "util/stream.h"
+#include "util/string_utils.h"
 
 using namespace AGS::Common;
 
@@ -154,12 +155,43 @@ void RoomObject::update_cycle_view_backwards()
       }
 }
 
-void RoomObject::ReadFromFile(Stream *in)
+void RoomObject::ReadFromFile(Stream *in, int save_ver)
 {
-    in->ReadArrayOfInt32(&x, 3);
-    in->ReadArrayOfInt16(&tint_r, 15);
-    in->ReadArrayOfInt8((int8_t*)&cycling, 4);
-    in->ReadArrayOfInt16(&blocking_width, 2);
+    x = in->ReadInt32();
+    y = in->ReadInt32();
+    transparent = in->ReadInt32();
+    tint_r = in->ReadInt16();
+    tint_g = in->ReadInt16();
+    tint_b = in->ReadInt16();
+    tint_level = in->ReadInt16();
+    tint_light = in->ReadInt16();
+    last_zoom = in->ReadInt16();
+    last_width = in->ReadInt16();
+    last_height = in->ReadInt16();
+    num = in->ReadInt16();
+    baseline = in->ReadInt16();
+    view = in->ReadInt16();
+    loop = in->ReadInt16();
+    frame = in->ReadInt16();
+    wait = in->ReadInt16();
+    moving = in->ReadInt16();
+    cycling = in->ReadInt8();
+    overall_speed = in->ReadInt8();
+    on = in->ReadInt8();
+    flags = in->ReadInt8();
+    blocking_width = in->ReadInt16();
+    blocking_height = in->ReadInt16();
+    if (save_ver >= 1)
+    {
+        StrUtil::ReadString(in); // name
+    }
+    if (save_ver >= 2)
+    {
+        in->ReadInt8(); // anim_volume
+        in->ReadInt8(); // reserved to fill int32
+        in->ReadInt8();
+        in->ReadInt8();
+    }
 }
 
 void RoomObject::WriteToFile(Stream *out) const

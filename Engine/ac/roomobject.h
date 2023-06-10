@@ -58,7 +58,7 @@ struct RoomObject {
 	void update_cycle_view_forwards();
 	void update_cycle_view_backwards();
 
-    void ReadFromFile(Common::Stream *in);
+    void ReadFromFile(Common::Stream *in, int save_ver);
     void WriteToFile(Common::Stream *out) const;
 };
 

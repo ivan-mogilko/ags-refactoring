@@ -33,7 +33,7 @@ struct MouseCursor {
 
     void ReadFromFile(Common::Stream *in);
     void WriteToFile(Common::Stream *out);
-    void ReadFromSavegame(Common::Stream *in);
+    void ReadFromSavegame(Common::Stream *in, int cmp_ver);
     void WriteToSavegame(Common::Stream *out) const;
 };
 

@@ -136,6 +136,10 @@ enum GameDataVersion
     kGameVersion_341            = 48,
     kGameVersion_341_2          = 49,
     kGameVersion_350            = 50,
+    kGameVersion_360            = 3060000,
+    kGameVersion_360_11         = 3060011,
+    kGameVersion_360_16         = 3060016,
+    kGameVersion_360_21         = 3060021,
     kGameVersion_Current        = kGameVersion_350
 };
 

@@ -45,7 +45,7 @@ struct CharacterExtras {
     char  slow_move_counter;
     short animwait;
 
-    void ReadFromFile(Common::Stream *in);
+    void ReadFromFile(Common::Stream *in, int save_ver);
     void WriteToFile(Common::Stream *out);
 };
 

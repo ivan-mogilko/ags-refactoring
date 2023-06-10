@@ -78,6 +78,8 @@ namespace Engine
 
 const String SavegameSource::LegacySignature = "Adventure Game Studio saved game";
 const String SavegameSource::Signature       = "Adventure Game Studio saved game v2";
+// Size of the "windows vista rich game media header" feature, in bytes
+const size_t LegacyRichHeaderSize = (6 * sizeof(int32_t)) + 16 + (1024 * sizeof(int16_t) * 4);
 
 SavegameSource::SavegameSource()
     : Version(kSvgVersion_Undefined)
@@ -162,8 +164,9 @@ String GetSavegameErrorText(SavegameErrorType err)
         return "Saved with the engine running at a different colour depth.";
     case kSvgErr_GameObjectInitFailed:
         return "Game object initialization failed after save restoration.";
+    default:
+        return "Unknown error.";
     }
-    return "Unknown error.";
 }
 
 Bitmap *RestoreSaveImage(Stream *in)
@@ -182,9 +185,9 @@ void SkipSaveImage(Stream *in)
 HSaveError ReadDescription(Stream *in, SavegameVersion &svg_ver, SavegameDescription &desc, SavegameDescElem elems)
 {
     svg_ver = (SavegameVersion)in->ReadInt32();
-    if (svg_ver < kSvgVersion_LowestSupported || svg_ver > kSvgVersion_Current)
+    if (svg_ver < kSvgVersion_LowestSupported || svg_ver > kSvgVersion_HighestSupported)
         return new SavegameError(kSvgErr_FormatVersionNotSupported,
-            String::FromFormat("Required: %d, supported: %d - %d.", svg_ver, kSvgVersion_LowestSupported, kSvgVersion_Current));
+            String::FromFormat("Required: %d, supported: %d - %d.", svg_ver, kSvgVersion_LowestSupported, kSvgVersion_HighestSupported));
 
     // Enviroment information
     if (svg_ver >= kSvgVersion_351)
@@ -275,32 +278,44 @@ HSaveError ReadDescription_v321(Stream *in, SavegameVersion &svg_ver, SavegameDe
     return HSaveError::None();
 }
 
+// Tests for the save signature, returns first supported version of found save type
+SavegameVersion CheckSaveSignature(Stream *in)
+{
+    soff_t pre_sig_pos = in->GetPosition();
+    String svg_sig = String::FromStreamCount(in, SavegameSource::Signature.GetLength());
+    if (svg_sig.Compare(SavegameSource::Signature) == 0)
+    {
+        return kSvgVersion_Components;
+    }
+    else
+    {
+        in->Seek(pre_sig_pos, kSeekBegin);
+        svg_sig = String::FromStreamCount(in, SavegameSource::LegacySignature.GetLength());
+        if (svg_sig.Compare(SavegameSource::LegacySignature) == 0)
+            return kSvgVersion_321;
+    }
+    in->Seek(pre_sig_pos, kSeekBegin);
+    return kSvgVersion_Undefined;
+}
+
 HSaveError OpenSavegameBase(const String &filename, SavegameSource *src, SavegameDescription *desc, SavegameDescElem elems)
 {
     UStream in(File::OpenFileRead(filename));
     if (!in.get())
         return new SavegameError(kSvgErr_FileOpenFailed, String::FromFormat("Requested filename: %s.", filename.GetCStr()));
 
-    // Skip MS Windows Vista rich media header
-    RICH_GAME_MEDIA_HEADER rich_media_header;
-    rich_media_header.ReadFromFile(in.get());
-
     // Check saved game signature
-    bool is_new_save = false;
-    size_t pre_sig_pos = in->GetPosition();
-    String svg_sig = String::FromStreamCount(in.get(), SavegameSource::Signature.GetLength());
-    if (svg_sig.Compare(SavegameSource::Signature) == 0)
+    SavegameVersion sig_ver = CheckSaveSignature(in.get());
+    if (sig_ver == kSvgVersion_Undefined)
     {
-        is_new_save = true;
-    }
-    else
-    {
-        in->Seek(pre_sig_pos, kSeekBegin);
-        svg_sig = String::FromStreamCount(in.get(), SavegameSource::LegacySignature.GetLength());
-        if (svg_sig.Compare(SavegameSource::LegacySignature) != 0)
+        // Skip MS Windows Vista rich media header (was present in older saves)
+        in->Seek(LegacyRichHeaderSize);
+        sig_ver = CheckSaveSignature(in.get());
+        if (sig_ver == kSvgVersion_Undefined)
             return new SavegameError(kSvgErr_SignatureFailed);
     }
 
+    bool is_new_save = sig_ver >= kSvgVersion_Components;
     SavegameVersion svg_ver;
     SavegameDescription temp_desc;
     HSaveError err;

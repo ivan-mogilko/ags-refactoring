@@ -20,6 +20,7 @@
 #include "game/customproperties.h"
 #include "game/savegame_components.h"
 #include "util/alignedstream.h"
+#include "util/string_utils.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
@@ -110,12 +111,21 @@ void RoomStatus::ReadRoomObjects_Aligned(Common::Stream *in)
     AlignedStream align_s(in, Common::kAligned_Read);
     for (int i = 0; i < MAX_ROOM_OBJECTS; ++i)
     {
-        obj[i].ReadFromFile(&align_s);
+        obj[i].ReadFromFile(&align_s, 0);
         align_s.Reset();
     }
 }
 
-void RoomStatus::ReadFromSavegame(Stream *in)
+void RoomStatus::ReadHotspotState(Common::Stream *in, int index, int save_ver)
+{
+    hotspot_enabled[index] = in->ReadInt8() != 0;
+    if (save_ver > 0)
+    {
+        StrUtil::ReadString(in);
+    }
+}
+
+void RoomStatus::ReadFromSavegame(Stream *in, RoomStatSvgVersion save_ver)
 {
     FreeScriptData();
     FreeProperties();
@@ -124,14 +134,14 @@ void RoomStatus::ReadFromSavegame(Stream *in)
     numobj = in->ReadInt32();
     for (int i = 0; i < numobj; ++i)
     {
-        obj[i].ReadFromFile(in);
+        obj[i].ReadFromFile(in, save_ver);
         Properties::ReadValues(objProps[i], in);
         if (loaded_game_file_version <= kGameVersion_272)
             SavegameComponents::ReadInteraction272(intrObject[i], in);
     }
     for (int i = 0; i < MAX_ROOM_HOTSPOTS; ++i)
     {
-        hotspot_enabled[i] = in->ReadInt8();
+        ReadHotspotState(in, i, save_ver);
         Properties::ReadValues(hsProps[i], in);
         if (loaded_game_file_version <= kGameVersion_272)
             SavegameComponents::ReadInteraction272(intrHotspot[i], in);
@@ -159,6 +169,15 @@ void RoomStatus::ReadFromSavegame(Stream *in)
     {
         tsdata = new char[tsdatasize];
         in->Read(tsdata, tsdatasize);
+    }
+
+    //contentFormat = save_ver;
+    if (save_ver >= kRoomStatSvgVersion_36041)
+    {
+        (RoomStatSvgVersion)in->ReadInt32(); // contentFormat
+        in->ReadInt32(); // reserved
+        in->ReadInt32();
+        in->ReadInt32();
     }
 }
 

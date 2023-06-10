@@ -17,7 +17,7 @@
 
 using AGS::Common::Stream;
 
-void ScreenOverlay::ReadFromFile(Stream *in, int32_t cmp_ver)
+void ScreenOverlay::ReadFromFile(Stream *in, bool &has_bitmap, int32_t cmp_ver)
 {
     // Skipping bmp and pic pointer values
     // TODO: find out if it's safe to just drop these pointers!! replace with unique_ptr?
@@ -31,12 +31,32 @@ void ScreenOverlay::ReadFromFile(Stream *in, int32_t cmp_ver)
     timeout = in->ReadInt32();
     bgSpeechForChar = in->ReadInt32();
     associatedOverlayHandle = in->ReadInt32();
-    hasAlphaChannel = in->ReadBool();
-    positionRelativeToScreen = in->ReadBool();
+
+    if (cmp_ver >= 3)
+    {
+        int flags = in->ReadInt16();
+        hasAlphaChannel = flags & 1;
+        positionRelativeToScreen = flags & 2;
+    }
+    else
+    {
+        if (in->ReadBool()) // has alpha
+            hasAlphaChannel = in->ReadBool();
+        if (!(in->ReadBool())) // screen relative position
+            positionRelativeToScreen = in->ReadBool();
+    }
+
     if (cmp_ver >= 1)
     {
         _offsetX = in->ReadInt32();
         _offsetY = in->ReadInt32();
+    }
+    if (cmp_ver >= 2)
+    {
+        in->ReadInt32(); // zorder
+        in->ReadInt32(); // transparency
+        in->ReadInt32(); // scaleWidth
+        in->ReadInt32(); // scaleHeight
     }
 }
 

@@ -39,13 +39,15 @@ void MouseCursor::WriteToFile(Stream *out)
     out->WriteInt8(flags);
 }
 
-void MouseCursor::ReadFromSavegame(Stream *in)
+void MouseCursor::ReadFromSavegame(Stream *in, int cmp_ver)
 {
     pic = in->ReadInt32();
     hotx = in->ReadInt32();
     hoty = in->ReadInt32();
     view = in->ReadInt32();
     flags = in->ReadInt32();
+    if (cmp_ver > 0)
+        in->ReadInt32(); // animdelay
 }
 
 void MouseCursor::WriteToSavegame(Stream *out) const
