@@ -132,6 +132,7 @@ void SpriteCache::SetEmptySprite(sprkey_t index, bool as_asset)
         Debug::Printf(kDbgGroup_SprCache, kDbgMsg_Error, "SetEmptySprite: unable to use index %d", index);
         return;
     }
+    delete _spriteData[index].Image; // delete old sprite, if was present
     if (as_asset)
         _spriteData[index].Flags = SPRCACHEFLAG_ISASSET;
     RemapSpriteToSprite0(index);
