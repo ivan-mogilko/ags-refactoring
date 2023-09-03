@@ -112,12 +112,24 @@ IDriverDependantBitmap *blankImage = nullptr;
 IDriverDependantBitmap *blankSidebarImage = nullptr;
 IDriverDependantBitmap *debugConsole = nullptr;
 
+// A control block notifying a shared sprite's modification
+struct SpriteNotify
+{
+    uint32_t SpriteID = UINT32_MAX;
+    bool Modified = false;
+
+    SpriteNotify(uint32_t spr_id) : SpriteID(spr_id) {}
+};
+
 // ObjTexture is a helper struct that pairs a raw bitmap with
 // a renderer's texture and an optional position
 struct ObjTexture
 {
     // Sprite ID
     uint32_t SpriteID = UINT32_MAX;
+    // Control block used to receive notifications on sprite update;
+    // currently used only in software render mode
+    std::shared_ptr<SpriteNotify> SprNotify;
     // Raw bitmap; used for software render mode,
     // or when particular object types require generated image.
     std::unique_ptr<Bitmap> Bmp;
@@ -317,6 +329,9 @@ std::vector<ObjTexture> guiobjbg;
 std::vector<int> guiobjddbref;
 // Overlays textures
 std::vector<ObjTexture> overtxs;
+// Shared sprite notification blocks;
+// currently used for software renderer only
+std::unordered_map<uint32_t, std::shared_ptr<SpriteNotify>> sprnotify;
 // For debugging room masks
 RoomAreaMask debugRoomMask = kRoomAreaNone;
 ObjTexture debugRoomMaskObj;
@@ -325,6 +340,10 @@ ObjTexture debugMoveListObj;
 // For in-game "console" surface
 Bitmap *debugConsoleBuffer = nullptr;
 
+// Draw cache: keep record of all kinds of things related to the previous drawing state
+//
+// Which sprites were modified since the recent drawing pass
+std::vector<int> spritemodifiedlist;
 // Cached character and object states, used to determine
 // whether these require texture update
 std::vector<ObjectCache> charcache;
@@ -786,6 +805,10 @@ void clear_drawobj_cache()
     for (auto &o : guiobjbg) o = ObjTexture();
     overtxs.clear();
 
+    // Clear sprite notification blocks
+    sprnotify.clear();
+    spritemodifiedlist.clear();
+
     dispose_debug_room_drawdata();
 }
 
@@ -979,34 +1002,6 @@ void mark_object_changed(int objid)
     objcache[objid].y = -9999;
 }
 
-void reset_objcache_for_sprite(int sprnum, bool deleted)
-{
-    // Check if this sprite is assigned to any game object, and mark these for update;
-    // if the sprite was deleted, also mark texture objects as invalid.
-    // IMPORTANT!!: do NOT dispose textures themselves here.
-    // * if the next valid image is of the same size, then the texture will be reused;
-    // * BACKWARD COMPAT: keep last images during room transition out!
-    // room objects cache
-    if (croom != nullptr)
-    {
-        for (size_t i = 0; i < (size_t)croom->numobj; ++i)
-        {
-            if (objcache[i].sppic == sprnum)
-                objcache[i].sppic = -1;
-            if (deleted && (actsps[i].SpriteID == sprnum))
-                actsps[i].SpriteID = UINT32_MAX; // invalid sprite ref
-        }
-    }
-    // character cache
-    for (size_t i = 0; i < (size_t)game.numcharacters; ++i)
-    {
-        if (charcache[i].sppic == sprnum)
-            charcache[i].sppic = -1;
-        if (deleted && (actsps[ACTSP_OBJSOFF + i].SpriteID == sprnum))
-            actsps[ACTSP_OBJSOFF + i].SpriteID = UINT32_MAX; // invalid sprite ref
-    }
-}
-
 void reset_drawobj_for_overlay(int objnum)
 {
     if (objnum > 0 && static_cast<size_t>(objnum) < overtxs.size())
@@ -1014,6 +1009,39 @@ void reset_drawobj_for_overlay(int objnum)
         overtxs[objnum] = ObjTexture();
         if (drawstate.SoftwareRender)
             overcache[objnum] = Point(INT32_MIN, INT32_MIN);
+    }
+}
+
+void notify_sprite_changed(int sprnum, bool deleted)
+{
+    assert(sprnum >= 0 && sprnum < game.SpriteInfos.size());
+    assert(game.SpriteInfos[sprnum].IsDynamicSprite());
+    if (!game.SpriteInfos[sprnum].IsDynamicSprite())
+        return; // should not be called for non-dynamic sprites
+
+    // Update texture cache (regen texture or clear from cache)
+    if (deleted)
+        clear_shared_texture(sprnum);
+    else
+        update_shared_texture(sprnum);
+
+    // For texture-based renderers updating a shared texture will already
+    // update all the related drawn objects on screen.
+    // For software renderer we should notify drawables that currently
+    // reference this sprite.
+    if (drawstate.SoftwareRender)
+    {
+        // NOTE: if notification block is not found, this means that the sprite
+        // was not drawn on screen yet (at least since the last cache reset)
+        auto notify_it = sprnotify.find(sprnum);
+        if (notify_it != sprnotify.end())
+        {
+            notify_it->second->Modified = true;
+            if (deleted)
+                sprnotify.erase(notify_it);
+            else
+                spritemodifiedlist.push_back(sprnum);
+        }
     }
 }
 
@@ -1035,6 +1063,7 @@ void update_shared_texture(uint32_t sprite_id)
     auto txdata = texturecache.Get(sprite_id);
     if (!txdata)
         return;
+
     const auto &res = txdata->Res;
     if (res.Width == game.SpriteInfos[sprite_id].Width &&
         res.Height == game.SpriteInfos[sprite_id].Height)
@@ -1266,7 +1295,6 @@ IDriverDependantBitmap* recycle_ddb_sprite(IDriverDependantBitmap *ddb, uint32_t
         return recycle_ddb_bitmap(ddb, source, has_alpha, opaque);
     }
 
-    // TODO: how to test if sprite was modified, while NOT cached? Is GetRefID enough for this? maybe....
     if (ddb && ddb->GetRefID() == sprite_id)
         return ddb; // texture in sync
 
@@ -1298,8 +1326,31 @@ IDriverDependantBitmap* recycle_render_target(IDriverDependantBitmap *ddb, int w
 // FIXME: make has_alpha and opaque properties of ObjTexture?!
 static void sync_object_texture(ObjTexture &obj, bool has_alpha = false, bool opaque = false)
 {
-    // TODO: test if source bitmap was modified, if not then return?
     obj.Ddb = recycle_ddb_sprite(obj.Ddb, obj.SpriteID, obj.Bmp.get(), has_alpha, opaque);
+
+    // Handle notification control block for the dynamic sprites
+    if (drawstate.SoftwareRender && (obj.SpriteID != UINT32_MAX))
+    {
+        // For newly rendered dynamic sprite: attach a control block to this drawable
+        if (game.SpriteInfos[obj.SpriteID].IsDynamicSprite() &&
+            (!obj.SprNotify || obj.SprNotify->SpriteID != obj.SpriteID))
+        {
+            auto notify_it = sprnotify.find(obj.SpriteID);
+            if (notify_it != sprnotify.end())
+            {
+                obj.SprNotify = notify_it->second;
+            }
+            else
+            {
+                obj.SprNotify.reset(new SpriteNotify(obj.SpriteID));
+                sprnotify[obj.SpriteID] = obj.SprNotify;
+            }
+        }
+        else if (!game.SpriteInfos[obj.SpriteID].IsDynamicSprite() && obj.SprNotify)
+        {
+            obj.SprNotify = nullptr;
+        }
+    }
 }
 
 //------------------------------------------------------------------------
@@ -1780,6 +1831,8 @@ static bool construct_object_gfx(const ViewFrame *vf, int pic,
     // If we have the image cached, use it
     if ((objsav.image != nullptr) &&
         (objsav.sppic == specialpic) &&
+        // not a dynamic sprite, or not sprite modified lately
+        (!actsp.SprNotify || !actsp.SprNotify->Modified) &&
         (objsav.tintamnt == tint_level) &&
         (objsav.tintlight == tint_light) &&
         (objsav.tintr == tint_red) &&
@@ -1787,8 +1840,9 @@ static bool construct_object_gfx(const ViewFrame *vf, int pic,
         (objsav.tintb == tint_blue) &&
         (objsav.lightlev == light_level) &&
         (objsav.zoom == objsrc.zoom) &&
-        (objsav.mirrored == is_mirrored)) {
-            // the image is the same, we can use it cached!
+        (objsav.mirrored == is_mirrored))
+    {
+        // If the image is the same, we can use it cached
         if ((drawstate.WalkBehindMethod != DrawOverCharSprite) &&
             (actsp.Bmp != nullptr))
         {
@@ -2608,7 +2662,8 @@ static void construct_overlays()
         if (over.type < 0) continue; // empty slot
         if (over.transparency == 255) continue; // skip fully transparent
 
-        bool has_changed = over.HasChanged();
+        auto &overtx = overtxs[i];
+        bool has_changed = over.HasChanged() || (overtx.SprNotify && overtx.SprNotify->Modified);
         // If walk behinds are drawn over the cached object sprite, then check if positions were updated
         if (crop_walkbehinds && over.IsRoomLayer())
         {
@@ -2617,7 +2672,6 @@ static void construct_overlays()
             overcache[i].X = pos.X; overcache[i].Y = pos.Y;
         }
 
-        auto &overtx = overtxs[i];
         if (has_changed)
         {
             overtx.SpriteID = over.GetSpriteNum();
@@ -2712,6 +2766,11 @@ void construct_game_scene(bool full_redraw)
 
     // End the parent scene node
     gfxDriver->EndSpriteBatch();
+
+    // Clear "modified sprite" flags
+    for (auto sprnum : spritemodifiedlist)
+        sprnotify[sprnum]->Modified = false;
+    spritemodifiedlist.clear();
 }
 
 void construct_game_screen_overlay(bool draw_mouse)

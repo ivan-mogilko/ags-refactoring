@@ -449,9 +449,9 @@ void free_dynamic_sprite(int slot, bool notify_all) {
 
     spriteset.DisposeSprite(slot);
     if (notify_all)
-        game_sprite_deleted(slot);
+        game_sprite_updated(slot, true);
     else
-        clear_shared_texture(slot);
+        notify_sprite_changed(slot, true);
 }
 
 //=============================================================================

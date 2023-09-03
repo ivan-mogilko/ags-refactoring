@@ -245,6 +245,8 @@ struct SpriteInfo
     //
     // Legacy game support
     //
+    // Gets if sprite is created at runtime (by engine, or a script command)
+    inline bool IsDynamicSprite() const { return (Flags & SPF_DYNAMICALLOC) != 0; }
     // Gets if sprite should adjust its base size depending on game's resolution
     inline bool IsRelativeRes() const { return (Flags & SPF_VAR_RESOLUTION) != 0; }
     // Gets if sprite belongs to high resolution; hi-res sprites should be
