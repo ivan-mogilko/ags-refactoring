@@ -28,12 +28,14 @@
 #include "ac/game.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
+#include "ac/gamesetup.h"
 #include "ac/movelist.h"
 #include "ac/overlay.h"
 #include "ac/spritecache.h"
 #include "ac/roomstatus.h"
 #include "ac/view.h"
 #include "ac/dynobj/cc_serializer.h"
+#include "debug/debug_log.h"
 #include "game/savegame.h"
 #include "game/savegame_components.h"
 #include "game/savegame_internal.h"
@@ -68,22 +70,6 @@ extern RoomStatus troom;
 
 
 static const uint32_t MAGICNUMBER = 0xbeefcafe;
-
-// List of game objects, used to compare with the save contents
-struct ObjectCounts
-{
-    int CharacterCount = 0;
-    int DialogCount = 0;
-    int InvItemCount = 0;
-    int ViewCount = 0;
-    int GUICount = 0;
-    int GUILabelCount = 0;
-    int GUIButtonCount = 0;
-    int GUIInvWindowCount = 0;
-    int GUIListBoxCount = 0;
-    int GUISliderCount = 0;
-    int GUITextBoxCount = 0;
-};
 
 static HSaveError restore_game_head_dynamic_values(Stream *in, RestoredData &r_data)
 {
@@ -265,35 +251,61 @@ void ReadAnimatedButtons_Aligned(Stream *in, int num_abuts)
     }
 }
 
-inline bool AssertGameContent(HSaveError &err, int new_val, int original_val, const char *content_name)
+inline bool AssertGameContent(HSaveError &err, int game_val, int sav_val, const char *content_name, bool warn_only = false)
 {
-    if (new_val != original_val)
+    if (game_val != sav_val)
     {
-        err = new SavegameError(kSvgErr_GameContentAssertion,
-            String::FromFormat("Mismatching number of %s (game: %d, save: %d).",
-            content_name, original_val, new_val));
+        String msg = String::FromFormat("Mismatching number of %s (game: %d, save: %d).",
+            content_name, game_val, sav_val);
+        if (warn_only)
+            debug_script_warn("WARNING: save may be incompatible: %s", msg.GetCStr());
+        else
+            err = new SavegameError(kSvgErr_GameContentAssertion, msg);
     }
-    return new_val == original_val;
+    return warn_only || (game_val == sav_val);
 }
 
-static HSaveError restore_game_gui(Stream *in, const ObjectCounts &guiwas)
+template <typename TObject>
+inline bool AssertAndCopyGameContent(std::vector<TObject> &game_list, const std::vector<TObject> &sav_list,
+    HSaveError &err, const char *content_name, bool warn_only = false)
 {
-    HError guierr = GUI::ReadGUI(in, guis, guibuts, guiinv, guilabels, guilist, guislider, guitext, true);
+    if (!AssertGameContent(err, game_list.size(), sav_list.size(), content_name, warn_only))
+        return false;
+
+    if (game_list.size() < sav_list.size())
+        game_list.resize(sav_list.size());
+    std::copy(sav_list.begin(), sav_list.end(), game_list.begin());
+    return true;
+}
+
+static HSaveError restore_game_gui(Stream *in)
+{
+    // Read GUIs and controls into temporary lists, then assert counts
+    // and, if no errors found, copy over to the actual game object lists
+    std::vector<GUIMain>    sav_guis;
+    std::vector<GUIButton>  sav_guibuts;
+    std::vector<GUIInvWindow> sav_guiinv;
+    std::vector<GUILabel>   sav_guilabels;
+    std::vector<GUIListBox> sav_guilist;
+    std::vector<GUISlider>  sav_guislider;
+    std::vector<GUITextBox> sav_guitext;
+    HError guierr = GUI::ReadGUI(in, sav_guis, sav_guibuts, sav_guiinv, sav_guilabels, sav_guilist, sav_guislider, sav_guitext, true);
     if (!guierr)
         return new SavegameError(kSvgErr_GameObjectInitFailed, guierr);
-    game.numgui = guis.size();
 
     HSaveError err;
-    if (!AssertGameContent(err, game.numgui,      guiwas.GUICount,          "GUIs") ||
-        !AssertGameContent(err, guibuts.size(),   guiwas.GUIButtonCount,    "GUI Buttons") ||
-        !AssertGameContent(err, guiinv.size(),    guiwas.GUIInvWindowCount, "GUI InvWindows") ||
-        !AssertGameContent(err, guilabels.size(), guiwas.GUILabelCount,     "GUI Labels") ||
-        !AssertGameContent(err, guilist.size(),   guiwas.GUIListBoxCount,   "GUI ListBoxes") ||
-        !AssertGameContent(err, guislider.size(), guiwas.GUISliderCount,    "GUI Sliders") ||
-        !AssertGameContent(err, guitext.size(),   guiwas.GUITextBoxCount,   "GUI TextBoxes"))
+    const bool warn_only = usetup.legacysavs_allow_gui_mismatch;
+    if (!AssertAndCopyGameContent(guis,      sav_guis,       err, "GUIs",           warn_only) ||
+        !AssertAndCopyGameContent(guibuts,   sav_guibuts,    err, "GUI Buttons",    warn_only) ||
+        !AssertAndCopyGameContent(guiinv,    sav_guiinv,     err, "GUI InvWindows", warn_only) ||
+        !AssertAndCopyGameContent(guilabels, sav_guilabels,  err, "GUI Labels",     warn_only) ||
+        !AssertAndCopyGameContent(guilist,   sav_guilist,    err, "GUI ListBoxes",  warn_only) ||
+        !AssertAndCopyGameContent(guislider, sav_guislider,  err, "GUI Sliders",    warn_only) ||
+        !AssertAndCopyGameContent(guitext,   sav_guitext,    err, "GUI TextBoxes",  warn_only))
         return err;
 
     GUI::RebuildGUI();
+    game.numgui = guis.size();
 
     RemoveAllButtonAnimations();
     int anim_count = in->ReadInt32();
@@ -511,18 +523,14 @@ HSaveError restore_save_data_v321(Stream *in, GameDataVersion data_ver, const Pr
     for (size_t i = 0; i < MAXGLOBALMES; ++i)
         mesbk[i] = game.messages[i];
 
-    ObjectCounts objwas;
-    objwas.CharacterCount = game.numcharacters;
-    objwas.DialogCount = game.numdialog;
-    objwas.InvItemCount = game.numinvitems;
-    objwas.ViewCount = game.numviews;
-    objwas.GUICount = game.numgui;
-    objwas.GUIButtonCount = guibuts.size();
-    objwas.GUIInvWindowCount = guiinv.size();
-    objwas.GUILabelCount = guilabels.size();
-    objwas.GUIListBoxCount = guilist.size();
-    objwas.GUISliderCount = guislider.size();
-    objwas.GUITextBoxCount = guitext.size();
+    // List of game objects, used to compare with the save contents
+    struct ObjectCounts
+    {
+        int CharacterCount = game.numcharacters;
+        int DialogCount = game.numdialog;
+        int InvItemCount = game.numinvitems;
+        int ViewCount = game.numviews;
+    } objwas;
 
     ReadGameSetupStructBase_Aligned(in, data_ver);
 
@@ -531,10 +539,10 @@ HSaveError restore_save_data_v321(Stream *in, GameDataVersion data_ver, const Pr
     delete [] game.load_messages;
     game.load_messages = nullptr;
 
-    if (!AssertGameContent(err, game.numcharacters, objwas.CharacterCount, "Characters") ||
-        !AssertGameContent(err, game.numdialog,     objwas.DialogCount,    "Dialogs") ||
-        !AssertGameContent(err, game.numinvitems,   objwas.InvItemCount,   "Inventory Items") ||
-        !AssertGameContent(err, game.numviews,      objwas.ViewCount,      "Views"))
+    if (!AssertGameContent(err, objwas.CharacterCount, game.numcharacters, "Characters") ||
+        !AssertGameContent(err, objwas.DialogCount,    game.numdialog,     "Dialogs") ||
+        !AssertGameContent(err, objwas.InvItemCount,   game.numinvitems,   "Inventory Items") ||
+        !AssertGameContent(err, objwas.ViewCount,      game.numviews,      "Views"))
         return err;
 
     game.ReadFromSaveGame_v321(in, data_ver, gswas, compsc, chwas, olddict, mesbk);
@@ -546,7 +554,7 @@ HSaveError restore_save_data_v321(Stream *in, GameDataVersion data_ver, const Pr
     restore_game_palette(in);
     restore_game_dialogs(in);
     restore_game_more_dynamic_values(in);
-    err = restore_game_gui(in, objwas);
+    err = restore_game_gui(in);
     if (!err)
         return err;
     err = restore_game_audiocliptypes(in);
