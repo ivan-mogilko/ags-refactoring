@@ -892,7 +892,7 @@ HGameFileError ReadGameData(LoadedGameEntities &ents, Stream *in, GameDataVersio
     HError err2 = GUI::ReadGUI(in, ents.Guis, ents.GuiButtons, ents.GuiInvs, ents.GuiLabels, ents.GuiListBoxes, ents.GuiSlider, ents.GuiTextBoxes);
     if (!err2)
         return new MainGameFileError(kMGFErr_GameEntityFailed, err2);
-    game.numgui = guis.size();
+    game.numgui = ents.Guis.size();
 
     if (data_ver >= kGameVersion_260)
     {

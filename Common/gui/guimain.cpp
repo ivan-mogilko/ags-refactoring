@@ -414,23 +414,32 @@ HError GUIMain::RebuildArray()
         thistype = _ctrlRefs[i].first;
         thisnum = _ctrlRefs[i].second;
 
-        if (thisnum < 0)
-            return new Error(String::FromFormat("GUIMain (%d): invalid control ID %d in ref #%d", ID, thisnum, i));
-
-        if (thistype == kGUIButton)
-            _controls[i] = &guibuts[thisnum];
-        else if (thistype == kGUILabel)
-            _controls[i] = &guilabels[thisnum];
-        else if (thistype == kGUIInvWindow)
-            _controls[i] = &guiinv[thisnum];
-        else if (thistype == kGUISlider)
-            _controls[i] = &guislider[thisnum];
-        else if (thistype == kGUITextBox)
-            _controls[i] = &guitext[thisnum];
-        else if (thistype == kGUIListBox)
-            _controls[i] = &guilist[thisnum];
-        else
+        size_t ctrl_type_num = 0u;
+        switch (thistype)
+        {
+        case kGUIButton:    ctrl_type_num = guibuts.size(); break;
+        case kGUILabel:     ctrl_type_num = guilabels.size(); break;
+        case kGUIInvWindow: ctrl_type_num = guiinv.size(); break;
+        case kGUISlider:    ctrl_type_num = guislider.size(); break;
+        case kGUITextBox:   ctrl_type_num = guitext.size(); break;
+        case kGUIListBox:   ctrl_type_num = guilist.size(); break;
+        default:
             return new Error(String::FromFormat("GUIMain (%d): unknown control type %d in ref #%d", ID, thistype, i));
+        }
+
+        if (thisnum < 0 || static_cast<size_t>(thisnum) >= ctrl_type_num)
+            return new Error(String::FromFormat("GUIMain (%d): invalid control ID %d of type %d in ref #%d", ID, thisnum, thistype, i));
+
+        switch (thistype)
+        {
+        case kGUIButton:    _controls[i] = &guibuts[thisnum]; break;
+        case kGUILabel:     _controls[i] = &guilabels[thisnum]; break;
+        case kGUIInvWindow: _controls[i] = &guiinv[thisnum]; break;
+        case kGUISlider:    _controls[i] = &guislider[thisnum]; break;
+        case kGUITextBox:   _controls[i] = &guitext[thisnum]; break;
+        case kGUIListBox:   _controls[i] = &guilist[thisnum]; break;
+        default: assert(false); break; // should be detected earlier
+        }
 
         _controls[i]->ParentId = ID;
         _controls[i]->Id = i;
@@ -893,8 +902,9 @@ GUILabelMacro FindLabelMacros(const String &text)
     return (GUILabelMacro)macro_flags;
 }
 
-static HError ResortGUI(bool bwcompat_ctrl_zorder = false)
+HError RebuildGUI()
 {
+    const bool bwcompat_ctrl_zorder = GameGuiVersion < kGuiVersion_272e;
     // set up the reverse-lookup array
     for (auto &gui : guis)
     {
@@ -915,9 +925,26 @@ static HError ResortGUI(bool bwcompat_ctrl_zorder = false)
     return HError::None();
 }
 
-HError ReadGUI(Stream *in, std::vector<GUIMain> &gui,
-        std::vector<GUIButton> &guibut, std::vector<GUIInvWindow> &guiinv,
-        std::vector<GUILabel> &guilabel, std::vector<GUIListBox> &guilist,
+HError RebuildGUI(const std::vector<GUIMain> &&guis,
+        const std::vector<GUIButton> &&guibuts, const std::vector<GUIInvWindow> &&guiinv,
+        const std::vector<GUILabel> &&guilabels, const std::vector<GUIListBox> &&guilist,
+        const std::vector<GUISlider> &&guislider, const std::vector<GUITextBox> &&guitext)
+{
+    // Refill the global control arrays
+    ::guis = std::move(guis);
+    ::guibuts = std::move(guibuts);
+    ::guiinv = std::move(guiinv);
+    ::guilabels = std::move(guilabels);
+    ::guilist = std::move(guilist);
+    ::guislider = std::move(guislider);
+    ::guitext = std::move(guitext);
+
+    return RebuildGUI();
+}
+
+HError ReadGUI(Stream *in, std::vector<GUIMain> &guis,
+        std::vector<GUIButton> &guibuts, std::vector<GUIInvWindow> &guiinv,
+        std::vector<GUILabel> &guilabels, std::vector<GUIListBox> &guilist,
         std::vector<GUISlider> &guislider, std::vector<GUITextBox> &guitext,
         bool is_savegame)
 {
@@ -1036,7 +1063,7 @@ HError ReadGUI(Stream *in, std::vector<GUIMain> &gui,
             guilist[i].ReadFromFile(in, GameGuiVersion);
         }
     }
-    return ResortGUI(GameGuiVersion < kGuiVersion_272e);
+    return HError::None();
 }
 
 void WriteGUI(Stream *out, const std::vector<GUIMain> &guis,

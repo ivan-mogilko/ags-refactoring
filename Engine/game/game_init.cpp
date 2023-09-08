@@ -436,9 +436,11 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     //
     // 3. Allocate and init game objects
     //
+    GUI::RebuildGUI(std::move(ents.Guis), std::move(ents.GuiButtons),
+        std::move(ents.GuiInvs), std::move(ents.GuiLabels), std::move(ents.GuiListBoxes),
+        std::move(ents.GuiSlider), std::move(ents.GuiTextBoxes));
     charextra.resize(game.numcharacters);
     mls.resize(game.numcharacters + MAX_ROOM_OBJECTS + 1);
-    init_game_drawdata();
     views = std::move(ents.Views);
     play.charProps.resize(game.numcharacters);
     dialog = std::move(ents.Dialogs);
@@ -486,6 +488,7 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     play.gui_draw_order.resize(game.numgui);
     std::iota(play.gui_draw_order.begin(), play.gui_draw_order.end(), 0);
     update_gui_zorder();
+    init_game_drawdata();
     calculate_reserved_channel_count();
 
     //

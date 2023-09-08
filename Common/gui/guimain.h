@@ -241,6 +241,15 @@ namespace GUI
     // Parses the string and returns combination of label macro flags
     GUILabelMacro FindLabelMacros(const String &text);
 
+    // Rebuilds GUIs, connecting them to the child controls in memory.
+    // WARNING: the data is processed in the global arrays (guis, guibuts, and so on)
+    HError RebuildGUI();
+    // Rebuilds GUIs, refilling all the global gui arrays from the provided ones
+    HError RebuildGUI(const std::vector<GUIMain> &&guis,
+        const std::vector<GUIButton> &&guibuts, const std::vector<GUIInvWindow> &&guiinv,
+        const std::vector<GUILabel> &&guilabels, const std::vector<GUIListBox> &&guilist,
+        const std::vector<GUISlider> &&guislider, const std::vector<GUITextBox> &&guitext);
+
     // Reads all GUIs and their controls.
     // TODO: remove is_savegame param after dropping support for old saves
     // because only they use ReadGUI to read runtime GUI data

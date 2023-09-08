@@ -114,6 +114,7 @@ private:
     void DrawText(Bitmap *ds, int x, int y, bool draw_disabled);
     void DrawTextButton(Bitmap *ds, int x, int y, bool draw_disabled);
     void PrepareTextToDraw();
+    void SetTextImpl(const String &text);
 
     // Text property set by user
     String _text;

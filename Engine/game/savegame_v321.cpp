@@ -293,6 +293,8 @@ static HSaveError restore_game_gui(Stream *in, const ObjectCounts &guiwas)
         !AssertGameContent(err, guitext.size(),   guiwas.GUITextBoxCount,   "GUI TextBoxes"))
         return err;
 
+    GUI::RebuildGUI();
+
     RemoveAllButtonAnimations();
     int anim_count = in->ReadInt32();
     ReadAnimatedButtons_Aligned(in, anim_count);

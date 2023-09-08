@@ -189,6 +189,12 @@ void GUIButton::SetText(const String &text)
 {
     if (_text == text)
         return;
+    SetTextImpl(text);
+    MarkChanged();
+}
+
+void GUIButton::SetTextImpl(const String &text)
+{
     _text = text;
     // Active inventory item placeholders
     if (_text.CompareNoCase("(INV)") == 0)
@@ -205,7 +211,6 @@ void GUIButton::SetText(const String &text)
 
     // TODO: find a way to remove this bogus limitation ("New Button" is a valid Text too)
     _unnamed = _text.IsEmpty() || _text.Compare("New Button") == 0;
-    MarkChanged();
 }
 
 bool GUIButton::OnMouseDown()
@@ -297,9 +302,9 @@ void GUIButton::ReadFromFile(Stream *in, GuiVersion gui_version)
     ClickData[kGUIClickLeft] = in->ReadInt32();
     ClickData[kGUIClickRight] = in->ReadInt32();
     if (gui_version < kGuiVersion_350)
-        SetText(String::FromStreamCount(in, GUIBUTTON_LEGACY_TEXTLENGTH));
+        SetTextImpl(String::FromStreamCount(in, GUIBUTTON_LEGACY_TEXTLENGTH));
     else
-        SetText(StrUtil::ReadString(in));
+        SetTextImpl(StrUtil::ReadString(in));
 
     if (gui_version >= kGuiVersion_272a)
     {
