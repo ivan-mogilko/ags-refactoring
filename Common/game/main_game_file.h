@@ -95,6 +95,15 @@ struct MainGameSource
     MainGameSource();
 };
 
+
+class GUIMain;
+class GUIButton;
+class GUIInvWindow;
+class GUILabel;
+class GUIListBox;
+class GUISlider;
+class GUITextBox;
+
 // LoadedGameEntities is meant for keeping objects loaded from the game file.
 // Because copying/assignment methods are not properly implemented for some
 // of these objects yet, they have to be attached using references to be read
@@ -103,6 +112,13 @@ struct MainGameSource
 struct LoadedGameEntities
 {
     GameSetupStruct        &Game;
+    std::vector<GUIMain>    Guis;
+    std::vector<GUIButton>  GuiButtons;
+    std::vector<GUIInvWindow> GuiInvs;
+    std::vector<GUILabel>   GuiLabels;
+    std::vector<GUIListBox> GuiListBoxes;
+    std::vector<GUISlider>  GuiSlider;
+    std::vector<GUITextBox> GuiTextBoxes;
     std::vector<DialogTopic> Dialogs;
     std::vector<ViewStruct> Views;
     PScript                 GlobalScript;

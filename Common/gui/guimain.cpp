@@ -915,7 +915,11 @@ static HError ResortGUI(bool bwcompat_ctrl_zorder = false)
     return HError::None();
 }
 
-HError ReadGUI(Stream *in, bool is_savegame)
+HError ReadGUI(Stream *in, std::vector<GUIMain> &gui,
+        std::vector<GUIButton> &guibut, std::vector<GUIInvWindow> &guiinv,
+        std::vector<GUILabel> &guilabel, std::vector<GUIListBox> &guilist,
+        std::vector<GUISlider> &guislider, std::vector<GUITextBox> &guitext,
+        bool is_savegame)
 {
     if (in->ReadInt32() != (int)GUIMAGIC)
         return new Error("ReadGUI: unknown format or file is corrupt");
@@ -1035,7 +1039,10 @@ HError ReadGUI(Stream *in, bool is_savegame)
     return ResortGUI(GameGuiVersion < kGuiVersion_272e);
 }
 
-void WriteGUI(Stream *out)
+void WriteGUI(Stream *out, const std::vector<GUIMain> &guis,
+        const std::vector<GUIButton> &guibuts, const std::vector<GUIInvWindow> &guiinv,
+        const std::vector<GUILabel> &guilabels, const std::vector<GUIListBox> &guilist,
+        const std::vector<GUISlider> &guislider, const std::vector<GUITextBox> &guitext)
 {
     out->WriteInt32(GUIMAGIC);
     out->WriteInt32(kGuiVersion_Current);

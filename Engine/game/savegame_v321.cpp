@@ -278,7 +278,7 @@ inline bool AssertGameContent(HSaveError &err, int new_val, int original_val, co
 
 static HSaveError restore_game_gui(Stream *in, const ObjectCounts &guiwas)
 {
-    HError guierr = GUI::ReadGUI(in, true);
+    HError guierr = GUI::ReadGUI(in, guis, guibuts, guiinv, guilabels, guilist, guislider, guitext, true);
     if (!guierr)
         return new SavegameError(kSvgErr_GameObjectInitFailed, guierr);
     game.numgui = guis.size();

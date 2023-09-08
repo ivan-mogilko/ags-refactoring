@@ -202,6 +202,13 @@ private:
 };
 
 
+class GUIButton;
+class GUIInvWindow;
+class GUILabel;
+class GUIListBox;
+class GUISlider;
+class GUITextBox;
+
 namespace GUI
 {
     extern GuiVersion GameGuiVersion;
@@ -235,13 +242,18 @@ namespace GUI
     GUILabelMacro FindLabelMacros(const String &text);
 
     // Reads all GUIs and their controls.
-    // WARNING: the data is read into the global arrays (guis, guibuts, and so on)
     // TODO: remove is_savegame param after dropping support for old saves
     // because only they use ReadGUI to read runtime GUI data
-    HError ReadGUI(Stream *in, bool is_savegame = false);
+    HError ReadGUI(Stream *in, std::vector<GUIMain> &guis,
+        std::vector<GUIButton> &guibuts, std::vector<GUIInvWindow> &guiinv,
+        std::vector<GUILabel> &guilabels, std::vector<GUIListBox> &guilist,
+        std::vector<GUISlider> &guislider, std::vector<GUITextBox> &guitext,
+        bool is_savegame = false);
     // Writes all GUIs and their controls.
-    // WARNING: the data is written from the global arrays (guis, guibuts, and so on)
-    void WriteGUI(Stream *out);
+    void WriteGUI(Stream *out, const std::vector<GUIMain> &guis,
+        const std::vector<GUIButton> &guibuts, const std::vector<GUIInvWindow> &guiinv,
+        const std::vector<GUILabel> &guilabels, const std::vector<GUIListBox> &guilist,
+        const std::vector<GUISlider> &guislider, const std::vector<GUITextBox> &guitext);
     // Converts legacy GUIVisibility into appropriate GUIMain properties
     void ApplyLegacyVisibility(GUIMain &gui, LegacyGUIVisState vis);
 }

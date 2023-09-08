@@ -24,6 +24,12 @@
 #include "debug/out.h"
 #include "game/main_game_file.h"
 #include "gui/guimain.h"
+#include "gui/guibutton.h"
+#include "gui/guiinv.h"
+#include "gui/guilabel.h"
+#include "gui/guilistbox.h"
+#include "gui/guislider.h"
+#include "gui/guitextbox.h"
 #include "script/cc_common.h"
 #include "util/alignedstream.h"
 #include "util/data_ext.h"
@@ -883,7 +889,7 @@ HGameFileError ReadGameData(LoadedGameEntities &ents, Stream *in, GameDataVersio
 
     ReadDialogs(ents.Dialogs, ents.OldDialogScripts, ents.OldDialogSources, ents.OldSpeechLines,
                 in, data_ver, game.numdialog);
-    HError err2 = GUI::ReadGUI(in);
+    HError err2 = GUI::ReadGUI(in, ents.Guis, ents.GuiButtons, ents.GuiInvs, ents.GuiLabels, ents.GuiListBoxes, ents.GuiSlider, ents.GuiTextBoxes);
     if (!err2)
         return new MainGameFileError(kMGFErr_GameEntityFailed, err2);
     game.numgui = guis.size();
