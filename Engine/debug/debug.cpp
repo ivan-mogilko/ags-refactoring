@@ -113,12 +113,23 @@ public:
     void PrintMessage(const DebugMessage &msg) override
     {
         assert(_ideDebugger);
+
         std::vector<std::pair<String, String>> log_info =
                 {
                         {"Text", msg.Text},
                         {"GroupID", StrUtil::IntToString(msg.GroupID)},
                         {"MTID", StrUtil::IntToString(msg.MT)}
                 };
+
+        const auto *inst = ccInstance::GetCurrentInstance();
+        if (inst)
+        {
+            ScriptPosition pos;
+            inst->GetScriptPosition(pos);
+            log_info.emplace_back(std::make_pair("Section", pos.Section));
+            log_info.emplace_back(std::make_pair("Line", StrUtil::IntToString(pos.Line)));
+        }
+
         send_message_to_debugger(_ideDebugger, log_info, "LOG");
     }
 private:

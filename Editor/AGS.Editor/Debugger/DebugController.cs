@@ -77,18 +77,39 @@ namespace AGS.Editor
                 XmlNode logTextNode = doc.DocumentElement.SelectSingleNode("Text");
                 XmlNode logGroupIDNode = doc.DocumentElement.SelectSingleNode("GroupID");
                 XmlNode logMTIDNode = doc.DocumentElement.SelectSingleNode("MTID");
+                XmlNode logSection = doc.DocumentElement.SelectSingleNode("Section");
+                XmlNode logLine = doc.DocumentElement.SelectSingleNode("Line");
                 LogGroup group;
                 LogLevel level;
+                string section = string.Empty;
+                int line = -1;
                 try
                 {
                     group = (LogGroup)Convert.ToInt32(logGroupIDNode.InnerText);
                     level = (LogLevel)Convert.ToInt32(logMTIDNode.InnerText);
+                    if (logSection != null && logLine != null)
+                    {
+                        section = logSection.InnerText;
+                        line = Convert.ToInt32(logLine.InnerText);
+                    }
                 }
                 catch
                 {
                     return;
                 }
+
                 LogMessage(logTextNode.InnerText, group, level);
+
+                // TEST -----------------------------------------------------
+                if ((BreakAtLocation != null) &&
+                    (group == LogGroup.Game || group == LogGroup.Script) &&
+                    level <= LogLevel.Warn)
+                {
+                    DebugCallStack cs = new DebugCallStack(logTextNode.InnerText);
+                    cs.AddLine(section, line);
+                    BreakAtLocation(cs);
+                }
+                // TEST -----------------------------------------------------
             }
         }
 
