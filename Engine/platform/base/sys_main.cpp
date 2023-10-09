@@ -12,6 +12,7 @@
 //
 //=============================================================================
 #include "platform/base/sys_main.h"
+#include <stack>
 #include <SDL.h>
 #include <SDL_syswm.h>
 #include "debug/out.h"
@@ -22,9 +23,51 @@
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
+// TODO: prehaps refactor the whole sys_main into the singleton class at some point
+struct SysMainInfo
+{
+    // Indicates which subsystems did we initialize, and the order of init.
+    // We require this, because SDL's subsystems are reference counted, and linked
+    // libraries may have their own SDL's references.
+    uint32_t SDLSubsystems = 0u;
+    std::stack<uint32_t> SDLInits;
+} static gl_SysMainInfo;
+
 // ----------------------------------------------------------------------------
 // INIT / SHUTDOWN
 // ----------------------------------------------------------------------------
+
+static bool sys_sdl_init(uint32_t systems)
+{
+    systems &= ~gl_SysMainInfo.SDLSubsystems; // exclude inited
+    if (systems > 0)
+    {
+        if (SDL_InitSubSystem(systems) != 0)
+            return false;
+        gl_SysMainInfo.SDLSubsystems |= systems;
+        gl_SysMainInfo.SDLInits.push(systems);
+    }
+    return true;
+}
+
+static void sys_sdl_uninit(uint32_t systems)
+{
+    systems &= gl_SysMainInfo.SDLSubsystems; // exclude not-inited
+    if (systems > 0)
+    {
+        SDL_QuitSubSystem(systems);
+        gl_SysMainInfo.SDLSubsystems &= ~systems;
+    }
+}
+
+static void sys_sdl_unwind_init()
+{
+    while (!gl_SysMainInfo.SDLInits.empty())
+    {
+        sys_sdl_uninit(gl_SysMainInfo.SDLInits.top());
+        gl_SysMainInfo.SDLInits.pop();
+    }
+}
 
 int sys_main_init(/*config*/) {
     SDL_version version;
@@ -38,23 +81,16 @@ int sys_main_init(/*config*/) {
 #elif defined (SDL_HINT_ANDROID_SEPARATE_MOUSE_AND_TOUCH)
     SDL_SetHint(SDL_HINT_ANDROID_SEPARATE_MOUSE_AND_TOUCH, "1");
 #endif
-    // TODO: setup these subsystems in config rather than keep hardcoded?
-    if (SDL_InitSubSystem(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_EVENTS) != 0) {
+    if (!sys_sdl_init(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_EVENTS)) {
         Debug::Printf(kDbgMsg_Error, "Unable to initialize SDL: %s", SDL_GetError());
         return -1;
-    }
-    if(SDL_InitSubSystem(SDL_INIT_GAMECONTROLLER) != 0) {
-        // In non-desktop pc platforms, there is a chance that the gamecontroller is indeed necessary
-        // For now, it's better to just warn and rely on other input methods, in ags4 we can review this
-        Debug::Printf(kDbgMsg_Warn, "Unable to initialize SDL Gamepad: %s", SDL_GetError());
     }
     return 0;
 }
 
 void sys_main_shutdown() {
     sys_window_destroy();
-    SDL_QuitSubSystem(SDL_INIT_VIDEO | SDL_INIT_TIMER | SDL_INIT_EVENTS);
-    // TO-DO: find somewhere to save if gamecontroller subsystem was initialized or not and quit it specifically too
+    sys_sdl_unwind_init();
     SDL_Quit();
 }
 
@@ -125,7 +161,7 @@ bool sys_audio_init(const String &driver_name)
         SDL_setenv("SDL_AUDIODRIVER", driver_name.GetCStr(), 1);
     const char *env_drv = SDL_getenv("SDL_AUDIODRIVER");
     Debug::Printf("Requested audio driver: %s", env_drv ? env_drv : "default");
-    res = SDL_InitSubSystem(SDL_INIT_AUDIO) == 0;
+    res = sys_sdl_init(SDL_INIT_AUDIO);
     // If there have been an explicit request that failed, then try to force
     // SDL to go through a list of supported drivers and see if that succeeds.
     if (!res && env_drv)
@@ -134,7 +170,7 @@ bool sys_audio_init(const String &driver_name)
             env_drv, SDL_GetError());
         Debug::Printf("Attempt to initialize any audio driver from the known list");
         SDL_setenv("SDL_AUDIODRIVER", "", 1);
-        res = SDL_InitSubSystem(SDL_INIT_AUDIO) == 0;
+        res = sys_sdl_init(SDL_INIT_AUDIO);
     }
 
     if (res)
@@ -147,9 +183,8 @@ bool sys_audio_init(const String &driver_name)
 
 void sys_audio_shutdown()
 {
-    // Note: a subsystem that failed to initialize, doesn't increment ref-count
-    // Additionally, we may not have init it at all, see engine_init_audio
-    SDL_QuitSubSystem(SDL_INIT_AUDIO);
+    // Note: this will skip safely if was not initialized
+    sys_sdl_uninit(SDL_INIT_AUDIO);
 }
 
 
