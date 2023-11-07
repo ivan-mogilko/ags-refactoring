@@ -87,6 +87,7 @@ void texturecache_clear();
 void update_shared_texture(uint32_t sprite_id);
 // Remove a texture from cache
 void clear_shared_texture(uint32_t sprite_id);
+void texturecache_precache(uint32_t sprite_id);
 
 // whether there are currently remnants of a DisplaySpeech
 void mark_screen_dirty();

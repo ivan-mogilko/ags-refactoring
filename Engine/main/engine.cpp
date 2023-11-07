@@ -638,7 +638,7 @@ void engine_init_game_settings()
             game.mcurs[ee].view = -1;
 
         if (game.mcurs[ee].view >= 0)
-            precache_view (game.mcurs[ee].view);
+            precache_view (game.mcurs[ee].view); // FIXME maxloops = 1?
     }
     // may as well preload the character gfx
     if (playerchar->view >= 0)

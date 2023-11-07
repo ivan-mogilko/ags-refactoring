@@ -204,7 +204,7 @@ void Mouse_ChangeModeView(int curs, int newview, int delay) {
 
     if (newview >= 0)
     {
-        precache_view(newview);
+        precache_view(newview); // FIXME maxloops = 1?
     }
 
     if (curs == cur_cursor)

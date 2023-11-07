@@ -241,9 +241,9 @@ void SpriteCache::Precache(sprkey_t index)
     if (!ResourceCache::Exists(index))
         LoadSprite(index);
 
-    // make sure locked sprites can't fill the cache
-    ResourceCache::Lock(index);
-    _spriteData[index].Flags |= SPRCACHEFLAG_LOCKED;
+    ////// make sure locked sprites can't fill the cache
+    ////ResourceCache::Lock(index);
+    ////_spriteData[index].Flags |= SPRCACHEFLAG_LOCKED;
     SprCacheLog("Precached %d", index);
 }
 
