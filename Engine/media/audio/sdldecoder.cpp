@@ -128,6 +128,13 @@ void SDLDecoder::Close()
     _sampleData = nullptr;
 }
 
+bool SDLDecoder::Rewind()
+{
+    if (!_sample)
+        return false; 
+    return Sound_Rewind(_sample.get()) != 0;
+}
+
 float SDLDecoder::Seek(float pos_ms)
 {
     if (!_sample || pos_ms < 0.f)

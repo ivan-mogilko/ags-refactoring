@@ -406,9 +406,37 @@ struct AGSAudioFrame
 {
   // Set which fields are valid, see AGS_AUDIOFRAME_FLD_* flags
   uint32_t Fields;
-  void *Data;
-  size_t DataSize;
+  void *Data; // buffer ptr
+  size_t DataSize; // buffer capacity
+  size_t AvailSize; // length of meaningful data
   int64_t Timestamp;
+};
+
+class IAGSAudioDecoder {
+  // TODO: rename into AudioStream etc? this is not only decoder, but rather audiostream controller
+public:
+  // Tells which version of the plugin API this object corresponds to;
+  // this lets users know which of the following methods are valid to use.
+  virtual int    GetVersion() = 0;
+  // After calling this the IAGSAudioDecoder pointer becomes INVALID.
+  virtual void   Close() = 0;
+  // Returns the total audio stream's duration in milliseconds
+  virtual int64_t GetDuration() = 0;
+  // Returns decoding position in milliseconds
+  virtual int64_t GetPosition() = 0;
+  // Decode at most AGSAudioFrame.DataSize of sound data into the buffer;
+  // fills AGSAudioFrame.AvailSize and optionally Timestamp.
+  // returns the number of data which was actually decoded.
+  // If it's less than AGSAudioFrame.DataSize, then it's either end of stream or error.
+  virtual size_t GetData(AGSAudioFrame *frame) = 0;
+  //
+  virtual bool Rewind() = 0;
+  //
+  virtual int64_t Seek(int64_t pos_ms) = 0;
+
+protected:
+  IAGSAudioDecoder() = default;
+  ~IAGSAudioDecoder() = default;
 };
 
 // Something that plays the sound data
@@ -417,10 +445,15 @@ public:
   // Tells which version of the plugin API this object corresponds to;
   // this lets users know which of the following methods are valid to use.
   virtual int    GetVersion() = 0;
-  virtual void   SetConfig(AGSAudioPlayConfig *config) = 0;
   // Flushes and closes the AudioPlayer.
   // After calling this the IAGSAudioPlayer pointer becomes INVALID.
   virtual void   Close() = 0;
+  //
+  virtual void   SetConfig(AGSAudioPlayConfig *config) = 0;
+  // Returns current playback position in milliseconds.
+  // This position is calculated based either on AGSAudioFrame timestamps,
+  // or total number of data played so far (if valid timestamps were not available).
+  virtual int64_t GetPosition() = 0;
   virtual void   Pause() = 0;
   virtual void   Resume() = 0;
   // *copies* data on call, does not hold the frame (??? need different rule?)
@@ -708,6 +741,8 @@ public:
   AGSIFUNC(IAGSStream*) GetFileStreamByHandle(int32 fhandle);
 
   // *** BELOW ARE INTERFACE VERSION 29 AND ABOVE ONLY
+  // open audio decoder, telling the format of the sound data that will be RECEIVED from this decoder by user.
+  AGSIFUNC(IAGSAudioDecoder*) OpenAudioDecoder(IAGSStream *input_stream, AGSAudioFormat *out_format);
   // open audio player, telling the format of the sound data that will be SENT into this player by user.
   // optionally pass AGSAudioPlayConfig setting playback parameters (these may be reset later).
   AGSIFUNC(IAGSAudioPlayer*) OpenAudioPlayer(AGSAudioFormat *in_format, AGSAudioPlayConfig *config);

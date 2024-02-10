@@ -129,6 +129,8 @@ public:
     bool Open(float pos_ms = 0.f);
     // Closes decoder, releases any owned resources
     void Close();
+    // Rewinds to start
+    bool Rewind();
     // Seeks to the given read position; returns the new position
     float Seek(float pos_ms);
     // Returns the next chunk of data; may return empty buffer in EOS or error

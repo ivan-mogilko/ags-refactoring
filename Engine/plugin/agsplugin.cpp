@@ -830,6 +830,56 @@ size_t IAGSEngine::ResolveFilePath(const char *script_path, char *buf, size_t bu
         get_file_stream(fhandle, "IAGSEngine::GetFileStreamByHandle"));
 }
 
+class AGSAudioDecoder : public IAGSAudioDecoder
+{
+public:
+    AGSAudioDecoder(std::unique_ptr<SDLDecoder> dec)
+        : _decoder(std::move(dec))
+    {
+    }
+
+    int    GetVersion() override
+    {
+        return PLUGIN_API_VERSION;
+    }
+    void   Close()
+    {
+        delete this; // darn...
+    }
+    int64_t GetDuration()
+    {
+        return _decoder->GetDurationMs();
+    }
+    int64_t GetPosition()
+    {
+        return _decoder->GetPositionMs();
+    }
+    size_t GetData(AGSAudioFrame *frame)
+    {
+        // FIXME: what to do with not enough size?
+        // need different approach here
+        auto buf = _decoder->GetData();
+        if (!buf.Data || buf.Size == 0)
+            return 0u;
+        size_t copy_len = std::min(frame->DataSize, buf.Size);
+        memcpy(frame->Data, buf.Data, copy_len);
+        frame->AvailSize = copy_len;
+        frame->Timestamp = buf.Ts;
+        return copy_len;
+    }
+    bool Rewind()
+    {
+        return _decoder->Rewind();
+    }
+    int64_t Seek(int64_t pos_ms)
+    {
+        return _decoder->Seek(pos_ms);
+    }
+
+private:
+    std::unique_ptr<SDLDecoder> _decoder;
+};
+
 class AGSAudioPlayer : public IAGSAudioPlayer
 {
 public:
@@ -846,13 +896,17 @@ public:
     {
         return PLUGIN_API_VERSION;
     }
+    void   Close() override
+    {
+        delete this; // darn...
+    }
     void   SetConfig(AGSAudioPlayConfig *config) override
     {
         _audioOut->SetVolume(config->Volume);
     }
-    void   Close() override
+    int64_t GetPosition() override
     {
-        delete this; // darn...
+        return _audioOut->GetPositionMs();
     }
     void   Pause() override
     {
@@ -873,6 +927,16 @@ public:
 private:
     std::unique_ptr<OpenAlSource> _audioOut;
 };
+
+IAGSAudioDecoder *IAGSEngine::OpenAudioDecoder(::IAGSStream *input_stream, AGSAudioFormat *out_format)
+{
+    /*
+    auto *decoder = AGSAudioDecoder(
+        std::make_unique<SDLDecoder>()
+    );
+    */
+    return nullptr;
+}
 
 IAGSAudioPlayer *IAGSEngine::OpenAudioPlayer(AGSAudioFormat *in_format, AGSAudioPlayConfig *config)
 {
