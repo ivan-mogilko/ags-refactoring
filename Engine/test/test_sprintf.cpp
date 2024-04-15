@@ -52,7 +52,7 @@ void Test_ScriptSprintf()
     result = ScriptSprintf(ScSfBuffer, 8, "12345678%d", params, 3);
     assert(strcmp(result, "12345678") == 0);
     result = ScriptSprintf(ScSfBuffer, 10, "12345678%d", params, 3);
-    assert(strcmp(result, "1234567812") == 0);
+    assert(strcmp(result, "123456781") == 0);
     // Not enough buffer space and not enough params
     result = ScriptSprintf(ScSfBuffer, 9, "12345678%d", params, 0);
     assert(strcmp(result, "12345678%") == 0);

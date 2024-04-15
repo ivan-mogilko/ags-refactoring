@@ -82,6 +82,8 @@ int CustomPropertySchema::UnSerialize (Stream *in) {
     if (in->ReadInt32() != 1)
         return -1;
     numProps = in->ReadInt32();
+    if (numProps > MAX_CUSTOM_PROPERTIES)
+        return -2;
     for (int kk = 0; kk < numProps; kk++) {
         this->resetProperty (kk);
         fgetstring_limit (propName[kk], in, 20);
@@ -148,6 +150,8 @@ int CustomProperties::UnSerialize (Stream *in) {
     if (in->ReadInt32() != 1)
         return -1;
     numProps = in->ReadInt32();
+    if (numProps > MAX_CUSTOM_PROPERTIES)
+        return -2;
     for (int ee = 0; ee < numProps; ee++) {
         propName[ee] = (char*)malloc(200);
         propVal[ee] = (char*)malloc(MAX_CUSTOM_PROPERTY_VALUE_LENGTH);
