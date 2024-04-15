@@ -132,6 +132,32 @@ RGB_MAP rgb_table;  // for 256-col antialiasing
 int new_room_flags=0;
 int gs_to_newroom=-1;
 
+void copy_properties_to_current_room_state()
+{
+	for(int i = 0; i < thisroom.roomProps.numProps; i++)
+	{
+		if(croom->roomProps.findProperty(thisroom.roomProps.propName[i]) < 0)
+			croom->roomProps.addProperty(thisroom.roomProps.propName[i], thisroom.roomProps.propVal[i]);
+	}
+
+	for (int i = 0; i < MAX_HOTSPOTS; ++i)
+	{
+		for(int ii = 0; ii < thisroom.hsProps[i].numProps; ii++)
+		{
+			if(croom->hsProps[i].findProperty(thisroom.hsProps[i].propName[ii]) < 0)
+				croom->hsProps[i].addProperty(thisroom.hsProps[i].propName[ii], thisroom.hsProps[i].propVal[ii]);
+		}
+	}
+	for (int i = 0; i < MAX_INIT_SPR; ++i)
+	{
+		for(int ii = 0; ii < thisroom.objProps[i].numProps; ii++)
+		{
+			if(croom->objProps[i].findProperty(thisroom.objProps[i].propName[ii]) < 0)
+				croom->objProps[i].addProperty(thisroom.objProps[i].propName[ii], thisroom.objProps[i].propVal[ii]);
+		}
+	}
+}
+
 ScriptDrawingSurface* Room_GetDrawingSurfaceForBackground(int backgroundNumber)
 {
     if (displayed_room < 0)
@@ -189,8 +215,24 @@ int Room_GetMusicOnLoad() {
     return thisroom.options[ST_TUNE];
 }
 
-const char* Room_GetTextProperty(const char *property) {
-    return get_text_property_dynamic_string(&thisroom.roomProps, property);
+int Room_GetProperty(const char *property)
+{
+	return get_int_property(&croom->roomProps, property);
+}
+
+const char* Room_GetTextProperty(const char *property)
+{
+	return get_text_property_dynamic_string(&croom->roomProps, property);
+}
+
+void Room_SetProperty(const char *property, int value)
+{
+	set_int_property(&croom->roomProps, property, value);
+}
+
+void Room_SetTextProperty(const char *property, const char *value)
+{
+	set_text_property(&croom->roomProps, property, value);
 }
 
 const char* Room_GetMessages(int index) {
@@ -686,6 +728,8 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
             croom->intrRegion[cc] = thisroom.intrRegion[cc][0];
     }
 
+	copy_properties_to_current_room_state();
+
     objs=&croom->obj[0];
 
     for (cc = 0; cc < MAX_INIT_SPR; cc++) {
@@ -1116,6 +1160,24 @@ RuntimeScriptValue Sc_Room_GetTextProperty(const RuntimeScriptValue *params, int
     API_SCALL_OBJ_POBJ(const char, myScriptStringImpl, Room_GetTextProperty, const char);
 }
 
+// int (ScriptObject *objj, const char *property)
+RuntimeScriptValue Sc_Room_GetProperty(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_INT_POBJ(Room_GetProperty, const char);
+}
+
+// const char* (CharacterInfo *chaa, const char *property)
+RuntimeScriptValue Sc_Room_SetTextProperty(const RuntimeScriptValue *params, int32_t param_count)
+{
+	API_SCALL_VOID_POBJ2(Room_SetTextProperty, const char, const char);
+}
+
+// int (CharacterInfo *chaa, const char *property)
+RuntimeScriptValue Sc_Room_SetProperty(const RuntimeScriptValue *params, int32_t param_count)
+{
+	API_SCALL_VOID_POBJ_PINT(Room_SetProperty, const char);
+}
+
 // int ()
 RuntimeScriptValue Sc_Room_GetBottomEdge(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -1181,6 +1243,9 @@ void RegisterRoomAPI()
 {
     ccAddExternalStaticFunction("Room::GetDrawingSurfaceForBackground^1",   Sc_Room_GetDrawingSurfaceForBackground);
     ccAddExternalStaticFunction("Room::GetTextProperty^1",                  Sc_Room_GetTextProperty);
+	ccAddExternalStaticFunction("Room::GetProperty^1",						Sc_Room_GetProperty);
+	ccAddExternalStaticFunction("Room::SetTextProperty^2",					Sc_Room_SetTextProperty);
+	ccAddExternalStaticFunction("Room::SetProperty^2",						Sc_Room_SetProperty);
     ccAddExternalStaticFunction("Room::get_BottomEdge",                     Sc_Room_GetBottomEdge);
     ccAddExternalStaticFunction("Room::get_ColorDepth",                     Sc_Room_GetColorDepth);
     ccAddExternalStaticFunction("Room::get_Height",                         Sc_Room_GetHeight);

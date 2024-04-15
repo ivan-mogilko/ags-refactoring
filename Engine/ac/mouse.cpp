@@ -502,6 +502,25 @@ RuntimeScriptValue Sc_Mouse_SetVisible(const RuntimeScriptValue *params, int32_t
     API_SCALL_VOID_PINT(Mouse_SetVisible);
 }
 
+RuntimeScriptValue Sc_Mouse_GetControlEnabled(const RuntimeScriptValue *params, int32_t param_count)
+{
+    return RuntimeScriptValue().SetInt32(0);
+}
+
+RuntimeScriptValue Sc_Mouse_SetControlEnabled(const RuntimeScriptValue *params, int32_t param_count)
+{
+    return RuntimeScriptValue();
+}
+
+RuntimeScriptValue Sc_Mouse_GetSpeed(const RuntimeScriptValue *params, int32_t param_count)
+{
+    return RuntimeScriptValue().SetFloat(1.0);
+}
+
+RuntimeScriptValue Sc_Mouse_SetSpeed(const RuntimeScriptValue *params, int32_t param_count)
+{
+    return RuntimeScriptValue();
+}
 
 void RegisterMouseAPI()
 {
@@ -519,8 +538,12 @@ void RegisterMouseAPI()
     ccAddExternalStaticFunction("Mouse::Update^0",                  Sc_RefreshMouse);
     ccAddExternalStaticFunction("Mouse::UseDefaultGraphic^0",       Sc_set_default_cursor);
     ccAddExternalStaticFunction("Mouse::UseModeGraphic^1",          Sc_set_mouse_cursor);
+	ccAddExternalStaticFunction("Mouse::get_ControlEnabled",        Sc_Mouse_GetControlEnabled);
+	ccAddExternalStaticFunction("Mouse::set_ControlEnabled",        Sc_Mouse_SetControlEnabled);
     ccAddExternalStaticFunction("Mouse::get_Mode",                  Sc_GetCursorMode);
     ccAddExternalStaticFunction("Mouse::set_Mode",                  Sc_set_cursor_mode);
+	ccAddExternalStaticFunction("Mouse::get_Speed",                 Sc_Mouse_GetSpeed);
+	ccAddExternalStaticFunction("Mouse::set_Speed",                 Sc_Mouse_SetSpeed);
     ccAddExternalStaticFunction("Mouse::get_Visible",               Sc_Mouse_GetVisible);
     ccAddExternalStaticFunction("Mouse::set_Visible",               Sc_Mouse_SetVisible);
 

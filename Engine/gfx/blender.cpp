@@ -210,7 +210,10 @@ unsigned long _argb2argb_alpha_blender(unsigned long src_col, unsigned long dst_
     // src_alpha is now the final alpha factor made for being multiplied by,
     // instead of divided by: this makes it possible to use it in faster
     // calculation below
-    src_alpha  = /* 256 * 256 == */ 0x10000 / dst_alpha;
+    if(dst_alpha > 0)
+        src_alpha  = /* 256 * 256 == */ 0x10000 / dst_alpha;
+    else
+		return 0; // JSH: Division by zero fix, seems to still blend correctly.
     
     // setting up final color hues
     dst_g   = (dst_g   * src_alpha / 256) & 0x00FF00;

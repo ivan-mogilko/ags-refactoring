@@ -20,6 +20,7 @@
 
 #include "ac/roomobject.h"
 #include "ac/interaction.h"
+#include "ac/customproperties.h"
 
 // Forward declaration
 namespace AGS { namespace Common { class Stream; } }
@@ -38,6 +39,11 @@ struct RoomStatus {
     NewInteraction intrObject [MAX_INIT_SPR];
     NewInteraction intrRegion [MAX_REGIONS];
     NewInteraction intrRoom;
+
+	CustomProperties roomProps;
+	CustomProperties hsProps[MAX_HOTSPOTS];
+	CustomProperties objProps[MAX_INIT_SPR];
+
     // [IKM] 2012-06-22: not used anywhere
 #ifdef UNUSED_CODE
     EventBlock hscond[MAX_HOTSPOTS];
@@ -55,6 +61,8 @@ struct RoomStatus {
     void WriteToFile_v321(Common::Stream *out);
     void ReadRoomObjects_Aligned(Common::Stream *in);
     void WriteRoomObjects_Aligned(Common::Stream *out);
+
+	void ClearProperties();
 };
 
 // Replaces all accesses to the roomstats array

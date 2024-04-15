@@ -52,7 +52,7 @@ unsigned long filedates[MAXSAVEGAMES];
 CSCIMessage smes;
 
 char buff[200];
-int myscrnwid = 320, myscrnhit = 200;
+int myscrnwid = 320, myscrnhit = 240;
 
 
 

@@ -108,6 +108,19 @@ const char *CustomProperties::getPropertyValue (const char *pname) {
     return propVal[idxx];
 }
 
+void CustomProperties::setPropertyValue (const char *pname, const char *value) {
+	int idxx = findProperty(pname);
+	if (idxx >= 0)
+	{
+		strcpy(propVal[idxx], value);
+
+	}
+	else
+	{
+		addProperty(pname, value);
+	}
+}
+
 // Find the index of the specified property
 int CustomProperties::findProperty (const char *pname) {
     for (int ii = 0; ii < numProps; ii++) {

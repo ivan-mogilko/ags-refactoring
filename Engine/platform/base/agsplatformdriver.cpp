@@ -141,6 +141,9 @@ int AGSPlatformDriver::ConvertKeycodeToScanCode(int keycode)
     return keycode;
 }
 
+bool AGSPlatformDriver::LockMouseToWindow() { return false; }
+void AGSPlatformDriver::UnlockMouse() { }
+
 //-----------------------------------------------
 // IOutputTarget implementation
 //-----------------------------------------------

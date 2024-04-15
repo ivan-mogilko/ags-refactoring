@@ -21,6 +21,14 @@
 // this struct is redefined in acdialog.cpp, any changes might
 // need to be reflected there
 // [IKM] 2012-06-27: now it isn't
+
+enum MouseSpeedDef
+{
+	kMouseSpeed_Absolute,       // apply speed multiplier directly
+	kMouseSpeed_CurrentDisplay, // keep speed/resolution relation based on current system display mode
+	kNumMouseSpeedDefs
+};
+
 struct GameSetup {
     int digicard,midicard;
     int mod_player;
@@ -42,6 +50,8 @@ struct GameSetup {
     AGS::Common::String gfxDriverID;
     int   override_script_os;
     char  override_multitasking;
+	float mouse_speed;
+	MouseSpeedDef mouse_speed_def;
     GameSetup();
 };
 

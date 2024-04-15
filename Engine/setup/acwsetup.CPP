@@ -19,6 +19,7 @@
 #include "resource/resource.h"
 #include "gfx/gfxfilter.h"
 #include "util/filestream.h"
+#include "platform/base/agsplatformdriver.h"
 
 using AGS::Common::Stream;
 using namespace AGS; // FIXME later
@@ -58,8 +59,10 @@ int curmaxcache = 1024 * 20, curusespeech = 1;
 int wwidth, wheight;
 GFXFilter **filterList = NULL;
 const int specialFilterListIndex = 1;
-const char *specialFilterName = "Max nearest-neighbour filter";
+const char *specialFilterName = "Automatic";
 const char *specialFilterID = "max";
+
+extern AGSPlatformDriver* platform;
 
 int get_filter_real_index(int list_index)
 {
@@ -114,7 +117,7 @@ void update_resolution_texts(HWND hDlg) {
   else if (defaultRes >= 3)
   {
     resx = 640;
-    resy = 400;
+    resy = 360;
   }
   else 
   {
@@ -129,12 +132,18 @@ void update_resolution_texts(HWND hDlg) {
 
   thisx = resx;
   thisy = resy;
+  bool bAutoDetect = selectedFilter == specialFilterListIndex;
   selectedFilter = get_filter_real_index(selectedFilter);
   if (selectedFilter >= 0)
   {
     filterList[selectedFilter]->GetRealResolution(&thisx, &thisy);
   }
-  sprintf(buffer, "Resolution: %d""x%d", thisx, thisy);
+  
+  if(bAutoDetect)
+	sprintf(buffer, "Resolution: %s", "Auto-Detected");
+  else
+	sprintf(buffer, "Resolution: %d""x%d", thisx, thisy);
+
   SendDlgItemMessage (hDlg, IDC_RESOLUTION, WM_SETTEXT, 0, (LPARAM)buffer);
 }
 
@@ -302,16 +311,16 @@ void InitializeDialog(HWND hDlg) {
   SendDlgItemMessage(hDlg,IDC_COMBO1,CB_ADDSTRING,0,(LPARAM)"DirectSound (Hardware mixer)");
   SendDlgItemMessage(hDlg,IDC_COMBO1,CB_SETTOPINDEX,0,0);
   SendDlgItemMessage(hDlg,IDC_COMBO1,CB_SETCURSEL,curdigi,0);
-  SendDlgItemMessage(hDlg,IDC_COMBO2,CB_ADDSTRING,0,(LPARAM)"Default MCI Music Device");
+  /*SendDlgItemMessage(hDlg,IDC_COMBO2,CB_ADDSTRING,0,(LPARAM)"Default MCI Music Device");
   SendDlgItemMessage(hDlg,IDC_COMBO2,CB_ADDSTRING,0,(LPARAM)"Disable music");
-  SendDlgItemMessage(hDlg,IDC_COMBO2,CB_ADDSTRING,0,(LPARAM)"Win32 MIDI Mapper");
+  SendDlgItemMessage(hDlg,IDC_COMBO2,CB_ADDSTRING,0,(LPARAM)"Win32 MIDI Mapper");*/
   SendDlgItemMessage(hDlg,IDC_COMBO2,CB_SETTOPINDEX,0,0);
   SendDlgItemMessage(hDlg,IDC_COMBO2,CB_SETCURSEL,curmidi,0);
-  SendDlgItemMessage(hDlg,IDC_COMBO3,CB_ADDSTRING,0,(LPARAM)"Game Default");
+  SendDlgItemMessage(hDlg,IDC_COMBO3,CB_ADDSTRING,0,(LPARAM)"English");
   SendDlgItemMessage(hDlg,IDC_COMBO3,CB_SETCURSEL,0,0);
   idx = 1;
 
-  char translationFindSpec[255];
+  /*char translationFindSpec[255];
   sprintf(translationFindSpec, "%s\\*.tra", curdatadir);
   // Find and add all translations in folder
   if ((hFile = _findfirst(translationFindSpec, &c_file )) != -1L ) {
@@ -325,7 +334,7 @@ void InitializeDialog(HWND hDlg) {
         // if this is the translation we're using, set it
         if (stricmp (curtranslation, c_file.name) == 0)
           needToSet = 1;
-        strcat (c_file.name, " translation");
+        strcat (c_file.name, "");
         SendDlgItemMessage(hDlg,IDC_COMBO3,CB_ADDSTRING,0,(LPARAM)c_file.name);
 
         if (needToSet)
@@ -335,7 +344,7 @@ void InitializeDialog(HWND hDlg) {
     } while( _findnext( hFile, &c_file ) == 0 );
 
     _findclose( hFile );
-  }
+  }*/
   SendDlgItemMessage(hDlg,IDC_COMBO4,CB_ADDSTRING,0,(LPARAM)"10 MB");
   SendDlgItemMessage(hDlg,IDC_COMBO4,CB_ADDSTRING,0,(LPARAM)"20 MB (default)");
   SendDlgItemMessage(hDlg,IDC_COMBO4,CB_ADDSTRING,0,(LPARAM)"50 MB");
@@ -420,7 +429,7 @@ void InitializeDialog(HWND hDlg) {
     SendDlgItemMessage(hDlg, IDC_REDUCESPR, BM_SETCHECK, BST_CHECKED,0);
 
   // if no speech pack, disable the checkbox
-  if (!Common::File::TestReadFile("speech.vox"))
+ // if (!Common::File::TestReadFile("speech.vox"))
     EnableWindow (GetDlgItem (hDlg, IDC_SPEECHPACK), FALSE);
 
   if (INIreadint("disabled", "speechvox", 0) == 1)
@@ -541,7 +550,7 @@ LRESULT CALLBACK callback_settings(HWND hDlg, UINT message, WPARAM wParam, LPARA
           if (idx > 0) {
             SendDlgItemMessage(hDlg,IDC_COMBO3,CB_GETLBTEXT,idx,(LPARAM)curtranslation);
             // cut the end off
-            strstr (curtranslation, " translation")[0] = 0;
+           // strstr (curtranslation, " translation")[0] = 0;
           }
           else
             curreplay[0] = 0;
@@ -573,7 +582,7 @@ LRESULT CALLBACK callback_settings(HWND hDlg, UINT message, WPARAM wParam, LPARA
             toWrite = NULL;
           WritePrivateProfileString("misc","cachemax", toWrite,ac_config_file);
 
-          if (SendDlgItemMessage(hDlg,IDC_SPEECHPACK,BM_GETCHECK,0,0) == BST_CHECKED)
+          if (true)//SendDlgItemMessage(hDlg,IDC_SPEECHPACK,BM_GETCHECK,0,0) == BST_CHECKED)
             WritePrivateProfileString ("sound", "usespeech", NULL, ac_config_file);
           else
             WritePrivateProfileString ("sound", "usespeech", "0", ac_config_file);
@@ -690,6 +699,14 @@ int acwsetup(const char*vername, const char*enbuild) {
   }
 
   HWND allegro_wnd = win_get_window();
+#ifdef TWITCH
+  // This is done to make sure the config file is always saved to the saved games folder, even if it doesn't exist at first.
+  char oldDirBuffer[MAX_PATH];
+  char newDirBuffer[MAX_PATH];
+  sprintf(oldDirBuffer, "$MYDOCS$\\%s\\acsetup.cfg", "Kathy Rain");
+  platform->ReplaceSpecialPaths(oldDirBuffer, newDirBuffer);
+  strcpy(ac_config_file, newDirBuffer);
+#endif
 
   if (DialogBox(GetModuleHandle(NULL), (LPCTSTR)IDD_DIALOG1,allegro_wnd,(DLGPROC)callback_settings) == IDOKRUN)
     return 1;

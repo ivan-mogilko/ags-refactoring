@@ -18,6 +18,7 @@
 #include "ac/string.h"
 #include "ac/dynobj/scriptstring.h"
 #include "script/runtimescriptvalue.h"
+#include "util/string_utils.h"
 
 extern GameSetupStruct game;
 extern ScriptString myScriptStringImpl;
@@ -56,6 +57,37 @@ void get_text_property (CustomProperties *cprop, const char *property, char *buf
         valtemp = game.propSchema.defaultValue[idx];
     }
     strcpy (bufer, valtemp);
+}
+
+void set_int_property (CustomProperties *cprop, const char *property, const int value)
+{
+	int idx = game.propSchema.findProperty(property);
+
+	if (idx < 0)
+		quit("!SetPropertyText: no such property found in schema. Make sure you are using the property's name, and not its description, when calling this command.");
+
+	if (game.propSchema.propType[idx] == PROP_TYPE_STRING )
+		quit("!SetPropertyText: need to use SetProperty for a non-text property");
+
+	char buffer[16];
+	
+	sprintf(buffer,"%d", value);
+	cprop->setPropertyValue(property, buffer);
+	//strcpy(game.propSchema.defaultValue[idx], buffer);
+}
+
+void set_text_property (CustomProperties *cprop, const char *property, const char* value)
+{
+	int idx = game.propSchema.findProperty(property);
+
+	if (idx < 0)
+		quit("!SetPropertyText: no such property found in schema. Make sure you are using the property's name, and not its description, when calling this command.");
+
+	if (game.propSchema.propType[idx] != PROP_TYPE_STRING)
+		quit("!SetPropertyText: need to use SetProperty for a non-text property");
+
+	cprop->setPropertyValue(property, value);
+	//strcpy(game.propSchema.defaultValue[idx], value);
 }
 
 const char* get_text_property_dynamic_string(CustomProperties *cprop, const char *property) {

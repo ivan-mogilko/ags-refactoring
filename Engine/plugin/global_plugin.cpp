@@ -17,6 +17,7 @@
 #include "ac/mouse.h"
 
 int pluginSimulatedClick = NONE;
+extern bool android_is_phone;
 
 void PluginSimulateMouseClick(int pluginButtonID) {
     pluginSimulatedClick = pluginButtonID - 1;
@@ -159,25 +160,90 @@ void SetFlashlightInt5(int Param1, int Param2, int Param3, int Param4, int Param
 {
 }
 
+
+#include <assert.h>
+#if defined(ANDROID_VERSION)
+#include <android/log.h>
+#endif
+
 bool wjuIsOnPhone()
 {
+#if defined (ANDROID_VERSION)
+    //__android_log_print(ANDROID_LOG_DEBUG, "ACHIEVEMENTS", "COME ON FFS OK1");
+  return android_is_phone;
+#endif
   return false;
 }
+
+extern "C"
+{
+	void simulate_keypress(int keypress);
+}
+
 void wjuFakeKeypress(int keypress)
 {
+	simulate_keypress(keypress);
 }
-void wjuIosSetAchievementValue(char* name, int value)
+
+#ifdef ANDROID_VERSION
+extern "C"
 {
+	extern int AndroidGetAchievement(char* name);
+	extern void AndroidSetAchievement(char* name, int value);
+	extern void AndroidShowAchievements();
+	extern void AndroidResetAchievements();
+};
+#endif
+
+void wjuSetAchievement(char* name, int value)
+{
+#ifdef ANDROID_VERSION
+    AndroidSetAchievement(name, value);
+#endif
 }
-int wjuIosGetAchievementValue(char* name)
+int wjuGetAchievement(char* name)
 {
+#ifdef ANDROID_VERSION
+  return AndroidGetAchievement(name);
+#endif
   return -1;
 }
-void wjuIosShowAchievements()
+void wjuShowAchievements()
 {
+#ifdef ANDROID_VERSION
+  return AndroidShowAchievements();
+#endif
 }
-void wjuIosResetAchievements()
+void wjuResetAchievements()
 {
+#ifdef ANDROID_VERSION
+	AndroidResetAchievements();
+#endif
+}
+
+void SetSpriteFont(int fontNum, int sprite, int rows, int columns, int charWidth, int charHeight, int charMin, int charMax, bool use32bit)
+{
+
+}
+
+void SetVariableSpriteFont(int fontNum, int sprite)
+{
+
+}
+
+void SetGlyph(int fontNum, int charNum, int x, int y, int width, int height)
+{
+
+}
+
+void SetSpacing(int fontNum, int spacing)
+{
+
+}
+
+void SetLineHeightAdjust(int fontNum, int LineHeight, int SpacingHeight, int SpacingOverride)
+{
+
 }
 
 //=============================================================================
@@ -445,26 +511,64 @@ RuntimeScriptValue Sc_wjuFakeKeypress(const RuntimeScriptValue *params, int32_t 
 // void (char*, int)
 RuntimeScriptValue Sc_wjuIosSetAchievementValue(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID_POBJ_PINT(wjuIosSetAchievementValue, char);
+    API_SCALL_VOID_POBJ_PINT(wjuSetAchievement, char);
 }
 
 // int (char*)
 RuntimeScriptValue Sc_wjuIosGetAchievementValue(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_INT_POBJ(wjuIosGetAchievementValue, char);
+    API_SCALL_INT_POBJ(wjuGetAchievement, char);
 }
 
 // void ()
 RuntimeScriptValue Sc_wjuIosShowAchievements(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID(wjuIosShowAchievements);
+    API_SCALL_VOID(wjuShowAchievements);
 }
 
 // void ()
 RuntimeScriptValue Sc_wjuIosResetAchievements(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_VOID(wjuIosResetAchievements);
+    API_SCALL_VOID(wjuResetAchievements);
 }
+
+// void ()
+RuntimeScriptValue Sc_SetSpriteFont(const RuntimeScriptValue *params, int32_t param_count)
+{
+	API_SCALL_VOID_PINT2(SetVariableSpriteFont);
+}
+
+// void ()
+RuntimeScriptValue Sc_SetVariableSpriteFont(const RuntimeScriptValue *params, int32_t param_count)
+{
+	API_SCALL_VOID_PINT2(SetVariableSpriteFont);
+}
+
+// void ()
+RuntimeScriptValue Sc_SetGlyph(const RuntimeScriptValue *params, int32_t param_count)
+{
+	API_SCALL_VOID_PINT6(SetGlyph);
+}
+
+// void ()
+RuntimeScriptValue Sc_SetLineHeightAdjust(const RuntimeScriptValue *params, int32_t param_count)
+{
+	API_SCALL_VOID_PINT4(SetLineHeightAdjust);
+}
+
+
+// void ()
+RuntimeScriptValue Sc_SetSpacing(const RuntimeScriptValue *params, int32_t param_count)
+{
+	API_SCALL_VOID_PINT2(SetSpacing);
+}
+/*
+void SetSpriteFont(int fontNum, int sprite, int rows, int columns, int charWidth, int charHeight, int charMin, int charMax, bool use32bit)
+void SetVariableSpriteFont(int fontNum, int sprite)
+void SetGlyph(int fontNum, int charNum, int x, int y, int width, int height)
+void SetSpacing(int fontNum, int spacing)
+*/
+
 
 
 RuntimeScriptValue Sc_PluginStub_Void(const RuntimeScriptValue *params, int32_t param_count)
@@ -589,11 +693,20 @@ bool RegisterPluginStubs(const char* name)
     // agswadjetutil.dll
     ccAddExternalStaticFunction("IsOnPhone",                    Sc_wjuIsOnPhone);
     ccAddExternalStaticFunction("FakeKeypress",                 Sc_wjuFakeKeypress);
-    ccAddExternalStaticFunction("IosSetAchievementValue",       Sc_wjuIosSetAchievementValue);
-    ccAddExternalStaticFunction("IosGetAchievementValue",       Sc_wjuIosGetAchievementValue);
-    ccAddExternalStaticFunction("IosShowAchievements",          Sc_wjuIosShowAchievements);
-    ccAddExternalStaticFunction("IosResetAchievements",         Sc_wjuIosResetAchievements);
+    ccAddExternalStaticFunction("MobileGetAchievement",       Sc_wjuIosGetAchievementValue);
+    ccAddExternalStaticFunction("MobileSetAchievement",       Sc_wjuIosSetAchievementValue);
+    ccAddExternalStaticFunction("MobileShowAchievements",          Sc_wjuIosShowAchievements);
+    ccAddExternalStaticFunction("MobileResetAchievements",         Sc_wjuIosResetAchievements);
     return true;
+  }
+  else if (strncmp(name, "ags-spritefont-plugin", strlen("ags-spritefont-plugin")) == 0)
+  {
+	  ccAddExternalStaticFunction("SetSpriteFont",          Sc_SetSpriteFont);
+	  ccAddExternalStaticFunction("SetVariableSpriteFont",  Sc_SetVariableSpriteFont);
+	  ccAddExternalStaticFunction("SetGlyph",				Sc_SetGlyph);
+	  ccAddExternalStaticFunction("SetSpacing",				Sc_SetSpacing);
+	  ccAddExternalStaticFunction("SetLineHeightAdjust",	Sc_SetLineHeightAdjust);
+	  return true;
   }
   else if (is_agsteam || is_agsgalaxy)
   {

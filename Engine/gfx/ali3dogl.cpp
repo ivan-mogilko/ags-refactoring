@@ -40,7 +40,7 @@ namespace BitmapHelper = AGS::Common::BitmapHelper;
 
 #include <GL/glext.h>
 
-int psp_gfx_smoothing = 1;
+int psp_gfx_smoothing = 0;
 int psp_gfx_scaling = 1;
 int psp_gfx_renderer = 0;
 int psp_gfx_super_sampling = 0;
@@ -386,8 +386,8 @@ public:
   virtual const char*GetDriverID() { return "OGL"; }
   virtual void SetGraphicsFilter(GFXFilter *filter);
   virtual void SetTintMethod(TintMethod method);
-  virtual bool Init(int width, int height, int colourDepth, bool windowed, volatile int *loopTimer);
-  virtual bool Init(int virtualWidth, int virtualHeight, int realWidth, int realHeight, int colourDepth, bool windowed, volatile int *loopTimer);
+  virtual bool Init(int width, int height, int colourDepth, bool windowed, volatile int *loopTimer, bool iginorefilter = false);
+  virtual bool Init(int virtualWidth, int virtualHeight, int realWidth, int realHeight, int colourDepth, bool windowed, volatile int *loopTimer, bool ignorefilter);
   virtual IGfxModeList *GetSupportedModeList(int color_depth);
   virtual void SetCallbackForPolling(GFXDRV_CLIENTCALLBACK callback) { _pollingCallback = callback; }
   virtual void SetCallbackToDrawScreen(GFXDRV_CLIENTCALLBACK callback) { _drawScreenCallback = callback; }
@@ -429,6 +429,8 @@ public:
   void _reDrawLastFrame();
   OGLGraphicsDriver(D3DGFXFilter *filter);
   virtual ~OGLGraphicsDriver();
+
+  virtual GFXFilter* GetGraphicsFilter() {return (GFXFilter*)_filter;}
 
   D3DGFXFilter *_filter;
 
@@ -808,12 +810,12 @@ void OGLGraphicsDriver::InitOpenGl()
   create_backbuffer_arrays();
 }
 
-bool OGLGraphicsDriver::Init(int width, int height, int colourDepth, bool windowed, volatile int *loopTimer) 
+bool OGLGraphicsDriver::Init(int width, int height, int colourDepth, bool windowed, volatile int *loopTimer, bool ignorefilter) 
 {
-  return this->Init(width, height, width, height, colourDepth, windowed, loopTimer);
+  return this->Init(width, height, width, height, colourDepth, windowed, loopTimer, ignorefilter);
 }
 
-bool OGLGraphicsDriver::Init(int virtualWidth, int virtualHeight, int realWidth, int realHeight, int colourDepth, bool windowed, volatile int *loopTimer)
+bool OGLGraphicsDriver::Init(int virtualWidth, int virtualHeight, int realWidth, int realHeight, int colourDepth, bool windowed, volatile int *loopTimer, bool ignorefilter)
 {
 #if defined(ANDROID_VERSION)
   android_create_screen(realWidth, realHeight, colourDepth);
@@ -847,7 +849,15 @@ bool OGLGraphicsDriver::Init(int virtualWidth, int virtualHeight, int realWidth,
     _render_to_texture = false;
   }
 
-  _filter->GetRealResolution(&_newmode_screen_width, &_newmode_screen_height);
+  if(!ignorefilter)
+	_filter->GetRealResolution(&_newmode_screen_width, &_newmode_screen_height);
+  else
+  {
+	  int diff1 = 1, diff2 = 1;
+	  _filter->GetRealResolution(&diff1,&diff2);
+	  _newmode_width /= diff1;
+	  _newmode_height /= diff2;
+  }
 
   try
   {

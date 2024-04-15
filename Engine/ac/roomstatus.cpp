@@ -46,6 +46,17 @@ void RoomStatus::ReadFromFile_v321(Stream *in)
     in->ReadArrayOfInt8((int8_t*)region_enabled, MAX_REGIONS);
     in->ReadArrayOfInt16(walkbehind_base, MAX_OBJ);
     in->ReadArrayOfInt32(interactionVariableValues, MAX_GLOBAL_VARIABLES);
+
+	roomProps.UnSerialize(in);
+
+
+	for(int i = 0; i < MAX_HOTSPOTS; i++)
+		hsProps[i].UnSerialize(in);
+
+
+	for(int i = 0; i < MAX_INIT_SPR; i++)
+		objProps[i].UnSerialize(in);
+
 }
 
 void RoomStatus::WriteToFile_v321(Stream *out)
@@ -73,6 +84,14 @@ void RoomStatus::WriteToFile_v321(Stream *out)
     out->Write(region_enabled, MAX_REGIONS);
     out->WriteArrayOfInt16(walkbehind_base, MAX_OBJ);
     out->WriteArrayOfInt32(interactionVariableValues,MAX_GLOBAL_VARIABLES);
+
+	roomProps.Serialize(out);
+
+	for(int i = 0; i < MAX_HOTSPOTS; i++)
+		hsProps[i].Serialize(out);
+
+	for(int i = 0; i < MAX_INIT_SPR; i++)
+		objProps[i].Serialize(out);
 }
 
 void RoomStatus::ReadRoomObjects_Aligned(Common::Stream *in)
@@ -146,4 +165,17 @@ void resetRoomStatuses()
             }
         }
     }
+}
+
+void RoomStatus::ClearProperties()
+{
+	roomProps.reset();
+	for (int i = 0; i < MAX_HOTSPOTS; ++i)
+	{
+		hsProps[i].reset();
+	}
+	for (int i = 0; i < MAX_INIT_SPR; ++i)
+	{
+		objProps[i].reset();
+	}
 }

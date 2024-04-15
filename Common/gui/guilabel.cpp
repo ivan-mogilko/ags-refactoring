@@ -107,6 +107,9 @@ void GUILabel::Draw(Common::Bitmap *ds)
 
   teptr = &oritext[0];
   TEXT_HT = wgettextheight("ZhypjIHQFb", font) + 1;
+  int LineSpacing = wgettextheight("<LINE_SPACING>", font);
+  if(LineSpacing == 0)
+	LineSpacing = TEXT_HT;
 
   color_t text_color = ds->GetCompatibleColor(textcol);
 
@@ -114,9 +117,12 @@ void GUILabel::Draw(Common::Bitmap *ds)
 
   for (int aa = 0; aa < numlines; aa++) {
     printtext_align(ds, cyp, text_color, lines[aa]);
-    cyp += TEXT_HT;
-    if (cyp > y + hit)
+	if(strlen(lines[aa]) > 0)
+		cyp += TEXT_HT;
+	else
+		cyp += LineSpacing;
+	
+	if (cyp > y + hit)
       break;
   }
-
 }

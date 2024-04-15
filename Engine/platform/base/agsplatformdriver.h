@@ -33,7 +33,9 @@ enum eScriptSystemOSID {
     eOS_DOS = 1,
     eOS_Win = 2,
     eOS_Linux = 3,
-    eOS_Mac = 4
+    eOS_Mac = 4,
+	eOS_iOS = 5,
+	eOS_Android = 6,
 };
 
 struct AGSPlatformDriver
@@ -77,6 +79,9 @@ struct AGSPlatformDriver
     virtual void RunPluginInitGfxHooks(const char *driverName, void *data);
     virtual int  RunPluginDebugHooks(const char *scriptfile, int linenum);
     virtual void ShutdownPlugins();
+
+	virtual bool LockMouseToWindow();
+	virtual void UnlockMouse();
 
     static AGSPlatformDriver *GetDriver();
 

@@ -55,3 +55,14 @@ void SetLabelFont(int guin,int objn, int fontnum) {
     GUILabel*guil=(GUILabel*)guis[guin].objs[objn];
     Label_SetFont(guil, fontnum);
 }
+
+void SetLabelTextAlignment(int guin,int objn, int align) {
+
+	if ((guin<0) | (guin>=game.numgui)) quit("!SetLabelFont: invalid GUI number");
+	if ((objn<0) | (objn>=guis[guin].numobjs)) quit("!SetLabelFont: invalid object number");
+	if (guis[guin].get_control_type(objn)!=GOBJ_LABEL)
+		quit("!SetLabelFont: specified control is not a label");
+
+	GUILabel*guil=(GUILabel*)guis[guin].objs[objn];
+	Label_SetFont(guil, align);
+}

@@ -93,6 +93,15 @@ const char* InventoryItem_GetTextProperty(ScriptInvItem *scii, const char *prope
     return get_text_property_dynamic_string(&game.invProps[scii->id], property);
 }
 
+void InventoryItem_SetProperty(ScriptInvItem *scii, const char *property, const int value)
+{
+	set_int_property(&game.invProps[scii->id], property, value);
+}
+void InventoryItem_SetTextProperty(ScriptInvItem *scii, const char *property, const char* value)
+{
+	set_text_property(&game.invProps[scii->id], property, value);
+}
+
 //=============================================================================
 
 void set_inv_item_cursorpic(int invItemId, int piccy) 
@@ -155,6 +164,19 @@ RuntimeScriptValue Sc_InventoryItem_GetTextProperty(void *self, const RuntimeScr
     API_OBJCALL_OBJ_POBJ(ScriptInvItem, const char, myScriptStringImpl, InventoryItem_GetTextProperty, const char);
 }
 
+// int (CharacterInfo *chaa, const char *property)
+RuntimeScriptValue Sc_InventoryItem_SetProperty(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+	API_OBJCALL_VOID_POBJ_PINT(ScriptInvItem, InventoryItem_SetProperty, const char);
+}
+
+// const char* (CharacterInfo *chaa, const char *property)
+RuntimeScriptValue Sc_InventoryItem_SetTextProperty(void *self, const RuntimeScriptValue *params, int32_t param_count)
+{
+	API_OBJCALL_VOID_POBJ2(ScriptInvItem, InventoryItem_SetTextProperty, const char, const char);
+}
+
+
 // void (ScriptInvItem *iitem, int mood)
 RuntimeScriptValue Sc_InventoryItem_RunInteraction(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -213,6 +235,8 @@ void RegisterInventoryItemAPI()
     ccAddExternalObjectFunction("InventoryItem::GetProperty^1",             Sc_InventoryItem_GetProperty);
     ccAddExternalObjectFunction("InventoryItem::GetPropertyText^2",         Sc_InventoryItem_GetPropertyText);
     ccAddExternalObjectFunction("InventoryItem::GetTextProperty^1",         Sc_InventoryItem_GetTextProperty);
+	ccAddExternalObjectFunction("InventoryItem::SetTextProperty^2",         Sc_InventoryItem_SetTextProperty);
+	ccAddExternalObjectFunction("InventoryItem::SetProperty^2",				Sc_InventoryItem_SetProperty);
     ccAddExternalObjectFunction("InventoryItem::RunInteraction^1",          Sc_InventoryItem_RunInteraction);
     ccAddExternalObjectFunction("InventoryItem::SetName^1",                 Sc_InventoryItem_SetName);
     ccAddExternalObjectFunction("InventoryItem::get_CursorGraphic",         Sc_InventoryItem_GetCursorGraphic);
@@ -231,6 +255,8 @@ void RegisterInventoryItemAPI()
     ccAddExternalFunctionForPlugin("InventoryItem::GetProperty^1",             (void*)InventoryItem_GetProperty);
     ccAddExternalFunctionForPlugin("InventoryItem::GetPropertyText^2",         (void*)InventoryItem_GetPropertyText);
     ccAddExternalFunctionForPlugin("InventoryItem::GetTextProperty^1",         (void*)InventoryItem_GetTextProperty);
+	ccAddExternalFunctionForPlugin("InventoryItem::SetTextProperty^2",         (void*)InventoryItem_SetTextProperty);
+	ccAddExternalFunctionForPlugin("InventoryItem::SetProperty^2",			   (void*)InventoryItem_SetProperty);
     ccAddExternalFunctionForPlugin("InventoryItem::RunInteraction^1",          (void*)InventoryItem_RunInteraction);
     ccAddExternalFunctionForPlugin("InventoryItem::SetName^1",                 (void*)InventoryItem_SetName);
     ccAddExternalFunctionForPlugin("InventoryItem::get_CursorGraphic",         (void*)InventoryItem_GetCursorGraphic);

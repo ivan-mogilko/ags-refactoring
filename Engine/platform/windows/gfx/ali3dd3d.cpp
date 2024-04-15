@@ -286,8 +286,8 @@ public:
   virtual const char*GetDriverID() { return "D3D9"; }
   virtual void SetGraphicsFilter(GFXFilter *filter);
   virtual void SetTintMethod(TintMethod method);
-  virtual bool Init(int width, int height, int colourDepth, bool windowed, volatile int *loopTimer);
-  virtual bool Init(int virtualWidth, int virtualHeight, int realWidth, int realHeight, int colourDepth, bool windowed, volatile int *loopTimer);
+  virtual bool Init(int width, int height, int colourDepth, bool windowed, volatile int *loopTimer, bool ignorefilter = false);
+  virtual bool Init(int virtualWidth, int virtualHeight, int realWidth, int realHeight, int colourDepth, bool windowed, volatile int *loopTimer, bool ignorefilter);
   virtual IGfxModeList *GetSupportedModeList(int color_depth);
   virtual void SetCallbackForPolling(GFXDRV_CLIENTCALLBACK callback) { _pollingCallback = callback; }
   virtual void SetCallbackToDrawScreen(GFXDRV_CLIENTCALLBACK callback) { _drawScreenCallback = callback; }
@@ -321,6 +321,7 @@ public:
   virtual Bitmap* GetMemoryBackBuffer() { return NULL; }
   virtual void SetMemoryBackBuffer(Bitmap *backBuffer) {  }
   virtual void SetScreenTint(int red, int green, int blue);
+  virtual GFXFilter* GetGraphicsFilter() {return (GFXFilter*)_filter;}
 
   bool CreateDriver();
 
@@ -799,9 +800,9 @@ int D3DGraphicsDriver::_initDLLCallback()
   d3dpp.hDeviceWindow = allegro_wnd;
   d3dpp.Windowed = _newmode_windowed;
   d3dpp.EnableAutoDepthStencil = FALSE;
-  d3dpp.Flags = 0;
+  d3dpp.Flags = D3DPRESENTFLAG_LOCKABLE_BACKBUFFER;
   d3dpp.FullScreen_RefreshRateInHz = D3DPRESENT_RATE_DEFAULT;
-  d3dpp.PresentationInterval = D3DPRESENT_INTERVAL_IMMEDIATE; //D3DPRESENT_INTERVAL_DEFAULT;
+  d3dpp.PresentationInterval = D3DPRESENT_INTERVAL_ONE; //D3DPRESENT_INTERVAL_DEFAULT;
   //d3dpp.PresentationInterval = D3DPRESENT_INTERVAL_DEFAULT;
   /* If full screen, specify the refresh rate */
   if ((d3dpp.Windowed == FALSE) && (_newmode_refresh > 0))
@@ -1027,12 +1028,12 @@ void D3DGraphicsDriver::SetTintMethod(TintMethod method)
   _legacyPixelShader = (method == TintReColourise);
 }
 
-bool D3DGraphicsDriver::Init(int width, int height, int colourDepth, bool windowed, volatile int *loopTimer) 
+bool D3DGraphicsDriver::Init(int width, int height, int colourDepth, bool windowed, volatile int *loopTimer, bool ignorefilter) 
 {
-  return this->Init(width, height, width, height, colourDepth, windowed, loopTimer);
+  return this->Init(width, height, width, height, colourDepth, windowed, loopTimer, ignorefilter);
 }
 
-bool D3DGraphicsDriver::Init(int virtualWidth, int virtualHeight, int realWidth, int realHeight, int colourDepth, bool windowed, volatile int *loopTimer)
+bool D3DGraphicsDriver::Init(int virtualWidth, int virtualHeight, int realWidth, int realHeight, int colourDepth, bool windowed, volatile int *loopTimer, bool ignorefilter)
 {
   if (colourDepth < 15)
   {
@@ -1049,7 +1050,15 @@ bool D3DGraphicsDriver::Init(int virtualWidth, int virtualHeight, int realWidth,
   _newmode_windowed = windowed;
   _loopTimer = loopTimer;
 
-  _filter->GetRealResolution(&_newmode_screen_width, &_newmode_screen_height);
+  if(!ignorefilter)
+	_filter->GetRealResolution(&_newmode_screen_width, &_newmode_screen_height);
+  else
+  {
+	  int diff1 = 1, diff2 = 1;
+	  _filter->GetRealResolution(&diff1,&diff2);
+	  _newmode_width /= diff1;
+	  _newmode_height /= diff2;
+  }
 
   try
   {
@@ -1153,14 +1162,19 @@ void D3DGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination)
       _pollingCallback();
 
     // This call is v. slow (known DX9 issue)
-    if (direct3ddevice->GetFrontBufferData(0, surface) != D3D_OK)
+   /* if (direct3ddevice->GetFrontBufferData(0, surface) != D3D_OK)
     {
       throw Ali3DException("GetFrontBufferData failed");
-    }
+    }*/
+
+	if ( direct3ddevice->GetBackBuffer(0,0,D3DBACKBUFFER_TYPE_MONO,&surface)!=D3D_OK) 
+	{
+		throw Ali3DException("IDirect3DSurface9::GetBackBuffer failed");
+	}
 
     if (_pollingCallback)
       _pollingCallback();
-
+	/*
     WINDOWINFO windowInfo;
     RECT *areaToCapture = NULL;
 
@@ -1172,7 +1186,7 @@ void D3DGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination)
       GetWindowInfo(win_get_window(), &windowInfo);
       areaToCapture = &windowInfo.rcClient;
     }
-
+	*/
     Bitmap *finalImage = NULL;
 
     if (destination->GetColorDepth() != 32)
@@ -1194,7 +1208,7 @@ void D3DGraphicsDriver::GetCopyOfScreenIntoBitmap(Bitmap *destination)
     }
 
     D3DLOCKED_RECT lockedRect;
-    if (surface->LockRect(&lockedRect, areaToCapture, D3DLOCK_READONLY) != D3D_OK)
+    if (surface->LockRect(&lockedRect, NULL, D3DLOCK_READONLY ) != D3D_OK)
     {
       throw Ali3DException("IDirect3DSurface9::LockRect failed");
     }
@@ -1463,6 +1477,9 @@ void D3DGraphicsDriver::_renderSprite(SpriteDrawListEntry *drawListEntry, bool g
     direct3ddevice->SetTexture(0, bmpToDraw->_tiles[ti].texture);
 
     hr = direct3ddevice->DrawPrimitive(D3DPT_TRIANGLESTRIP, ti * 4, 2);
+
+	_filter->SetSamplerStateForStandardSprite(direct3ddevice);
+
     if (hr != D3D_OK) 
     {
       throw Ali3DException("IDirect3DDevice9::DrawPrimitive failed");
@@ -1473,6 +1490,36 @@ void D3DGraphicsDriver::_renderSprite(SpriteDrawListEntry *drawListEntry, bool g
 
 void D3DGraphicsDriver::_render(GlobalFlipType flip, bool clearDrawListAfterwards)
 {
+	IDirect3DSurface9 *pBackBuffer = NULL;
+	IDirect3DSurface9 *pRenderTarget = NULL;
+
+	if (direct3ddevice->CreateRenderTarget(	
+						_newmode_width,
+						_newmode_height,
+						D3DFMT_A8R8G8B8,
+						D3DMULTISAMPLE_NONE,
+						0,
+						false,
+						&pRenderTarget,
+						NULL	)!= D3D_OK)
+	{
+		throw Ali3DException("CreateRenderTarget failed");
+	}
+	/*if () != D3D_OK)
+	{
+	 throw Ali3DException("IDirect3DSurface9::LockRect failed");
+	}*/
+
+	 // Right before rendering
+	if (direct3ddevice->GetRenderTarget(0, &pBackBuffer) != D3D_OK)
+	{
+		throw Ali3DException("IDirect3DSurface9::GetRenderTarget failed");
+	}
+	if (direct3ddevice->SetRenderTarget(0, pRenderTarget) != D3D_OK)
+	{
+		throw Ali3DException("IDirect3DSurface9::SetRenderTarget failed");
+	}
+
   SpriteDrawListEntry *listToDraw = drawList;
   int listSize = numToDraw;
   HRESULT hr;
@@ -1516,7 +1563,20 @@ void D3DGraphicsDriver::_render(GlobalFlipType flip, bool clearDrawListAfterward
 
   direct3ddevice->EndScene();
 
+  if (direct3ddevice->SetRenderTarget(0, pBackBuffer)!= D3D_OK)
+  {
+     throw Ali3DException("IDirect3DSurface9::SetRenderTarget failed");
+  }
+  
+  if (direct3ddevice->StretchRect(pRenderTarget, NULL, pBackBuffer, NULL, strncmp(_filter->GetFilterID(),"AA",2)==0?D3DTEXF_LINEAR:D3DTEXF_POINT) != D3D_OK)
+  {
+    throw Ali3DException("IDirect3DSurface9::StretchRect failed");
+  }
+
   hr = direct3ddevice->Present(NULL, NULL, NULL, NULL);
+
+  pBackBuffer->Release();
+  pRenderTarget->Release();
 
   if (clearDrawListAfterwards)
   {

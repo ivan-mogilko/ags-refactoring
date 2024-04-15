@@ -41,7 +41,6 @@
 #include "test/test_all.h"
 #endif
 
-#if defined (WINDOWS_VERSION)
 extern "C"
 {
     FILE* __cdecl __iob_func(unsigned)
@@ -50,7 +49,6 @@ extern "C"
         return &files[0];
     }
 };
-#endif
 
 
 namespace Directory = AGS::Common::Directory;
@@ -60,7 +58,6 @@ namespace Path      = AGS::Common::Path;
 char appDirectory[512]; // Needed for library loading
 
 #ifdef MAC_VERSION
-char dataDirectory[512];
 extern "C"
 {
     int osx_sys_question(const char *msg, const char *but1, const char *but2);
@@ -100,8 +97,9 @@ int override_start_room = 0, force_16bit = 0;
 bool justRegisterGame = false;
 bool justUnRegisterGame = false;
 const char *loadSaveGameOnStartup = NULL;
+bool android_is_phone = false;
 
-#if !defined(IOS_VERSION) && !defined(PSP_VERSION) && !defined(ANDROID_VERSION)
+#if !defined(MAC_VERSION) && !defined(IOS_VERSION) && !defined(PSP_VERSION) && !defined(ANDROID_VERSION) && !defined(LINUX_VERSION)
 int psp_video_framedrop = 1;
 int psp_audio_enabled = 1;
 int psp_midi_enabled = 1;
@@ -233,7 +231,7 @@ int main_process_cmdline(int argc,char*argv[])
         else if (stricmp(argv[ee],"-hicolor") == 0 || stricmp(argv[ee],"--hicolor") == 0)
             force_16bit = 1;
         else if (stricmp(argv[ee],"-letterbox") == 0 || stricmp(argv[ee],"--letterbox") == 0)
-            force_letterbox = 1;
+            force_letterbox = 0;
         else if (stricmp(argv[ee],"-record") == 0)
             play.recording = 1;
         else if (stricmp(argv[ee],"-playback") == 0)
@@ -370,10 +368,6 @@ void main_set_gamedir(int argc,char*argv[])
         // folder; else change to this exe's folder
         change_to_directory_of_file(GetPathFromCmdArg(datafile_argv));
     }
-
-#ifdef MAC_VERSION
-    getcwd(dataDirectory, 512);
-#endif
 }
 
 String GetPathFromCmdArg(int arg_index)

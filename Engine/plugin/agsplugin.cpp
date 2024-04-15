@@ -65,13 +65,21 @@ namespace BitmapHelper = AGS::Common::BitmapHelper;
 #include "../Plugins/agsblend/agsblend.h"
 #include "../Plugins/ags_snowrain/ags_snowrain.h"
 #include "../Plugins/ags_parallax/ags_parallax.h"
-#if defined(IOS_VERSION)
+#include "../Plugins/agsspritefont/agsspritefont/agsspritefont.h"
+#include "../Plugins/AGSteam/AGSteamPlugin.h"
+#include "../Plugins/AGSGalaxy/AGGalaxyPlugin.h"
+#ifdef IOS_VERSION
 #include "../Plugins/agstouch/agstouch.h"
+#include "../Plugins/agswadjetutil/agswadjetutil.h"
 #endif // IOS_VERSION
+
+#ifdef ANDROID_VERSION
+#include "../Plugins/agswadjetutil/agswadjetutil.h"
+#endif
+
 #endif // BUILTIN_PLUGINS
 
 #if defined(MAC_VERSION)
-extern char dataDirectory[512];
 extern char appDirectory[512];
 extern "C"
 {
@@ -906,7 +914,38 @@ bool pl_use_builtin_plugin(EnginePlugin* apl)
         apl->builtin = true;
         return true;
     }
-#if defined(IOS_VERSION)
+	else if ((strncmp(apl->filename, "ags-spritefont-plugin", strlen("ags-spritefont-plugin")) == 0) ||
+		    (strncmp(apl->filename, "agsspritefont", strlen("agsspritefont")) == 0))
+    {
+        apl->engineStartup = ags_spritefont::AGS_EngineStartup;
+        apl->engineShutdown = ags_spritefont::AGS_EngineShutdown;
+        apl->onEvent = ags_spritefont::AGS_EngineOnEvent;
+        apl->available = true;
+        apl->builtin = true;
+        return true;
+    }
+	else if (strncmp(apl->filename, "agsteam", strlen("agsteam")) == 0)
+	{
+		apl->engineStartup = ags_steam::AGS_EngineStartup;
+		apl->engineShutdown = ags_steam::AGS_EngineShutdown;
+		apl->onEvent = ags_steam::AGS_EngineOnEvent;
+		apl->available = true;
+		apl->builtin = true;
+		return true;
+	}
+	else if (strncmp(apl->filename, "agsgalaxy", strlen("agsgalaxy")) == 0 ||
+			 strncmp(apl->filename, "aggalaxy", strlen("aggalaxy")) == 0 ||
+			 strncmp(apl->filename, "ags2client", strlen("ags2client")) == 0 ||
+			 strncmp(apl->filename, "ag2client", strlen("ag2client") == 0))
+	{
+		apl->engineStartup = ags_galaxy::AGS_EngineStartup;
+		apl->engineShutdown = ags_galaxy::AGS_EngineShutdown;
+		apl->onEvent = ags_galaxy::AGS_EngineOnEvent;
+		apl->available = true;
+		apl->builtin = true;
+		return true;
+	}
+#ifdef IOS_VERSION
     else if (strncmp(apl->filename, "agstouch", strlen("agstouch")) == 0)
     {
         apl->engineStartup = agstouch::AGS_EngineStartup;
@@ -919,9 +958,22 @@ bool pl_use_builtin_plugin(EnginePlugin* apl)
         return true;
     }
 #endif // IOS_VERSION
+#if defined(IOS_VERSION) || defined(ANDROID_VERSION)
+    //JG
+    else if (strncmp(apl->filename, "agswadjetutil", strlen("agswadjetutil")) == 0)
+    {
+        apl->engineStartup = agswadjetutil::AGS_EngineStartup;
+        apl->engineShutdown = agswadjetutil::AGS_EngineShutdown;
+        apl->onEvent = agswadjetutil::AGS_EngineOnEvent;
+        apl->debugHook = agswadjetutil::AGS_EngineDebugHook;
+        apl->initGfxHook = agswadjetutil::AGS_EngineInitGfx;
+        apl->builtin = true;
+        return true;
+    }
+#endif
 #endif // BUILTIN_PLUGINS
 
-    AGS::Common::Out::FPrint("No built-in plugin found. Plugin loading failed!");
+    AGS::Common::Out::FPrint("No built-in plugin found. Plugin loading failed! %s", apl->filename);
     return false;
 }
 

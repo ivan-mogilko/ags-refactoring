@@ -21,5 +21,6 @@
 void		SetLabelColor(int guin,int objn, int colr);
 void		SetLabelText(int guin,int objn, const char*newtx);
 void		SetLabelFont(int guin,int objn, int fontnum);
+void		SetLabelTextAlignment(int guin,int objn, int alignment);
 
 #endif // __AGS_EE_AC__GLOBALLABEL_H

@@ -123,6 +123,8 @@ struct AGSWin32 : AGSPlatformDriver {
   virtual void RegisterGameWithGameExplorer();
   virtual void UnRegisterGameWithGameExplorer();
   virtual int  ConvertKeycodeToScanCode(int keyCode);
+  virtual bool LockMouseToWindow();
+  virtual void UnlockMouse();
 
 private:
   void add_game_to_game_explorer(IGameExplorer* pFwGameExplorer, GUID *guid, const char *guidAsText, bool allUsers);
@@ -718,7 +720,7 @@ unsigned long AGSWin32::GetDiskFreeSpaceMB() {
 }
 
 const char* AGSWin32::GetNoMouseErrorString() {
-  return "No mouse was detected on your system, or your mouse is not configured to work with DirectInput. You must have a mouse to play this game.";
+  return "No mouse was detected on your system, or your mouse is not configured to work with DirectInput. This game may not function correctly.";
 }
 
 eScriptSystemOSID AGSWin32::GetSystemOSID() {
@@ -839,6 +841,23 @@ int AGSWin32::ConvertKeycodeToScanCode(int keycode)
   if ((scancode >= 0) && (scancode < 256))
     keycode = hw_to_mycode[scancode];
   return keycode;
+}
+
+bool AGSWin32::LockMouseToWindow()
+{
+    HWND allegro_wnd = win_get_window();
+	RECT rc;
+	GetClientRect(allegro_wnd, &rc);
+	ClientToScreen(allegro_wnd, (POINT*)&rc);
+	ClientToScreen(allegro_wnd, (POINT*)&rc.right);
+	--rc.right;
+	--rc.bottom;
+	return ::ClipCursor(&rc) != 0;
+}
+
+void AGSWin32::UnlockMouse()
+{
+	::ClipCursor(NULL);
 }
 
 AGSPlatformDriver* AGSPlatformDriver::GetDriver() {

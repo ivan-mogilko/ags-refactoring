@@ -1774,6 +1774,12 @@ RuntimeScriptValue Sc_SetLabelText(const RuntimeScriptValue *params, int32_t par
     API_SCALL_VOID_PINT2_POBJ(SetLabelText, const char);
 }
 
+// void (int guin,int objn,char*newtx)
+RuntimeScriptValue Sc_SetLabelTextAlignment(const RuntimeScriptValue *params, int32_t param_count)
+{
+	API_SCALL_VOID_PINT3(SetLabelTextAlignment);
+}
+
 extern RuntimeScriptValue Sc_SetMouseBounds(const RuntimeScriptValue *params, int32_t param_count);
 extern RuntimeScriptValue Sc_set_mouse_cursor(const RuntimeScriptValue *params, int32_t param_count);
 extern RuntimeScriptValue Sc_SetMousePosition(const RuntimeScriptValue *params, int32_t param_count);
@@ -2589,6 +2595,7 @@ void RegisterGlobalAPI()
 	ccAddExternalStaticFunction("SetLabelColor",            Sc_SetLabelColor);
 	ccAddExternalStaticFunction("SetLabelFont",             Sc_SetLabelFont);
 	ccAddExternalStaticFunction("SetLabelText",             Sc_SetLabelText);
+	ccAddExternalStaticFunction("SetLabelTextAlignment",	Sc_SetLabelTextAlignment);
 	ccAddExternalStaticFunction("SetMouseBounds",           Sc_SetMouseBounds);
 	ccAddExternalStaticFunction("SetMouseCursor",           Sc_set_mouse_cursor);
 	ccAddExternalStaticFunction("SetMousePosition",         Sc_SetMousePosition);

@@ -40,6 +40,7 @@ extern int in_inv_screen, inv_screen_newroom;
 extern MoveList *mls;
 extern int gs_to_newroom;
 extern roomstruct thisroom;
+extern RoomStatus *croom;
 
 void SetAmbientTint (int red, int green, int blue, int opacity, int luminance) {
     if ((red < 0) || (green < 0) || (blue < 0) ||
@@ -151,6 +152,7 @@ void ResetRoom(int nrnum) {
             roomstat->tsdatasize = 0;
         }
         roomstat->beenhere = 0;
+		roomstat->ClearProperties();
     }
 
     DEBUG_CONSOLE("Room %d reset to original state", nrnum);
@@ -187,11 +189,11 @@ int HasBeenToRoom (int roomnum) {
 }
 
 int GetRoomProperty (const char *property) {
-    return get_int_property (&thisroom.roomProps, property);
+    return get_int_property (&croom->roomProps, property);
 }
 
 void GetRoomPropertyText (const char *property, char *bufer) {
-    get_text_property (&thisroom.roomProps, property, bufer);
+    get_text_property (&croom->roomProps, property, bufer);
 }
 
 void SetBackgroundFrame(int frnum) {

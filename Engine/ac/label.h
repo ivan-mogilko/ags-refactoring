@@ -27,5 +27,7 @@ int			Label_GetColor(GUILabel *labl);
 void		Label_SetColor(GUILabel *labl, int colr);
 int			Label_GetFont(GUILabel *labl);
 void		Label_SetFont(GUILabel *guil, int fontnum);
+int			Label_GetTextAlignment(GUILabel *labl);
+void		Label_SetTextAlignment(GUILabel *labl, int align);
 
 #endif // __AGS_EE_AC__LABEL_H

@@ -649,12 +649,12 @@ void unload_game_file() {
     guis = NULL;
     free(scrGui);
 
+	for (ee=0;ee<game.numfonts;ee++)
+		wfreefont(ee);
+
     platform->ShutdownPlugins();
     ccRemoveAllSymbols();
     ccUnregisterAllObjects();
-
-    for (ee=0;ee<game.numfonts;ee++)
-        wfreefont(ee);
 
     free_do_once_tokens();
     free(play.gui_draw_order);
@@ -791,6 +791,11 @@ int Game_DoOnceOnly(const char *token)
     strcpy(play.do_once_tokens[play.num_do_once_tokens], token);
     play.num_do_once_tokens++;
     return 1;
+}
+
+void Game_SimulateKeyPress(int key)
+{
+	simulate_keypress(key);
 }
 
 int Game_GetTextReadingSpeed()
@@ -2886,6 +2891,12 @@ RuntimeScriptValue Sc_Game_DoOnceOnly(const RuntimeScriptValue *params, int32_t 
     API_SCALL_INT_POBJ(Game_DoOnceOnly, const char);
 }
 
+// void (int key)
+RuntimeScriptValue Sc_Game_SimulateKeyPress(const RuntimeScriptValue *params, int32_t param_count)
+{
+	API_SCALL_VOID_PINT(Game_SimulateKeyPress);
+}
+
 // int (int red, int grn, int blu)
 RuntimeScriptValue Sc_Game_GetColorFromRGB(const RuntimeScriptValue *params, int32_t param_count)
 {
@@ -3135,6 +3146,7 @@ void RegisterGameAPI()
     ccAddExternalStaticFunction("Game::StopAudio^1",                            Sc_Game_StopAudio);
     ccAddExternalStaticFunction("Game::ChangeTranslation^1",                    Sc_Game_ChangeTranslation);
     ccAddExternalStaticFunction("Game::DoOnceOnly^1",                           Sc_Game_DoOnceOnly);
+	ccAddExternalStaticFunction("Game::SimulateKeyPress^1",                     Sc_Game_SimulateKeyPress);
     ccAddExternalStaticFunction("Game::GetColorFromRGB^3",                      Sc_Game_GetColorFromRGB);
     ccAddExternalStaticFunction("Game::GetFrameCountForLoop^2",                 Sc_Game_GetFrameCountForLoop);
     ccAddExternalStaticFunction("Game::GetLocationName^2",                      Sc_Game_GetLocationName);
@@ -3184,6 +3196,7 @@ void RegisterGameAPI()
     ccAddExternalFunctionForPlugin("Game::StopAudio^1",                            (void*)Game_StopAudio);
     ccAddExternalFunctionForPlugin("Game::ChangeTranslation^1",                    (void*)Game_ChangeTranslation);
     ccAddExternalFunctionForPlugin("Game::DoOnceOnly^1",                           (void*)Game_DoOnceOnly);
+	ccAddExternalFunctionForPlugin("Game::SimulateKeyPress^1",					   (void*)Game_SimulateKeyPress);
     ccAddExternalFunctionForPlugin("Game::GetColorFromRGB^3",                      (void*)Game_GetColorFromRGB);
     ccAddExternalFunctionForPlugin("Game::GetFrameCountForLoop^2",                 (void*)Game_GetFrameCountForLoop);
     ccAddExternalFunctionForPlugin("Game::GetLocationName^2",                      (void*)Game_GetLocationName);

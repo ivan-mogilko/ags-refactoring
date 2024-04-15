@@ -83,6 +83,7 @@ int Game_GetRunNextSettingForLoop(int viewNumber, int loopNumber);
 int Game_GetFrameCountForLoop(int viewNumber, int loopNumber);
 ScriptViewFrame* Game_GetViewFrame(int viewNumber, int loopNumber, int frame);
 int Game_DoOnceOnly(const char *token);
+void Game_SimulateKeyPress(int key);
 
 int  Game_GetTextReadingSpeed();
 void Game_SetTextReadingSpeed(int newTextSpeed);

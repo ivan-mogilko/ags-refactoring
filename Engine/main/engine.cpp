@@ -1116,7 +1116,7 @@ void init_game_settings() {
     play.speech_volume = 255;
     play.normal_font = 0;
     play.speech_font = 1;
-    play.speech_text_shadow = 16;
+    play.speech_text_shadow = 6371;
     play.screen_tint = -1;
     play.bad_parsed_word[0] = 0;
     play.swap_portrait_side = 0;

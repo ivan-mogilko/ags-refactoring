@@ -500,6 +500,11 @@ void GameSetupStruct::ReadFromSaveGame_v321(Stream *in, char* gswas, ccScript* c
     options[OPT_LIPSYNCTEXT] = in->ReadByte();
 
     ReadCharacters_Aligned(in);
+
+	for (bb = 0; bb < numcharacters; bb++)
+		charProps[bb].UnSerialize (in);
+	for (bb = 0; bb < numinvitems; bb++)
+		invProps[bb].UnSerialize (in);
 }
 
 void GameSetupStruct::WriteForSaveGame_v321(Stream *out)
@@ -520,6 +525,12 @@ void GameSetupStruct::WriteForSaveGame_v321(Stream *out)
     out->WriteInt8 (options[OPT_LIPSYNCTEXT]);
 
     WriteCharacters_Aligned(out);
+
+	int bb;
+	for (bb = 0; bb < numcharacters; bb++)
+		charProps[bb].Serialize (out);
+	for (bb = 0; bb < numinvitems; bb++)
+		invProps[bb].Serialize (out);
 }
 
 //=============================================================================
