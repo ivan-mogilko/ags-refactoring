@@ -41,6 +41,18 @@
 #include "test/test_all.h"
 #endif
 
+#if defined (WINDOWS_VERSION)
+extern "C"
+{
+    FILE* __cdecl __iob_func(unsigned)
+    {
+        static FILE files[3]{ *stdin, *stdout, *stderr };
+        return &files[0];
+    }
+};
+#endif
+
+
 namespace Directory = AGS::Common::Directory;
 namespace Out       = AGS::Common::Out;
 namespace Path      = AGS::Common::Path;

@@ -41,6 +41,10 @@
 #endif
 
 #if defined(WINDOWS_VERSION)
+
+#include <stdint.h>
+
+/*
 #define int8_t       signed char
 #define uint8_t      unsigned char
 #define int16_t      signed short
@@ -60,6 +64,7 @@
 // tell Windows headers that we already have defined out intptr_t types
 #define _INTPTR_T_DEFINED
 #define _UINTPTR_T_DEFINED
+*/
 
 #endif // WINDOWS_VERSION
 

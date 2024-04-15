@@ -104,7 +104,11 @@ char *speech_file;
 
 Common::AssetError errcod;
 
-extern "C" HWND allegro_wnd;
+//extern "C" HWND allegro_wnd;
+extern "C"
+{
+    extern HWND win_get_window();
+}
 
 
 

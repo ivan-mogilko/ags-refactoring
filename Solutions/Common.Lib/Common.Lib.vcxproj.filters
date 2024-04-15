@@ -1,0 +1,461 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Source Files\ac">
+      <UniqueIdentifier>{d6de054a-ba31-4261-a359-c31c943679f8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\ac\dynobj">
+      <UniqueIdentifier>{29dda130-b32c-4b74-8fa0-24d4fa40eb4a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\font">
+      <UniqueIdentifier>{73f7cd1b-0abb-492f-81c8-05fb0d7c6944}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\gui">
+      <UniqueIdentifier>{b34dda5b-bc61-4cec-8492-e29b36a8fd48}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\util">
+      <UniqueIdentifier>{0cf70039-be60-480d-b833-604dabe9f99d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\script">
+      <UniqueIdentifier>{ef3bfe7a-3961-4a60-a802-a86711f4da43}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\debug">
+      <UniqueIdentifier>{356f815d-61b3-4e3d-8795-5cbd5d37bbdd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\gfx">
+      <UniqueIdentifier>{05d0cbe5-ea12-4024-b4bf-5f0de38396fc}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\core">
+      <UniqueIdentifier>{be4b4a08-6538-4ffe-81ca-efac250b326a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Header Files\ac">
+      <UniqueIdentifier>{6a1b37c2-cb45-406c-b41e-92870d207cd8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\ac\dynobj">
+      <UniqueIdentifier>{ae28ab73-3487-406f-ac44-d26e0f5b0083}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\font">
+      <UniqueIdentifier>{ca87b01e-cd9b-4cc5-99e6-86cc561e8957}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\gui">
+      <UniqueIdentifier>{8796b7ad-f5fa-4997-8828-b0af868d39f5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\util">
+      <UniqueIdentifier>{05c5f6bd-014c-4d61-b6dd-256ff8c8614e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\script">
+      <UniqueIdentifier>{4bbe3e7c-8232-4ca0-8806-f11a1e5753e2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\core">
+      <UniqueIdentifier>{c2016522-12ea-4373-9373-280f0af5dacf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\debug">
+      <UniqueIdentifier>{e0bd7a70-88d1-4bfb-b81c-6bfee1f276a3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\gfx">
+      <UniqueIdentifier>{247df8e7-5a75-4381-8bd7-f5c722402fcd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\api">
+      <UniqueIdentifier>{1047c3ab-6fd0-4661-b0fc-bb14cfc4c852}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Library Sources">
+      <UniqueIdentifier>{0c3c7601-e9a9-49db-a782-b668c340d0c6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Library Sources\aastr">
+      <UniqueIdentifier>{af3dd241-349e-41fb-84cf-fc3838b43dad}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\Common\ac\audiocliptype.cpp">
+      <Filter>Source Files\ac</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\ac\common.cpp">
+      <Filter>Source Files\ac</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\ac\customproperties.cpp">
+      <Filter>Source Files\ac</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\ac\gamesetupstruct.cpp">
+      <Filter>Source Files\ac</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\ac\gamesetupstructbase.cpp">
+      <Filter>Source Files\ac</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\ac\interaction.cpp">
+      <Filter>Source Files\ac</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\ac\messageinfo.cpp">
+      <Filter>Source Files\ac</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\ac\mousecursor.cpp">
+      <Filter>Source Files\ac</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\ac\point.cpp">
+      <Filter>Source Files\ac</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\ac\roomstruct.cpp">
+      <Filter>Source Files\ac</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\ac\spritecache.cpp">
+      <Filter>Source Files\ac</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\ac\view.cpp">
+      <Filter>Source Files\ac</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\ac\wordsdictionary.cpp">
+      <Filter>Source Files\ac</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\ac\dynobj\scriptaudioclip.cpp">
+      <Filter>Source Files\ac\dynobj</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\font\agsfontrenderer.cpp">
+      <Filter>Source Files\font</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\font\fonts.cpp">
+      <Filter>Source Files\font</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\font\ttffontrenderer.cpp">
+      <Filter>Source Files\font</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\font\wfnfontrenderer.cpp">
+      <Filter>Source Files\font</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\gui\guibutton.cpp">
+      <Filter>Source Files\gui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\gui\guiinv.cpp">
+      <Filter>Source Files\gui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\gui\guilabel.cpp">
+      <Filter>Source Files\gui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\gui\guilistbox.cpp">
+      <Filter>Source Files\gui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\gui\guimain.cpp">
+      <Filter>Source Files\gui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\gui\guiobject.cpp">
+      <Filter>Source Files\gui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\gui\guislider.cpp">
+      <Filter>Source Files\gui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\gui\guitextbox.cpp">
+      <Filter>Source Files\gui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\util\alignedstream.cpp">
+      <Filter>Source Files\util</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\util\compress.cpp">
+      <Filter>Source Files\util</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\util\datastream.cpp">
+      <Filter>Source Files\util</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\util\directory.cpp">
+      <Filter>Source Files\util</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\util\file.cpp">
+      <Filter>Source Files\util</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\util\filestream.cpp">
+      <Filter>Source Files\util</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\util\lzw.cpp">
+      <Filter>Source Files\util</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\util\misc.cpp">
+      <Filter>Source Files\util</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\util\path.cpp">
+      <Filter>Source Files\util</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\util\proxystream.cpp">
+      <Filter>Source Files\util</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\util\stream.cpp">
+      <Filter>Source Files\util</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\util\string.cpp">
+      <Filter>Source Files\util</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\util\string_utils.cpp">
+      <Filter>Source Files\util</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\util\textstreamreader.cpp">
+      <Filter>Source Files\util</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\util\textstreamwriter.cpp">
+      <Filter>Source Files\util</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\util\wgt2allg.cpp">
+      <Filter>Source Files\util</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\script\cc_error.cpp">
+      <Filter>Source Files\script</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\script\cc_options.cpp">
+      <Filter>Source Files\script</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\script\cc_script.cpp">
+      <Filter>Source Files\script</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\script\cc_treemap.cpp">
+      <Filter>Source Files\script</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\script\script_common.cpp">
+      <Filter>Source Files\script</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\debug\out.cpp">
+      <Filter>Source Files\debug</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\gfx\allegrobitmap.cpp">
+      <Filter>Source Files\gfx</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\gfx\bitmap.cpp">
+      <Filter>Source Files\gfx</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\core\assetmanager.cpp">
+      <Filter>Source Files\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\libsrc\aastr-0.1.1\aastr.c">
+      <Filter>Library Sources\aastr</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\libsrc\aastr-0.1.1\aautil.c">
+      <Filter>Library Sources\aastr</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\Common\ac\animationstruct.h">
+      <Filter>Header Files\ac</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\ac\audiocliptype.h">
+      <Filter>Header Files\ac</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\ac\characterinfo.h">
+      <Filter>Header Files\ac</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\ac\common.h">
+      <Filter>Header Files\ac</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\ac\common_defines.h">
+      <Filter>Header Files\ac</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\ac\customproperties.h">
+      <Filter>Header Files\ac</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\ac\dialogtopic.h">
+      <Filter>Header Files\ac</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\ac\game_version.h">
+      <Filter>Header Files\ac</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\ac\gamesetupstruct.h">
+      <Filter>Header Files\ac</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\ac\gamesetupstructbase.h">
+      <Filter>Header Files\ac</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\ac\gamestructdefines.h">
+      <Filter>Header Files\ac</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\ac\interaction.h">
+      <Filter>Header Files\ac</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\ac\interfacebutton.h">
+      <Filter>Header Files\ac</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\ac\interfaceelement.h">
+      <Filter>Header Files\ac</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\ac\inventoryiteminfo.h">
+      <Filter>Header Files\ac</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\ac\messageinfo.h">
+      <Filter>Header Files\ac</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\ac\mousecursor.h">
+      <Filter>Header Files\ac</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\ac\oldgamesetupstruct.h">
+      <Filter>Header Files\ac</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\ac\point.h">
+      <Filter>Header Files\ac</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\ac\roomstruct.h">
+      <Filter>Header Files\ac</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\ac\spritecache.h">
+      <Filter>Header Files\ac</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\ac\view.h">
+      <Filter>Header Files\ac</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\ac\wordsdictionary.h">
+      <Filter>Header Files\ac</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\ac\dynobj\scriptaudioclip.h">
+      <Filter>Header Files\ac\dynobj</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\font\agsfontrenderer.h">
+      <Filter>Header Files\font</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\font\fonts.h">
+      <Filter>Header Files\font</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\font\ttffontrenderer.h">
+      <Filter>Header Files\font</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\font\wfnfontrenderer.h">
+      <Filter>Header Files\font</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\gui\dynamicarray.h">
+      <Filter>Header Files\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\gui\guibutton.h">
+      <Filter>Header Files\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\gui\guidefines.h">
+      <Filter>Header Files\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\gui\guiinv.h">
+      <Filter>Header Files\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\gui\guilabel.h">
+      <Filter>Header Files\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\gui\guilistbox.h">
+      <Filter>Header Files\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\gui\guimain.h">
+      <Filter>Header Files\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\gui\guiobject.h">
+      <Filter>Header Files\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\gui\guislider.h">
+      <Filter>Header Files\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\gui\guitextbox.h">
+      <Filter>Header Files\gui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\util\alignedstream.h">
+      <Filter>Header Files\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\util\bbop.h">
+      <Filter>Header Files\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\util\compress.h">
+      <Filter>Header Files\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\util\datastream.h">
+      <Filter>Header Files\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\util\directory.h">
+      <Filter>Header Files\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\util\file.h">
+      <Filter>Header Files\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\util\filestream.h">
+      <Filter>Header Files\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\util\geometry.h">
+      <Filter>Header Files\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\util\lzw.h">
+      <Filter>Header Files\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\util\math.h">
+      <Filter>Header Files\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\util\misc.h">
+      <Filter>Header Files\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\util\path.h">
+      <Filter>Header Files\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\util\proxystream.h">
+      <Filter>Header Files\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\util\stream.h">
+      <Filter>Header Files\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\util\string.h">
+      <Filter>Header Files\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\util\string_utils.h">
+      <Filter>Header Files\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Engine\util\textfilestream.h">
+      <Filter>Header Files\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\util\textreader.h">
+      <Filter>Header Files\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\util\textstreamreader.h">
+      <Filter>Header Files\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\util\textstreamwriter.h">
+      <Filter>Header Files\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\util\textwriter.h">
+      <Filter>Header Files\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\util\wgt2allg.h">
+      <Filter>Header Files\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\script\cc_error.h">
+      <Filter>Header Files\script</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\script\cc_options.h">
+      <Filter>Header Files\script</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\script\cc_script.h">
+      <Filter>Header Files\script</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\script\cc_treemap.h">
+      <Filter>Header Files\script</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\script\script_common.h">
+      <Filter>Header Files\script</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\core\assetmanager.h">
+      <Filter>Header Files\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\core\endianness.h">
+      <Filter>Header Files\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\core\types.h">
+      <Filter>Header Files\core</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\debug\assert.h">
+      <Filter>Header Files\debug</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\debug\out.h">
+      <Filter>Header Files\debug</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\debug\outputtarget.h">
+      <Filter>Header Files\debug</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\gfx\allegrobitmap.h">
+      <Filter>Header Files\gfx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\gfx\bitmap.h">
+      <Filter>Header Files\gfx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\api\stream_api.h">
+      <Filter>Header Files\api</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

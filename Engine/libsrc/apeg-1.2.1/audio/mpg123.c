@@ -10,7 +10,7 @@
 #endif
 
 #ifndef __GNUC__
-#define snprintf _snprintf
+
 #endif
 #include <string.h>
 #include <stdio.h>

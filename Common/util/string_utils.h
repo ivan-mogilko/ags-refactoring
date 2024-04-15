@@ -45,10 +45,6 @@ extern "C" char *strupr(char *s);
 
 #else
 
-#if !defined (snprintf)
-#define snprintf _snprintf
-#endif
-
 #endif // !WINDOWS_VERSION
 
 void removeBackslashBracket(char *lbuffer);

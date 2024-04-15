@@ -35,7 +35,12 @@ using namespace AGS; // FIXME later
 #define MIDI_NONE             0 
 #define MIDI_WIN32MAPPER         AL_ID('W','3','2','M')
 
-extern "C" HWND allegro_wnd;
+//extern "C" HWND allegro_wnd;
+extern "C"
+{
+    extern HWND win_get_window();
+}
+
 extern int  INIreadint(const char*, const char*, int=0);
 extern void fgetstring_limit (char *, Stream *, int);
 extern char* ac_config_file;
@@ -435,6 +440,8 @@ void InitializeDialog(HWND hDlg) {
   MoveWindow (hDlg, winsize.left, winsize.top, wwidth, wheight-175, TRUE);
   update_resolution_texts (hDlg);
 
+  HWND allegro_wnd = win_get_window();
+
   SendMessage(hDlg, WM_SETTEXT, NULL, (LPARAM)gameNameForTitleBar);
   SendMessage(allegro_wnd, WM_SETTEXT, NULL, (LPARAM)gameNameForTitleBar);
 }
@@ -681,12 +688,16 @@ int acwsetup(const char*vername, const char*enbuild) {
     GetPrivateProfileString("misc", "gfxdriver", "D3D9", curGfxDriver, 100, ac_config_file);
     GetPrivateProfileString("misc", "titletext", "Game Setup", gameNameForTitleBar, 200, ac_config_file);
   }
+
+  HWND allegro_wnd = win_get_window();
+
   if (DialogBox(GetModuleHandle(NULL), (LPCTSTR)IDD_DIALOG1,allegro_wnd,(DLGPROC)callback_settings) == IDOKRUN)
     return 1;
   return 0;
 }
 
 void set_icon() {
+    HWND allegro_wnd = win_get_window();
   SetClassLong(allegro_wnd,GCL_HICON,
     (LONG) LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_ICON2)) ); 
 }

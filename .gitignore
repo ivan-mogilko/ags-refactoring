@@ -35,3 +35,5 @@ Engine/resource/version.aps
 *.d
 common.a
 ags
+*.VC.db
+*.VC.VC.opendb
