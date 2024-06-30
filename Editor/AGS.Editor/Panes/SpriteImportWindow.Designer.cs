@@ -31,11 +31,13 @@ namespace AGS.Editor
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(SpriteImportWindow));
             this.groupImportOptions = new System.Windows.Forms.GroupBox();
+            this.cmbImportColorDepth = new System.Windows.Forms.ComboBox();
             this.chkUseAlphaChannel = new System.Windows.Forms.CheckBox();
             this.chkRoomBackground = new System.Windows.Forms.CheckBox();
             this.chkRemapCols = new System.Windows.Forms.CheckBox();
             this.groupTransColour = new System.Windows.Forms.GroupBox();
             this.panelBottomRight = new System.Windows.Forms.Panel();
+            this.panelTopRight = new System.Windows.Forms.Panel();
             this.panelBottomLeft = new System.Windows.Forms.Panel();
             this.panelIndex0 = new System.Windows.Forms.Panel();
             this.panelTopLeft = new System.Windows.Forms.Panel();
@@ -69,9 +71,8 @@ namespace AGS.Editor
             this.numSizeX = new System.Windows.Forms.NumericUpDown();
             this.numOffsetX = new System.Windows.Forms.NumericUpDown();
             this.numOffsetY = new System.Windows.Forms.NumericUpDown();
-            this.previewPanel = new AGS.Editor.BufferedPanel();
             this.btnImportAll = new System.Windows.Forms.Button();
-            this.panelTopRight = new System.Windows.Forms.Panel();
+            this.previewPanel = new AGS.Editor.BufferedPanel();
             this.groupImportOptions.SuspendLayout();
             this.groupTransColour.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.zoomSlider)).BeginInit();
@@ -87,22 +88,32 @@ namespace AGS.Editor
             // 
             // groupImportOptions
             // 
+            this.groupImportOptions.Controls.Add(this.cmbImportColorDepth);
             this.groupImportOptions.Controls.Add(this.chkUseAlphaChannel);
             this.groupImportOptions.Controls.Add(this.chkRoomBackground);
             this.groupImportOptions.Controls.Add(this.chkRemapCols);
             this.groupImportOptions.Location = new System.Drawing.Point(12, 12);
             this.groupImportOptions.Name = "groupImportOptions";
-            this.groupImportOptions.Size = new System.Drawing.Size(224, 90);
+            this.groupImportOptions.Size = new System.Drawing.Size(224, 120);
             this.groupImportOptions.TabIndex = 3;
             this.groupImportOptions.TabStop = false;
             this.groupImportOptions.Text = "Import options";
+            // 
+            // cmbImportColorDepth
+            // 
+            this.cmbImportColorDepth.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cmbImportColorDepth.FormattingEnabled = true;
+            this.cmbImportColorDepth.Location = new System.Drawing.Point(6, 19);
+            this.cmbImportColorDepth.Name = "cmbImportColorDepth";
+            this.cmbImportColorDepth.Size = new System.Drawing.Size(208, 21);
+            this.cmbImportColorDepth.TabIndex = 2;
             // 
             // chkUseAlphaChannel
             // 
             this.chkUseAlphaChannel.AutoSize = true;
             this.chkUseAlphaChannel.Checked = true;
             this.chkUseAlphaChannel.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chkUseAlphaChannel.Location = new System.Drawing.Point(6, 20);
+            this.chkUseAlphaChannel.Location = new System.Drawing.Point(6, 46);
             this.chkUseAlphaChannel.Name = "chkUseAlphaChannel";
             this.chkUseAlphaChannel.Size = new System.Drawing.Size(189, 17);
             this.chkUseAlphaChannel.TabIndex = 3;
@@ -112,7 +123,7 @@ namespace AGS.Editor
             // chkRoomBackground
             // 
             this.chkRoomBackground.AutoSize = true;
-            this.chkRoomBackground.Location = new System.Drawing.Point(6, 66);
+            this.chkRoomBackground.Location = new System.Drawing.Point(6, 92);
             this.chkRoomBackground.Name = "chkRoomBackground";
             this.chkRoomBackground.Size = new System.Drawing.Size(215, 17);
             this.chkRoomBackground.TabIndex = 5;
@@ -124,7 +135,7 @@ namespace AGS.Editor
             this.chkRemapCols.AutoSize = true;
             this.chkRemapCols.Checked = true;
             this.chkRemapCols.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.chkRemapCols.Location = new System.Drawing.Point(6, 43);
+            this.chkRemapCols.Location = new System.Drawing.Point(6, 69);
             this.chkRemapCols.Name = "chkRemapCols";
             this.chkRemapCols.Size = new System.Drawing.Size(183, 17);
             this.chkRemapCols.TabIndex = 4;
@@ -145,7 +156,7 @@ namespace AGS.Editor
             this.groupTransColour.Controls.Add(this.radTransColourBottomLeftPixel);
             this.groupTransColour.Controls.Add(this.radTransColourTopLeftPixel);
             this.groupTransColour.Controls.Add(this.radTransColourIndex0);
-            this.groupTransColour.Location = new System.Drawing.Point(12, 108);
+            this.groupTransColour.Location = new System.Drawing.Point(12, 138);
             this.groupTransColour.Name = "groupTransColour";
             this.groupTransColour.Size = new System.Drawing.Size(224, 192);
             this.groupTransColour.TabIndex = 6;
@@ -159,6 +170,14 @@ namespace AGS.Editor
             this.panelBottomRight.Name = "panelBottomRight";
             this.panelBottomRight.Size = new System.Drawing.Size(78, 17);
             this.panelBottomRight.TabIndex = 12;
+            // 
+            // panelTopRight
+            // 
+            this.panelTopRight.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.panelTopRight.Location = new System.Drawing.Point(136, 135);
+            this.panelTopRight.Name = "panelTopRight";
+            this.panelTopRight.Size = new System.Drawing.Size(78, 17);
+            this.panelTopRight.TabIndex = 11;
             // 
             // panelBottomLeft
             // 
@@ -258,7 +277,8 @@ namespace AGS.Editor
             // 
             // btnClose
             // 
-            this.btnClose.Location = new System.Drawing.Point(12, 569);
+            this.btnClose.DialogResult = System.Windows.Forms.DialogResult.Cancel;
+            this.btnClose.Location = new System.Drawing.Point(12, 599);
             this.btnClose.Name = "btnClose";
             this.btnClose.Size = new System.Drawing.Size(70, 30);
             this.btnClose.TabIndex = 23;
@@ -268,7 +288,7 @@ namespace AGS.Editor
             // 
             // btnImport
             // 
-            this.btnImport.Location = new System.Drawing.Point(89, 569);
+            this.btnImport.Location = new System.Drawing.Point(89, 599);
             this.btnImport.Name = "btnImport";
             this.btnImport.Size = new System.Drawing.Size(70, 30);
             this.btnImport.TabIndex = 0;
@@ -291,7 +311,7 @@ namespace AGS.Editor
             // 
             this.cmbFilenames.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cmbFilenames.FormattingEnabled = true;
-            this.cmbFilenames.Location = new System.Drawing.Point(12, 519);
+            this.cmbFilenames.Location = new System.Drawing.Point(12, 549);
             this.cmbFilenames.Name = "cmbFilenames";
             this.cmbFilenames.Size = new System.Drawing.Size(224, 21);
             this.cmbFilenames.TabIndex = 22;
@@ -300,7 +320,7 @@ namespace AGS.Editor
             // lblImageDescription
             // 
             this.lblImageDescription.AutoSize = true;
-            this.lblImageDescription.Location = new System.Drawing.Point(13, 547);
+            this.lblImageDescription.Location = new System.Drawing.Point(13, 577);
             this.lblImageDescription.Name = "lblImageDescription";
             this.lblImageDescription.Size = new System.Drawing.Size(69, 13);
             this.lblImageDescription.TabIndex = 23;
@@ -315,7 +335,7 @@ namespace AGS.Editor
             this.zoomSlider.Maximum = 20;
             this.zoomSlider.Minimum = 1;
             this.zoomSlider.Name = "zoomSlider";
-            this.zoomSlider.Size = new System.Drawing.Size(567, 45);
+            this.zoomSlider.Size = new System.Drawing.Size(567, 42);
             this.zoomSlider.TabIndex = 2;
             this.zoomSlider.Value = 1;
             this.zoomSlider.Scroll += new System.EventHandler(this.zoomSlider_Scroll);
@@ -347,7 +367,7 @@ namespace AGS.Editor
             this.groupSelection.Controls.Add(this.numOffsetX);
             this.groupSelection.Controls.Add(this.numOffsetY);
             this.groupSelection.Controls.Add(this.chkTiled);
-            this.groupSelection.Location = new System.Drawing.Point(12, 306);
+            this.groupSelection.Location = new System.Drawing.Point(12, 336);
             this.groupSelection.Name = "groupSelection";
             this.groupSelection.Size = new System.Drawing.Size(224, 207);
             this.groupSelection.TabIndex = 13;
@@ -546,6 +566,16 @@ namespace AGS.Editor
             this.numOffsetY.ValueChanged += new System.EventHandler(this.InvalidateOn_ValueChanged);
             this.numOffsetY.KeyUp += new System.Windows.Forms.KeyEventHandler(this.InvalidateOn_KeyUp);
             // 
+            // btnImportAll
+            // 
+            this.btnImportAll.Location = new System.Drawing.Point(166, 599);
+            this.btnImportAll.Name = "btnImportAll";
+            this.btnImportAll.Size = new System.Drawing.Size(70, 30);
+            this.btnImportAll.TabIndex = 1;
+            this.btnImportAll.Text = "Import All";
+            this.btnImportAll.UseVisualStyleBackColor = true;
+            this.btnImportAll.Click += new System.EventHandler(this.btnImportAll_Click);
+            // 
             // previewPanel
             // 
             this.previewPanel.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
@@ -555,7 +585,7 @@ namespace AGS.Editor
             this.previewPanel.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.previewPanel.Location = new System.Drawing.Point(245, 66);
             this.previewPanel.Name = "previewPanel";
-            this.previewPanel.Size = new System.Drawing.Size(570, 533);
+            this.previewPanel.Size = new System.Drawing.Size(570, 563);
             this.previewPanel.TabIndex = 25;
             this.previewPanel.Scroll += new System.Windows.Forms.ScrollEventHandler(this.previewPanel_Scroll);
             this.previewPanel.Paint += new System.Windows.Forms.PaintEventHandler(this.previewPanel_Paint);
@@ -563,30 +593,12 @@ namespace AGS.Editor
             this.previewPanel.MouseMove += new System.Windows.Forms.MouseEventHandler(this.previewPanel_MouseMove);
             this.previewPanel.MouseUp += new System.Windows.Forms.MouseEventHandler(this.previewPanel_MouseUp);
             // 
-            // btnImportAll
-            // 
-            this.btnImportAll.Location = new System.Drawing.Point(166, 569);
-            this.btnImportAll.Name = "btnImportAll";
-            this.btnImportAll.Size = new System.Drawing.Size(70, 30);
-            this.btnImportAll.TabIndex = 1;
-            this.btnImportAll.Text = "Import All";
-            this.btnImportAll.UseVisualStyleBackColor = true;
-            this.btnImportAll.Click += new System.EventHandler(this.btnImportAll_Click);
-            // 
-            // panelTopRight
-            // 
-            this.panelTopRight.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.panelTopRight.Location = new System.Drawing.Point(136, 135);
-            this.panelTopRight.Name = "panelTopRight";
-            this.panelTopRight.Size = new System.Drawing.Size(78, 17);
-            this.panelTopRight.TabIndex = 11;
-            // 
             // SpriteImportWindow
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.btnClose;
-            this.ClientSize = new System.Drawing.Size(824, 611);
+            this.ClientSize = new System.Drawing.Size(832, 648);
             this.Controls.Add(this.lblZoom);
             this.Controls.Add(this.zoomSlider);
             this.Controls.Add(this.btnImportAll);
@@ -601,7 +613,7 @@ namespace AGS.Editor
             this.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MinimizeBox = false;
-            this.MinimumSize = new System.Drawing.Size(840, 650);
+            this.MinimumSize = new System.Drawing.Size(840, 680);
             this.Name = "SpriteImportWindow";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "Import Sprite";
@@ -668,5 +680,6 @@ namespace AGS.Editor
         private System.Windows.Forms.Label lblY;
         private System.Windows.Forms.Button btnImportAll;
         private System.Windows.Forms.Panel panelTopRight;
+        private System.Windows.Forms.ComboBox cmbImportColorDepth;
     }
 }

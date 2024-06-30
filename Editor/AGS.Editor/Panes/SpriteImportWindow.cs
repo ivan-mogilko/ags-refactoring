@@ -26,6 +26,38 @@ namespace AGS.Editor
         // track whether anything was imported before the window was closed
         private bool hasImported = false;
 
+        private class ColorDepthItem
+        {
+            public string Text { get; set; }
+            public SpriteImportColorDepth Value { get; set; }
+            public ColorDepthItem(string text, SpriteImportColorDepth value)
+            {
+                Text = text;
+                Value = value;
+            }
+            public override string ToString()
+            {
+                return Text;
+            }
+        }
+
+        public SpriteImportColorDepth ImportColorDepth
+        {
+            get { return (cmbImportColorDepth.SelectedItem as ColorDepthItem).Value; }
+            set
+            {
+                for (int i = 0; i < cmbImportColorDepth.Items.Count; ++i)
+                {
+                    if ((cmbImportColorDepth.Items[i] as ColorDepthItem).Value == value)
+                    {
+                        cmbImportColorDepth.SelectedIndex = i;
+                        return;
+                    }
+                }
+                cmbImportColorDepth.SelectedIndex = -1;
+            }
+        }
+
         public bool RemapToGamePalette
         {
             get { return chkRemapCols.Checked; }
@@ -130,6 +162,7 @@ namespace AGS.Editor
         public SpriteImportWindow(string[] filenames, SpriteFolder folder)
         {
             InitializeComponent();
+            InitControls(); // extra init
 
             // take some defaults from Editor preferences
             SpriteImportMethod = (SpriteImportTransparency)Factory.AGSEditor.Settings.SpriteImportMethod;
@@ -157,6 +190,7 @@ namespace AGS.Editor
         public SpriteImportWindow(Bitmap bmp, SpriteFolder folder)
         {
             InitializeComponent();
+            InitControls(); // extra init
 
             // take some defaults from Editor preferences
             SpriteImportMethod = (SpriteImportTransparency)Factory.AGSEditor.Settings.SpriteImportMethod;
@@ -176,11 +210,13 @@ namespace AGS.Editor
         public SpriteImportWindow(string[] filenames, Sprite replace)
         {
             InitializeComponent();
+            InitControls(); // extra init
 
             // set defaults from the old sprite
             SpriteImportMethod = replace.TransparentColour;
             SelectionOffset = new Point(replace.OffsetX, replace.OffsetY);
             SelectionSize = new Size(replace.Width, replace.Height);
+            ImportColorDepth = replace.ImportColorDepth;
             UseAlphaChannel = replace.ImportAlphaChannel;
             RemapToGamePalette = replace.RemapToGamePalette;
             UseBackgroundSlots = replace.RemapToRoomPalette;
@@ -211,11 +247,13 @@ namespace AGS.Editor
         public SpriteImportWindow(Bitmap bmp, Sprite replace)
         {
             InitializeComponent();
+            InitControls(); // extra init
 
             // set defaults from the old sprite
             SpriteImportMethod = replace.TransparentColour;
             SelectionOffset = new Point(replace.OffsetX, replace.OffsetY);
             SelectionSize = new Size(replace.Width, replace.Height);
+            ImportColorDepth = replace.ImportColorDepth;
             UseAlphaChannel = replace.ImportAlphaChannel;
             RemapToGamePalette = replace.RemapToGamePalette;
             UseBackgroundSlots = replace.RemapToRoomPalette;
@@ -232,9 +270,21 @@ namespace AGS.Editor
             PostImageLoad();
         }
 
+        private void InitControls()
+        {
+            cmbImportColorDepth.Items.Add(new ColorDepthItem("In Game Color Depth", SpriteImportColorDepth.GameDefault));
+            cmbImportColorDepth.Items.Add(new ColorDepthItem("As 8-bit image", SpriteImportColorDepth.Indexed8Bit));
+        }
+
         private void OneTimeControlSetup()
         {
             bool gameUsesIndexedPalette = Factory.AGSEditor.CurrentGame.Settings.ColorDepth == AGS.Types.GameColorDepth.Palette;
+
+            // if import color depth was not selected, take the default option
+            if (cmbImportColorDepth.SelectedIndex == -1)
+            {
+                cmbImportColorDepth.SelectedIndex = 0;
+            }
 
             // if import method is for index 0 and this is not an indexed palette
             if (this.SpriteImportMethod == SpriteImportTransparency.PaletteIndex0 && !gameUsesIndexedPalette)
@@ -404,7 +454,7 @@ namespace AGS.Editor
 
             try
             {
-                SpriteTools.ReplaceSprite(replace, image, new SpriteImportOptions(UseAlphaChannel, RemapToGamePalette,
+                SpriteTools.ReplaceSprite(replace, image, new SpriteImportOptions(ImportColorDepth, UseAlphaChannel, RemapToGamePalette,
                     UseBackgroundSlots, SpriteImportMethod, filename, 0), spritesheet);
             }
             catch (AGSEditorException ex)
@@ -434,12 +484,12 @@ namespace AGS.Editor
                 if (frames == 1)
                 {
                     // in the interest of speed, import the existing bitmap if the file has a single frame
-                    SpriteTools.ImportNewSprites(folder, image, new SpriteImportOptions(UseAlphaChannel, RemapToGamePalette,
+                    SpriteTools.ImportNewSprites(folder, image, new SpriteImportOptions(ImportColorDepth, UseAlphaChannel, RemapToGamePalette,
                         UseBackgroundSlots, SpriteImportMethod, filename, 0), spritesheet);
                 }
                 else
                 {
-                    SpriteTools.ImportNewSprites(folder, new SpriteImportOptions(UseAlphaChannel, RemapToGamePalette,
+                    SpriteTools.ImportNewSprites(folder, new SpriteImportOptions(ImportColorDepth, UseAlphaChannel, RemapToGamePalette,
                         UseBackgroundSlots, SpriteImportMethod, filename), spritesheet);
                 }
             }

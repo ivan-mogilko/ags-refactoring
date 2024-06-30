@@ -24,6 +24,7 @@ namespace AGS.Types
         private int _offsetY;
         private int _importWidth;
         private int _importHeight;
+        private SpriteImportColorDepth _importColorDepth = SpriteImportColorDepth.GameDefault;
         private bool _remapToGamePalette;
         private bool _remapToRoomPalette;
         private bool _importAlphaChannel;
@@ -108,6 +109,14 @@ namespace AGS.Types
 			get { return _sourceFile; }
 			set { _sourceFile = value; }
 		}
+
+        [Description("Import converting to this color depth")]
+        [Category("Import")]
+        public SpriteImportColorDepth ImportColorDepth
+        {
+            get { return _importColorDepth; }
+            set { _importColorDepth = value; }
+        }
 
         [Description("Import the alpha channel (if one is available)")]
         [Category("Import")]
@@ -274,6 +283,16 @@ namespace AGS.Types
                 {
                     _importAsTile = false;
                 }
+
+                // added in XML version 4.00.00.07
+                try
+                {
+                    _importColorDepth = (SpriteImportColorDepth)Enum.Parse(typeof(SpriteImportColorDepth), SerializeUtils.GetElementString(sourceNode, "ImportColorDepth"));
+                }
+                catch (InvalidDataException)
+                {
+                    _importColorDepth = SpriteImportColorDepth.GameDefault;
+                }
             }
         }
 
@@ -298,6 +317,7 @@ namespace AGS.Types
             writer.WriteElementString("OffsetY", _offsetY.ToString());
             writer.WriteElementString("ImportHeight", _importHeight.ToString());
             writer.WriteElementString("ImportWidth", _importWidth.ToString());
+            writer.WriteElementString("ImportColorDepth", _importColorDepth.ToString());
             writer.WriteElementString("ImportAsTile", _importAsTile.ToString());
             writer.WriteElementString("Frame", _frame.ToString());
             writer.WriteElementString("RemapToGamePalette", _remapToGamePalette.ToString());
