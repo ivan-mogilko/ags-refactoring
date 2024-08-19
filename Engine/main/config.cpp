@@ -394,7 +394,7 @@ void apply_config(const ConfigTree &cfg)
         // Translation hacking
         usetup.stealth_tra = CfgReadBoolInt(cfg, "hack", "stealth_tra");
         usetup.dict_tra_file = CfgReadString(cfg, "hack", "parser_dic");
-
+        usetup.tra_trynovoice = CfgReadBoolInt(cfg, "hack", "tra_trynovoice");
     }
 
     // Apply logging configuration

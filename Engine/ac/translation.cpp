@@ -164,3 +164,8 @@ const StringMap& get_translation_tree()
 {
     return trans.Dict;
 }
+
+StringMap &get_translation_tree_writeable()
+{
+    return trans.Dict;
+}

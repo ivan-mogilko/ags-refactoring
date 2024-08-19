@@ -31,5 +31,7 @@ String get_translation_name();
 String get_translation_path();
 // Returns translation map for reading only
 const StringMap &get_translation_tree();
+// For hacking stuff
+StringMap &get_translation_tree_writeable();
 
 #endif // __AGS_EE_AC__TRANSLATION_H

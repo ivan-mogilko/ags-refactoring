@@ -49,6 +49,30 @@ const char *get_translation (const char *text) {
     const auto it = transtree.find(String::Wrapper(text));
     if (it != transtree.end())
         return it->second.GetCStr();
+
+    // TRANSLATION HACK -- try translation key without voice token
+    if (*text == '&' && usetup.tra_trynovoice)
+    {
+        const char *lookup = text;
+        // skip voice token and repeat lookup
+        while (*lookup != ' ' && *lookup != 0) lookup++;
+        while (*lookup == ' ' && *lookup != 0) lookup++;
+        const auto it2 = transtree.find(String::Wrapper(lookup));
+        if (it2 != transtree.end())
+        {
+            // add new translation with voice token to the tree so that
+            // it will be found next time
+            auto &transtree_wr = get_translation_tree_writeable();
+            String new_trans(text, lookup - text); // prepend voice token
+            new_trans.Append(it2->second); // append translation text itself
+            auto insert_it = transtree_wr.insert(std::make_pair(String(text), new_trans));
+            return insert_it.first->second.GetCStr();
+            // because of how translated text traversal currently works in the engine,
+            // we must return pointer to the string stored in the global storage,
+        }
+    }
+    //
+
     // return the original text
     return text;
 }
