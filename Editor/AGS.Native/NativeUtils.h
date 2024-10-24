@@ -53,6 +53,7 @@ namespace TextHelper
     // Convert ASCII text to managed string;
     // this is for symbol names of variables, functions and alike
     System::String^ ConvertASCII(const AGS::Common::String &str);
+    System::String^ ConvertASCII(const char *cstr);
     // Convert UTF-8 text to managed string;
     // this is for filepaths and error messages, etc
     System::String^ ConvertUTF8(const AGS::Common::String &str);

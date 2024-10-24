@@ -8,6 +8,12 @@ namespace AGS.Types
     /// 
     /// There's not much use for this interface currently, but its contents,
     /// as well as potential use, may be expanded in the future.
+    /// 
+    /// NOTE: there's a separate ICompiledScriptInternal interface declared in
+    /// AGS.Native, used internally by the AGS.Editor. That interface may be
+    /// used as a reference for the "fullfilled" ICompiledScript, when we are
+    /// sure about what would be required of it.
+    /// </summary>
     public interface ICompiledScript : IDisposable
     {
         /// <summary>

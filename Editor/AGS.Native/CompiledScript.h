@@ -22,11 +22,22 @@ namespace Native
 using namespace System;
 using namespace AGS::Types;
 
-public ref class CompiledScript : public ICompiledScript
+public interface class ICompiledScriptInternal
+{
+    /// <summary>
+    /// Returns a list of function names that this script exports.
+    /// NOTE: i'd reserve GetFunctionExport method name temporarily,
+    /// in case we'd like to return a list of "Export" or "FunctionExport" structs.
+    /// </summary>
+    IList<String^>^ GetFunctionExportNames();
+};
+
+public ref class CompiledScript : public ICompiledScript, public ICompiledScriptInternal
 {
 private:
     PScript* _compiledScript;
     String ^_scriptFileName;
+    IList<String^>^ _cachedFuncExportNames;
 
     void WriteCStr(System::IO::BinaryWriter ^writer, const std::string &str)
     {
@@ -48,7 +59,11 @@ public:
     property PScript Data
     {
         PScript get() { return *_compiledScript; }
-        void set(PScript newScript) { *_compiledScript = newScript; }
+        void set(PScript newScript)
+        {
+            *_compiledScript = newScript;
+            _cachedFuncExportNames = nullptr;
+        }
     }
 
     ~CompiledScript() 
@@ -61,6 +76,28 @@ public:
         _compiledScript->reset();
         delete _compiledScript;
         _compiledScript = NULL;
+        _scriptFileName = nullptr;
+        _cachedFuncExportNames = nullptr;
+    }
+
+    virtual IList<String^>^ __clrcall GetFunctionExportNames()
+    {
+        if (*_compiledScript == NULL)
+        {
+            throw gcnew AGS::Types::CompileError(gcnew System::String("Script has not been compiled: ") + _scriptFileName);
+        }
+
+        if (_cachedFuncExportNames != nullptr)
+            return _cachedFuncExportNames;
+
+        List<String^>^ exports = gcnew List<String^>();
+        const ccScript *cs = _compiledScript->get();
+        for (const auto &fe : cs->exports)
+        {
+            exports->Add(TextHelper::ConvertASCII(fe.c_str()));
+        }
+        _cachedFuncExportNames = exports;
+        return exports;
     }
 
     virtual void Write(System::IO::Stream ^ostream)

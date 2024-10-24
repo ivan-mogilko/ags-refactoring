@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using AGS.Types;
@@ -932,6 +933,45 @@ namespace AGS.Editor
             }
             sb.AppendLine();
             sb.AppendLine("};");
+        }
+
+        /// <summary>
+        /// Scans corresponding script module looking for the linked event functions.
+        /// Returns a list of indexes for those events which functions were NOT found,
+        /// or null on any error.
+        /// NOTE: events that do not have an assigned function are ignored.
+        /// </summary>
+        public List<int> TestMissingInteractionHandlers(Game game, Interactions interactions)
+        {
+            if (string.IsNullOrEmpty(interactions.ScriptModule))
+                return null;
+
+            return TestMissingEventHandlers(game, interactions.ScriptModule, interactions.ScriptFunctionNames);
+        }
+
+        public List<int> TestMissingEventHandlers(Game game, string scriptModule, string[] functionNames)
+        {
+            var script = game.ScriptsToCompile.GetScriptByFilename(scriptModule);
+            if (script == null || script.CompiledData == null)
+                return null;
+
+            AGS.Native.ICompiledScriptInternal cs = script.CompiledData as AGS.Native.ICompiledScriptInternal;
+            if (cs == null)
+                return null;
+
+            var funcExports = cs.GetFunctionExportNames();
+
+            List<int> missing = new List<int>();
+            for (int i = 0; i < functionNames.Length; ++i)
+            {
+                if (string.IsNullOrEmpty(functionNames[i]))
+                    continue;
+                // NOTE: we cannot use direct equality, as function exports may have additional
+                // data attached to their names (like number of arguments)
+                if (string.IsNullOrEmpty(funcExports.FirstOrDefault(f => f.StartsWith(functionNames[i]))))
+                    missing.Add(i);
+            }
+            return missing;
         }
 
         /// <summary>

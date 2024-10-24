@@ -134,6 +134,11 @@ System::String^ TextHelper::ConvertASCII(const AGS::Common::String &str)
     return gcnew String(str.GetCStr());
 }
 
+System::String^ TextHelper::ConvertASCII(const char *cstr)
+{
+    return gcnew String(cstr);
+}
+
 System::String^ TextHelper::ConvertUTF8(const AGS::Common::String &str)
 {
     return Convert(str, System::Text::Encoding::UTF8);

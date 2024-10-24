@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using System.Xml;
@@ -50,6 +51,7 @@ namespace AGS.Editor.Components
             _guiController.RegisterIcon("GUISliderIcon", Resources.ResourceManager.GetIcon("guis_slider.ico"));
             _guiController.RegisterIcon("GUITextBoxIcon", Resources.ResourceManager.GetIcon("guis_textbox.ico"));
             _guiController.ProjectTree.AddTreeRoot(this, TOP_LEVEL_COMMAND_ID, "GUIs", ICON_KEY);
+            _agsEditor.ExtraCompilationStep += ScanAndReportMissingInteractionHandlers;
 
             RePopulateTreeView();
         }
@@ -371,5 +373,83 @@ namespace AGS.Editor.Components
             return _agsEditor.CurrentGame.GUIFlatList;
         }
 
+        private void ScanAndReportMissingInteractionHandlers(CompileMessages errors)
+        {
+            foreach (GUI gui in _agsEditor.CurrentGame.GUIs)
+            {
+                NormalGUI ngui = gui as NormalGUI;
+                if (ngui == null)
+                    continue;
+
+                // Gather function names from the GUI and all of their controls,
+                // in order to test missing functions in a single batch.
+                // TODO: the following code would be much simpler if there was an indexed Events table in each GUI and control class;
+                // see also: how Interactions class is done for Characters etc.
+
+                // "objects" array contains a list of GUI or controls and index of their *first* event
+                // (strictly speaking controls have only 1 event at the time of writing this code,
+                // but they may get more in the future)
+                List<Tuple<object, int>> objects = new List<Tuple<object, int>>();
+                List<Tuple<string, string>> objectEvents = new List<Tuple<string, string>>();
+
+                objects.Add(new Tuple<object, int>(ngui, 0));
+                objectEvents.Add(new Tuple<string, string>("OnClick", ngui.OnClick));
+
+                int guiControlEvtIndex;
+                foreach (var control in ngui.Controls)
+                {
+                    guiControlEvtIndex = objectEvents.Count;
+                    if (control is GUIButton)
+                    {
+                        objects.Add(new Tuple<object, int>(control, guiControlEvtIndex));
+                        objectEvents.Add(new Tuple<string, string>("OnClick", (control as GUIButton).OnClick));
+                    }
+                    else if (control is GUIListBox)
+                    {
+                        objects.Add(new Tuple<object, int>(control, guiControlEvtIndex));
+                        objectEvents.Add(new Tuple<string, string>("OnSelectionChanged", (control as GUIListBox).OnSelectionChanged));
+                    }
+                    else if (control is GUISlider)
+                    {
+                        objects.Add(new Tuple<object, int>(control, guiControlEvtIndex));
+                        objectEvents.Add(new Tuple<string, string>("OnChange", (control as GUISlider).OnChange));
+                    }
+                    else if (control is GUITextBox)
+                    {
+                        objects.Add(new Tuple<object, int>(control, guiControlEvtIndex));
+                        objectEvents.Add(new Tuple<string, string>("OnActivate", (control as GUITextBox).OnActivate));
+                    }
+                }
+
+                var functionNames = objectEvents.Select(evt => evt.Item2);
+                var missing = _agsEditor.Tasks.TestMissingEventHandlers(_agsEditor.CurrentGame, ngui.ScriptModule, functionNames.ToArray());
+                if (missing == null || missing.Count == 0)
+                    continue;
+
+                int controlIndex = 0;
+                guiControlEvtIndex = 0;
+                foreach (var miss in missing)
+                {
+                    while (guiControlEvtIndex < miss)
+                    {
+                        guiControlEvtIndex = objects[++controlIndex].Item2;
+                    }
+
+                    object guiObject = objects[controlIndex].Item1;
+                    if (guiObject is NormalGUI)
+                    {
+                        errors.Add(new CompileWarning($"GUI #{ngui.ID} {ngui.Name}'s event {objectEvents[miss].Item1} function \"{objectEvents[miss].Item2}\" not found in script {ngui.ScriptModule}."));
+                    }
+                    else
+                    {
+                        string typeName = (guiObject as GUIControl).ControlType;
+                        int objid = (guiObject as GUIControl).ID;
+                        string scriptName = (guiObject as GUIControl).Name;
+
+                        errors.Add(new CompileWarning($"GUI #{ngui.ID} {ngui.Name}: {typeName} #{objid} {scriptName}'s event {objectEvents[miss].Item1} function \"{objectEvents[miss].Item2}\" not found in script {ngui.ScriptModule}."));
+                    }
+                }
+            }
+        }
     }
 }
