@@ -1,16 +1,18 @@
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace AGS.Types
 {
+    /// <summary>
+    /// ICompiledScript is an opaque object, which hides an internal
+    /// implementation of a script compilation result.
+    /// 
+    /// There's not much use for this interface currently, but its contents,
+    /// as well as potential use, may be expanded in the future.
     public interface ICompiledScript : IDisposable
     {
         /// <summary>
         /// Writes this compiled script's data to the file stream.
-        /// NOTE: This function should be considered temporary and will likely be removed
-        /// as the compilation process is further refactored.
         /// </summary>
-        void Write(System.IO.FileStream ostream, System.String scriptFileName);
+        void Write(System.IO.Stream ostream);
     }
 }

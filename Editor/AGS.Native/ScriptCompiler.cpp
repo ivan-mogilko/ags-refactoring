@@ -22,7 +22,7 @@
 #include <vector>
 #include "NativeMethods.h"
 #include "NativeUtils.h"
-#include "scripting.h"
+#include "CompiledScript.h"
 #include "script/cs_compiler.h"
 #include "script/cc_common.h"
 #include "util/path.h"
@@ -99,7 +99,7 @@ namespace AGS
 				  throw exceptionToThrow;
 			  }
 
-			  script->CompiledData = gcnew CompiledScript(PScript(scrpt));
+			  script->CompiledData = gcnew CompiledScript(PScript(scrpt), script->FileName);
 		}
 
 		void NativeMethods::UpdateFileIcon(String ^fileToUpdate, String ^iconName)

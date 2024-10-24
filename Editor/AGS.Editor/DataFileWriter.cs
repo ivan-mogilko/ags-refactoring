@@ -832,7 +832,7 @@ namespace AGS.Editor
                 errors.Add(new CompileError(string.Format("Script has not been compiled: {0}", script.FileName)));
                 return false;
             }
-            script.CompiledData.Write(ostream, script.FileName);
+            script.CompiledData.Write(ostream);
             return true;
         }
 
