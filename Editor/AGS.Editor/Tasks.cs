@@ -955,6 +955,11 @@ namespace AGS.Editor
             if (script == null || script.CompiledData == null)
                 return null;
 
+            return TestMissingEventHandlers(script, functionNames);
+        }
+
+        public List<int> TestMissingEventHandlers(Script script, string[] functionNames)
+        {
             AGS.Native.ICompiledScriptInternal cs = script.CompiledData as AGS.Native.ICompiledScriptInternal;
             if (cs == null)
                 return null;
