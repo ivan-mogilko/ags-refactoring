@@ -11,86 +11,43 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
+#include "script/systemimports.h"
 #include <stdlib.h>
 #include <string.h>
-#include "script/systemimports.h"
+#include "script/cc_instance.h"
+
+using namespace AGS::Common;
 
 SystemImports simp;
 SystemImports simp_for_plugin;
 
-uint32_t SystemImports::add(const String &name, const RuntimeScriptValue &value, ccInstance *anotherscr)
+
+void ScriptSymbolsMap::add(const String &name, uint32_t index)
 {
-    uint32_t ixof = getIndexOf(name);
-    // Check if symbol already exists
-    if (ixof != UINT32_MAX)
-    {
-        // Only allow override if not a script-exported function
-        if (anotherscr == nullptr)
-        {
-            imports[ixof].Value = value;
-            imports[ixof].InstancePtr = anotherscr;
-        }
-        return ixof;
-    }
-
-    ixof = imports.size();
-    for (size_t i = 0; i < imports.size(); ++i)
-    {
-        if (imports[i].Name == nullptr)
-        {
-            ixof = i;
-            break;
-        }
-    }
-
-    btree[name] = ixof;
-    if (ixof == imports.size())
-        imports.push_back(ScriptImport());
-    imports[ixof].Name          = name;
-    imports[ixof].Value         = value;
-    imports[ixof].InstancePtr   = anotherscr;
-    return ixof;
+    _lookup[name] = index;
 }
 
-void SystemImports::remove(const String &name)
+void ScriptSymbolsMap::remove(const String &name)
 {
-    uint32_t idx = getIndexOf(name);
-    if (idx == UINT32_MAX)
-        return;
-    btree.erase(imports[idx].Name);
-    imports[idx].Name = nullptr;
-    imports[idx].Value.Invalidate();
-    imports[idx].InstancePtr = nullptr;
+    _lookup.erase(name);
 }
 
-const ScriptImport *SystemImports::getByName(const String &name) const
+void ScriptSymbolsMap::clear()
 {
-    uint32_t o = getIndexOf(name);
-    if (o == UINT32_MAX)
-        return nullptr;
-
-    return &imports[o];
+    _lookup.clear();
 }
 
-const ScriptImport *SystemImports::getByIndex(uint32_t index) const
+uint32_t ScriptSymbolsMap::getIndexOf(const String &name) const
 {
-    if (index >= imports.size())
-        return nullptr;
-
-    return &imports[index];
-}
-
-uint32_t SystemImports::getIndexOf(const String &name) const
-{
-    IndexMap::const_iterator it = btree.find(name);
-    if (it != btree.end())
+    auto it = _lookup.find(name);
+    if (it != _lookup.end())
         return it->second;
 
     // Not found...
     return UINT32_MAX;
 }
 
-uint32_t SystemImports::getIndexOfAny(const String &name) const
+uint32_t ScriptSymbolsMap::getIndexOfAny(const String &name) const
 {
     // Import names may be potentially formed as:
     //
@@ -100,17 +57,17 @@ uint32_t SystemImports::getIndexOfAny(const String &name) const
     // "argnum" is the number of arguments and "arglist" is a '^' separated
     // list of types of return value and function args.
 
-    const size_t argnum_at = name.FindChar('^');
-    const size_t arglist_at = (argnum_at != String::NoIndex) ? name.FindChar('^', argnum_at + 1) : String::NoIndex;
+    const size_t argnum_at = name.FindChar(_appendageSeparator);
+    const size_t arglist_at = (argnum_at != String::NoIndex) ? name.FindChar(_appendageSeparator, argnum_at + 1) : String::NoIndex;
     uint32_t match_only_argnum = UINT32_MAX;
     uint32_t match_only_name = UINT32_MAX;
     // TODO: optimize this by supporting string views! or compare methods which let compare with a substring of input
     const String name_only = name.Left(argnum_at);
-    const String argnum_only = name.Mid(argnum_at + 1, arglist_at - argnum_at - 1);
-    const String arglist_only = name.Mid(arglist_at + 1);
+    const String argnum_only = (argnum_at != UINT32_MAX) ? name.Mid(argnum_at + 1, arglist_at - argnum_at - 1) : String();
+    const String arglist_only = (arglist_at != UINT32_MAX) ? name.Mid(arglist_at + 1) : String();
 
     // Scan the range of possible matches, starting with pure name without appendages
-    for (auto it = btree.lower_bound(name_only); it != btree.end(); ++it)
+    for (auto it = _lookup.lower_bound(name_only); it != _lookup.end(); ++it)
     {
         const String &try_sym = it->first;
         if (try_sym.CompareLeft(name, argnum_at) != 0)
@@ -145,6 +102,75 @@ uint32_t SystemImports::getIndexOfAny(const String &name) const
     return UINT32_MAX;
 }
 
+
+SystemImports::SystemImports()
+    : _lookup('^')
+{
+}
+
+uint32_t SystemImports::add(const String &name, const RuntimeScriptValue &value, ccInstance *anotherscr)
+{
+    uint32_t ixof = getIndexOf(name);
+    // Check if symbol already exists
+    if (ixof != UINT32_MAX)
+    {
+        // Only allow override if not a script-exported function
+        if (anotherscr == nullptr)
+        {
+            imports[ixof].Value = value;
+            imports[ixof].InstancePtr = anotherscr;
+        }
+        return ixof;
+    }
+
+    ixof = imports.size();
+    for (size_t i = 0; i < imports.size(); ++i)
+    {
+        if (imports[i].Name == nullptr)
+        {
+            ixof = i;
+            break;
+        }
+    }
+
+    if (ixof == imports.size())
+        imports.push_back(ScriptImport());
+    imports[ixof].Name          = name;
+    imports[ixof].Value         = value;
+    imports[ixof].InstancePtr   = anotherscr;
+    _lookup.add(name, ixof);
+    return ixof;
+}
+
+void SystemImports::remove(const String &name)
+{
+    uint32_t idx = getIndexOf(name);
+    if (idx == UINT32_MAX)
+        return;
+
+    _lookup.remove(imports[idx].Name);
+    imports[idx].Name = {};
+    imports[idx].Value.Invalidate();
+    imports[idx].InstancePtr = nullptr;
+}
+
+const ScriptImport *SystemImports::getByName(const String &name) const
+{
+    uint32_t o = getIndexOf(name);
+    if (o == UINT32_MAX)
+        return nullptr;
+
+    return &imports[o];
+}
+
+const ScriptImport *SystemImports::getByIndex(uint32_t index) const
+{
+    if (index >= imports.size())
+        return nullptr;
+
+    return &imports[index];
+}
+
 String SystemImports::findName(const RuntimeScriptValue &value) const
 {
     for (const auto &import : imports)
@@ -171,7 +197,7 @@ void SystemImports::RemoveScriptExports(ccInstance *inst)
 
         if (import.InstancePtr == inst)
         {
-            btree.erase(import.Name);
+            _lookup.remove(import.Name);
             import.Name = nullptr;
             import.Value.Invalidate();
             import.InstancePtr = nullptr;
@@ -181,6 +207,6 @@ void SystemImports::RemoveScriptExports(ccInstance *inst)
 
 void SystemImports::clear()
 {
-    btree.clear();
+    _lookup.clear();
     imports.clear();
 }

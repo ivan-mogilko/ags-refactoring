@@ -11,43 +11,30 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-
 #ifndef __CC_SYSTEMIMPORTS_H
 #define __CC_SYSTEMIMPORTS_H
 
 #include <map>
-#include "script/cc_instance.h"    // ccInstance
+#include "script/runtimescriptvalue.h"
+#include "util/string.h"
 
-struct IScriptObject;
 
-using AGS::Common::String;
-
-struct ScriptImport
+// ScriptSymbolsMap is a wrapper around a lookup table, meant for storing
+// script's imported and exported symbols, whether per individual script,
+// or a joint table from all scripts.
+// Its purpose is to provide lookup by both full and partial symbol names,
+// which consist of several partitions, some of which considered optional;
+// such as: function name with encoded arglist appended to it.
+class ScriptSymbolsMap
 {
-    ScriptImport()
-    {
-        InstancePtr = nullptr;
-    }
-
-    String              Name;           // import's uid
-    RuntimeScriptValue  Value;
-    ccInstance          *InstancePtr;   // script instance
-};
-
-struct SystemImports
-{
-private:
-    // Note we can't use a hash-map here, because we sometimes need to search
-    // by partial keys, so sorting is cruicial
-    typedef std::map<String, uint32_t> IndexMap;
-
-    std::vector<ScriptImport> imports;
-    IndexMap btree;
-
+    using String = AGS::Common::String;
 public:
-    uint32_t add(const String &name, const RuntimeScriptValue &value, ccInstance *inst);
+    ScriptSymbolsMap(char appendage_separator)
+        : _appendageSeparator(appendage_separator) {}
+
+    void add(const String &name, uint32_t index);
     void remove(const String &name);
-    const ScriptImport *getByName(const String &name) const;
+    void clear();
     // Gets an index of an imported symbol with exact name match;
     // returns UINT32_MAX on failure
     uint32_t getIndexOf(const String &name) const;
@@ -55,10 +42,52 @@ public:
     // or one of the simpler variants in case of a composite input name;
     // returns UINT32_MAX on failure
     uint32_t getIndexOfAny(const String &name) const;
+
+private:
+    const char _appendageSeparator;
+    // Note we can't use a hash-map here, because we sometimes need to search
+    // by partial keys, so sorting is cruicial
+    std::map<String, uint32_t> _lookup;
+};
+
+class ccInstance;
+
+struct ScriptImport
+{
+    using String = AGS::Common::String;
+
+    ScriptImport() = default;
+
+    String              Name; // import's uid
+    RuntimeScriptValue  Value;
+    ccInstance          *InstancePtr = nullptr; // script instance
+};
+
+class SystemImports
+{
+    using String = AGS::Common::String;
+public:
+    SystemImports();
+
+    uint32_t add(const String &name, const RuntimeScriptValue &value, ccInstance *inst);
+    void remove(const String &name);
+    const ScriptImport *getByName(const String &name) const;
     const ScriptImport *getByIndex(uint32_t index) const;
     String findName(const RuntimeScriptValue &value) const;
     void RemoveScriptExports(ccInstance *inst);
     void clear();
+
+    // Gets an index of an imported symbol with exact name match;
+    // returns UINT32_MAX on failure
+    uint32_t getIndexOf(const String &name) const { return _lookup.getIndexOf(name); }
+    // Gets an index of an imported symbol, matching either exactly,
+    // or one of the simpler variants in case of a composite input name;
+    // returns UINT32_MAX on failure
+    uint32_t getIndexOfAny(const String &name) const { return _lookup.getIndexOfAny(name); }
+
+private:
+    std::vector<ScriptImport> imports;
+    ScriptSymbolsMap _lookup;
 };
 
 extern SystemImports simp;

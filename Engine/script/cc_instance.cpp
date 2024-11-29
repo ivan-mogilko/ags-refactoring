@@ -275,6 +275,11 @@ void ccInstance::SetExecTimeout(const unsigned sys_poll_ms, const unsigned abort
     _maxWhileLoops = abort_loops;
 }
 
+ccInstance::ccInstance()
+    : _exportLookup('$')
+{
+}
+
 ccInstance::~ccInstance()
 {
     Free();
@@ -374,22 +379,9 @@ void ccInstance::AbortAndDestroy()
     }
 
 
-size_t ccInstance::GetExportedSymbol(const Common::String &symname) const
-{
-    // We expect that the functions may be exported with the number of arguments
-    // appended to their names after '$' separator.
-    for (auto it = _exportLookup.lower_bound(symname);
-        it != _exportLookup.end() && it->first.CompareLeft(symname) == 0; ++it)
-    {
-        if (it->first.GetLength() == symname.GetLength() || it->first[symname.GetLength()] == '$')
-            return it->second;
-    }
-    return SIZE_MAX;
-}
-
 bool ccInstance::FindExportedFunction(const String &fn_name, int32_t &start_at, int32_t &num_args) const
 {
-    const size_t exp_index = GetExportedSymbol(fn_name);
+    const uint32_t exp_index = _exportLookup.getIndexOfAny(fn_name);
     if (exp_index == SIZE_MAX)
         return false;
 
@@ -1717,8 +1709,8 @@ void ccInstance::GetScriptPosition(ScriptPosition &script_pos) const
 
 RuntimeScriptValue ccInstance::GetSymbolAddress(const String &symname) const
 {
-    size_t exp_index = GetExportedSymbol(symname);
-    return (exp_index < SIZE_MAX) ? _exports[exp_index] : RuntimeScriptValue();
+    uint32_t exp_index = _exportLookup.getIndexOfAny(symname);
+    return (exp_index < UINT32_MAX) ? _exports[exp_index] : RuntimeScriptValue();
 }
 
 void ccInstance::DumpInstruction(const ScriptOperation &op) const
@@ -1928,7 +1920,7 @@ bool ccInstance::_Create(PScript scri, const ccInstance *joined)
             return false;
         }
 
-        _exportLookup[scri->exports[i]] = i;
+        _exportLookup.add(scri->exports[i], i);
     }
 
     _instanceof = scri;
