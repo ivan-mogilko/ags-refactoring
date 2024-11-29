@@ -524,6 +524,9 @@ private:
 
     void ParseFuncdecl_HandleFunctionOrImportIndex(TypeQualifierSet tqs, Symbol struct_of_func, Symbol name_of_func, bool body_follows);
 
+    // Generates an appendage to the function's import name, encoding number and types of args, and type of return value
+    std::string ParseDuncdecl_GenerateImportNameAppendage(Symbol name_of_func);
+
     // Parse a function declaration.
     // We're behind the opening '(', and any first extender parameter has already be resolved.
     void ParseFuncdecl(TypeQualifierSet tqs, Vartype return_vartype, Symbol struct_of_func, Symbol name_of_func, bool no_loop_check, bool body_follows);

@@ -1469,6 +1469,37 @@ void AGS::Parser::ParseFuncdecl_Checks(TypeQualifierSet tqs, Symbol struct_of_fu
     }
 }
 
+std::string AGS::Parser::ParseDuncdecl_GenerateImportNameAppendage(Symbol name_of_func)
+{
+    const auto &func = _sym.entries.at(name_of_func);
+    std::string appendage;
+
+    // Param count
+    char param_count[10];
+    snprintf(param_count, sizeof(param_count), "^%zu", (func.FunctionD->Parameters.size() - 1u) + 100 * _sym[name_of_func].FunctionD->IsVariadic);
+    appendage.append(param_count);
+
+    // Parameter list, including return value (they all have same format)
+    for (const auto &p : func.FunctionD->Parameters)
+    {
+        // TODO: mark parameter qualifiers? - pointers, const, readonly etc
+        // TODO: revise if we need to replace enums and bools with 'int', or it's okay to leave those even though they are secretly ints?
+
+        const auto &type = _sym.entries.at(p.Vartype);
+        std::string name = type.Name;
+        name.erase(std::remove(name.begin(), name.end(), ' '), name.end());
+        appendage.append("^");
+        appendage.append(name);
+    }
+
+    if (_sym[name_of_func].FunctionD->IsVariadic)
+    {
+        appendage.append("^...");
+    }
+
+    return appendage;
+}
+
 void AGS::Parser::ParseFuncdecl_HandleFunctionOrImportIndex(TypeQualifierSet tqs, Symbol struct_of_func, Symbol name_of_func, bool body_follows)
 {
     if (PP::kMain == _pp)
@@ -1506,9 +1537,7 @@ void AGS::Parser::ParseFuncdecl_HandleFunctionOrImportIndex(TypeQualifierSet tqs
     // (Sort of a limited "function overloading")
     if (_scrip.imports[imports_idx].find('^') == std::string::npos)
     {
-        char appendage[10];
-        snprintf(appendage, sizeof(appendage), "^%zu", _sym.FuncParamsCount(name_of_func) + 100 * _sym[name_of_func].FunctionD->IsVariadic);
-        _scrip.imports[imports_idx].append(appendage);
+        _scrip.imports[imports_idx].append(ParseDuncdecl_GenerateImportNameAppendage(name_of_func));
     }
 
     _importLabels.SetLabelValue(name_of_func, imports_idx);
