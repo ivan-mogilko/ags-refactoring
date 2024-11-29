@@ -47,10 +47,16 @@ private:
 public:
     uint32_t add(const String &name, const RuntimeScriptValue &value, ccInstance *inst);
     void remove(const String &name);
-    const ScriptImport *getByName(const String &name);
-    uint32_t get_index_of(const String &name);
-    const ScriptImport *getByIndex(uint32_t index);
-    String findName(const RuntimeScriptValue &value);
+    const ScriptImport *getByName(const String &name) const;
+    // Gets an index of an imported symbol with exact name match;
+    // returns UINT32_MAX on failure
+    uint32_t getIndexOf(const String &name) const;
+    // Gets an index of an imported symbol, matching either exactly,
+    // or one of the simpler variants in case of a composite input name;
+    // returns UINT32_MAX on failure
+    uint32_t getIndexOfAny(const String &name) const;
+    const ScriptImport *getByIndex(uint32_t index) const;
+    String findName(const RuntimeScriptValue &value) const;
     void RemoveScriptExports(ccInstance *inst);
     void clear();
 };

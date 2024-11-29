@@ -20,7 +20,7 @@ SystemImports simp_for_plugin;
 
 uint32_t SystemImports::add(const String &name, const RuntimeScriptValue &value, ccInstance *anotherscr)
 {
-    uint32_t ixof = get_index_of(name);
+    uint32_t ixof = getIndexOf(name);
     // Check if symbol already exists
     if (ixof != UINT32_MAX)
     {
@@ -54,7 +54,7 @@ uint32_t SystemImports::add(const String &name, const RuntimeScriptValue &value,
 
 void SystemImports::remove(const String &name)
 {
-    uint32_t idx = get_index_of(name);
+    uint32_t idx = getIndexOf(name);
     if (idx == UINT32_MAX)
         return;
     btree.erase(imports[idx].Name);
@@ -63,16 +63,16 @@ void SystemImports::remove(const String &name)
     imports[idx].InstancePtr = nullptr;
 }
 
-const ScriptImport *SystemImports::getByName(const String &name)
+const ScriptImport *SystemImports::getByName(const String &name) const
 {
-    uint32_t o = get_index_of(name);
+    uint32_t o = getIndexOf(name);
     if (o == UINT32_MAX)
         return nullptr;
 
     return &imports[o];
 }
 
-const ScriptImport *SystemImports::getByIndex(uint32_t index)
+const ScriptImport *SystemImports::getByIndex(uint32_t index) const
 {
     if (index >= imports.size())
         return nullptr;
@@ -80,43 +80,72 @@ const ScriptImport *SystemImports::getByIndex(uint32_t index)
     return &imports[index];
 }
 
-uint32_t SystemImports::get_index_of(const String &name)
+uint32_t SystemImports::getIndexOf(const String &name) const
 {
-    // Import names may be commonly formed as "name^N" or "type::name^N",
-    // where "type" is a name of a type, "name" is a name of a function,
-    // and "N" is a number of arguments.
-    
-    // First look for the identical name match: this may be the case if:
-    // * compiler did not bother to append number of arguments;
-    // * we registered a function with exact matching arg number;
-    // * we called get_index_of() recursively with arg num cut off (see below).
     IndexMap::const_iterator it = btree.find(name);
     if (it != btree.end())
-        return it->second;
-
-    // Next try if the given name contains '^' separator,
-    // in which case cut the leftmost section and try it alone.
-    if (name.GetLength() > 3)
-    {
-        size_t c = name.FindCharReverse('^');
-        if (c != String::NoIndex && (c >= name.GetLength() - 4))
-        {
-            return get_index_of(name.Left(c));
-        }
-    }
-
-    // Finally look for the exported script functions, these commonly are registered
-    // as "name$N", where N is a number of arguments.
-    String export_name = String::FromFormat("%s$", name.GetCStr());
-    it = btree.lower_bound(export_name);
-    if (it != btree.end() && it->first.CompareLeft(export_name) == 0)
         return it->second;
 
     // Not found...
     return UINT32_MAX;
 }
 
-String SystemImports::findName(const RuntimeScriptValue &value)
+uint32_t SystemImports::getIndexOfAny(const String &name) const
+{
+    // Import names may be potentially formed as:
+    //
+    //     [type::]name[^argnum][^arglist]
+    //
+    // where "type" is the name of a type, "name" is the name of a function,
+    // "argnum" is the number of arguments and "arglist" is a '^' separated
+    // list of types of return value and function args.
+
+    const size_t argnum_at = name.FindChar('^');
+    const size_t arglist_at = (argnum_at != String::NoIndex) ? name.FindChar('^', argnum_at + 1) : String::NoIndex;
+    uint32_t match_only_argnum = UINT32_MAX;
+    uint32_t match_only_name = UINT32_MAX;
+    // TODO: optimize this by supporting string views! or compare methods which let compare with a substring of input
+    const String name_only = name.Left(argnum_at);
+    const String argnum_only = name.Mid(argnum_at + 1, arglist_at - argnum_at - 1);
+    const String arglist_only = name.Mid(arglist_at + 1);
+
+    // Scan the range of possible matches, starting with pure name without appendages
+    for (auto it = btree.lower_bound(name_only); it != btree.end(); ++it)
+    {
+        const String &try_sym = it->first;
+        if (try_sym.CompareLeft(name, argnum_at) != 0)
+            break; // base name not matching, no reason to continue the range
+        else if (argnum_at == String::NoIndex)
+            return it->second; // match, and request has no further appendage, choose this
+
+        // If the symbol was registered without argnum, arglist, then remember it
+        if (try_sym.GetLength() == argnum_at)
+            match_only_name = it->second;
+
+        if (try_sym.CompareMid(argnum_only, argnum_at + 1, arglist_at - argnum_at + 1) != 0)
+            continue; // argnum not matching
+        else if (arglist_at == String::NoIndex)
+            return it->second; // match, and request has no further appendage, choose this
+
+        // If the symbol was registered without arglist, then remember it
+        if (try_sym.GetLength() == arglist_at)
+            match_only_argnum = it->second;
+
+        if (try_sym.CompareMid(arglist_only, arglist_at + 1) == 0)
+            return it->second; // matched whole appendage, found exact match
+    }
+    
+    // If no exact match was found, then select the longest match
+    if (match_only_argnum != UINT32_MAX)
+        return match_only_argnum; // have a match with number of arguments
+    if (match_only_name != UINT32_MAX)
+        return match_only_name; // have a match with the function name
+
+    // Not found...
+    return UINT32_MAX;
+}
+
+String SystemImports::findName(const RuntimeScriptValue &value) const
 {
     for (const auto &import : imports)
     {

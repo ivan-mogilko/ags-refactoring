@@ -1937,10 +1937,15 @@ bool ccInstance::_Create(PScript scri, const ccInstance *joined)
         _flags = INSTF_SHAREDATA;
     scri->instances++;
 
-    if ((scri->instances == 1) && (ccGetOption(SCOPT_AUTOIMPORT) != 0)) {
+    if ((scri->instances == 1) && (ccGetOption(SCOPT_AUTOIMPORT) != 0))
+    {
         // import all the exported stuff from this script
-        for (size_t i = 0; i < scri->exports.size(); i++) {
-            if (!ccAddExternalScriptSymbol(scri->exports[i].c_str(), _exports[i], this)) {
+        for (size_t i = 0; i < scri->exports.size(); i++)
+        {
+            String name = scri->exports[i];
+            name.Replace('$', '^'); // replace exported name separator with imported name separator
+            if (!ccAddExternalScriptSymbol(name, _exports[i], this))
+            {
                 cc_error("Export table overflow at '%s'", scri->exports[i].c_str());
                 return false;
             }
@@ -2034,7 +2039,7 @@ bool ccInstance::ResolveScriptImports()
             continue;
         }
 
-        resolved_imports[import_idx] = simp.get_index_of(String::Wrapper(scri->imports[import_idx].c_str()));
+        resolved_imports[import_idx] = simp.getIndexOfAny(String::Wrapper(scri->imports[import_idx].c_str()));
         if (resolved_imports[import_idx] == UINT32_MAX)
         {
             Debug::Printf(kDbgMsg_Error, "unresolved import '%s' in '%s'", scri->imports[import_idx].c_str(), scri->sectionNames.size() > 0 ? scri->sectionNames[0].c_str() : "<unknown>");
