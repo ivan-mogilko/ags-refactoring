@@ -94,17 +94,18 @@ SystemImports::SystemImports()
 {
 }
 
-uint32_t SystemImports::Add(const String &name, const RuntimeScriptValue &value, ccInstance *anotherscr)
+uint32_t SystemImports::Add(const String &name, const RuntimeScriptValue &value, RuntimeScript *script)
 {
     uint32_t ixof = GetIndexOf(name);
     // Check if symbol already exists
     if (ixof != UINT32_MAX)
     {
         // Only allow override if not a script-exported function
-        if (anotherscr == nullptr)
+        if (script == nullptr)
         {
             _imports[ixof].Value = value;
-            _imports[ixof].InstancePtr = anotherscr;
+            _imports[ixof].ScriptID = script->GetLinkIndex();
+            _imports[ixof].ScriptPtr = script;
         }
         return ixof;
     }
@@ -123,7 +124,8 @@ uint32_t SystemImports::Add(const String &name, const RuntimeScriptValue &value,
         _imports.push_back(ScriptImport());
     _imports[ixof].Name          = name;
     _imports[ixof].Value         = value;
-    _imports[ixof].InstancePtr   = anotherscr;
+    _imports[ixof].ScriptID      = script->GetLinkIndex();
+    _imports[ixof].ScriptPtr     = script;
     _lookup.Add(name, ixof);
     return ixof;
 }
@@ -135,9 +137,7 @@ void SystemImports::Remove(const String &name)
         return;
 
     _lookup.Remove(_imports[idx].Name);
-    _imports[idx].Name = {};
-    _imports[idx].Value.Invalidate();
-    _imports[idx].InstancePtr = nullptr;
+    _imports[idx] = {};
 }
 
 const ScriptImport *SystemImports::GetByName(const String &name) const
@@ -169,9 +169,9 @@ String SystemImports::FindName(const RuntimeScriptValue &value) const
     return String();
 }
 
-void SystemImports::RemoveScriptExports(ccInstance *inst)
+void SystemImports::RemoveScriptExports(RuntimeScript *script)
 {
-    if (!inst)
+    if (!script)
     {
         return;
     }
@@ -181,12 +181,10 @@ void SystemImports::RemoveScriptExports(ccInstance *inst)
         if (import.Name == nullptr)
             continue;
 
-        if (import.InstancePtr == inst)
+        if (import.ScriptPtr == script)
         {
             _lookup.Remove(import.Name);
-            import.Name = nullptr;
-            import.Value.Invalidate();
-            import.InstancePtr = nullptr;
+            import = {};
         }
     }
 }

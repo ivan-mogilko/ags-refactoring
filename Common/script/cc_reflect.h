@@ -454,11 +454,11 @@ public:
         _strings.push_back(0); // guarantee zero-len string at index 0
     }
 
-    ScriptTOC(const ScriptTOC &rtti) = default;
-    ScriptTOC(ScriptTOC &&rtti) = default;
+    ScriptTOC(const ScriptTOC &toc) = default;
+    ScriptTOC(ScriptTOC &&toc) = default;
 
-    ScriptTOC &operator = (const ScriptTOC &rtti) = default;
-    ScriptTOC &operator = (ScriptTOC &&rtti) = default;
+    ScriptTOC &operator = (const ScriptTOC &toc) = default;
+    ScriptTOC &operator = (ScriptTOC &&toc) = default;
 
     bool IsEmpty() const { return _glVariables.empty() && _functions.empty(); }
     // Returns list of global variables

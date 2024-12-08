@@ -45,6 +45,7 @@
 #include "media/audio/audio_system.h"
 
 using namespace AGS::Common;
+using namespace AGS::Engine;
 
 extern GameSetupStruct game;
 extern int gameHasBeenRestored, displayed_room;
@@ -56,8 +57,8 @@ extern bool logScriptTOC;
 ExecutingScript scripts[MAX_SCRIPT_AT_ONCE];
 ExecutingScript *curscript = nullptr; // non-owning ptr
 
-PScript gamescript;
-PScript dialogScriptsScript;
+PRuntimeScript gamescript;
+PRuntimeScript dialogScriptsScript;
 UInstance gameinst;
 UInstance roominst;
 UInstance dialogScriptsInst;
@@ -83,7 +84,7 @@ NonBlockingScriptFunction runDialogOptionCloseFunc("dialog_options_close", 1);
 
 ScriptSystem scsystem;
 
-std::vector<PScript> scriptModules;
+std::vector<AGS::Engine::PRuntimeScript> scriptModules;
 std::vector<UInstance> moduleInst;
 std::vector<UInstance> moduleInstFork;
 std::vector<RuntimeScriptValue> moduleRepExecAddr;
@@ -192,9 +193,7 @@ int create_global_script() {
     // Resolve the script imports after all the scripts have been loaded 
     for (auto &inst : all_insts)
     {
-        if (!inst->ResolveScriptImports())
-            return kscript_create_error;
-        if (!inst->ResolveImportFixups())
+        if (!inst->GetScript()->ResolveScriptImports(simp))
             return kscript_create_error;
     }
 
@@ -221,8 +220,8 @@ int create_global_script() {
     {
         for (const auto &inst : all_insts)
         {
-            if (inst->GetScript()->sctoc)
-                Debug::Printf(PrintScriptTOC(*inst->GetScript()->sctoc, inst->GetScript()->sectionNames[0].c_str()));
+            if (inst->GetScript()->GetTOC())
+                Debug::Printf(PrintScriptTOC(*inst->GetScript()->GetTOC(), inst->GetScript()->GetScriptName().GetCStr()));
         }
     }
 
@@ -596,19 +595,6 @@ void FreeGlobalScripts()
     runDialogOptionTextInputHandlerFunc.ModuleHasFunction.clear();
     runDialogOptionRepExecFunc.ModuleHasFunction.clear();
     runDialogOptionCloseFunc.ModuleHasFunction.clear();
-}
-
-String GetScriptName(ccInstance *sci)
-{
-    // TODO: have script name a ccScript's member?
-    // TODO: check script modules too?
-    if (!sci)
-        return "Not in a script";
-    else if (sci->GetScript() == gamescript)
-        return "Global script";
-    else if (sci->GetScript() == thisroom.CompiledScript)
-        return String::FromFormat("Room %d script", displayed_room);
-    return "Unknown script";
 }
 
 //=============================================================================

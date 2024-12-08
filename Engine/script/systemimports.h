@@ -53,7 +53,7 @@ private:
     std::map<String, uint32_t> _lookup;
 };
 
-class ccInstance;
+namespace AGS { namespace Engine { class RuntimeScript; } }
 
 struct ScriptImport
 {
@@ -61,23 +61,27 @@ struct ScriptImport
 
     ScriptImport() = default;
 
-    String              Name; // import's uid
+    String              Name;
     RuntimeScriptValue  Value;
-    ccInstance          *InstancePtr = nullptr; // script instance
+    // Numeric index of a runtime script to which this import belongs
+    uint8_t             ScriptID = 0u;
+    // Fast access reference to the script
+    const AGS::Engine::RuntimeScript *ScriptPtr = nullptr;
 };
 
 class SystemImports
 {
     using String = AGS::Common::String;
+    using RuntimeScript = AGS::Engine::RuntimeScript;
 public:
     SystemImports();
 
     // Adds a resolved import under given name
-    uint32_t Add(const String &name, const RuntimeScriptValue &value, ccInstance *inst);
+    uint32_t Add(const String &name, const RuntimeScriptValue &value, RuntimeScript *script);
     // Removes an import
     void Remove(const String &name);
     // Removes all imports registered for the given script instance
-    void RemoveScriptExports(ccInstance *inst);
+    void RemoveScriptExports(RuntimeScript *script);
     // Clears the map, removes all entries
     void Clear();
     // Gets an import by exact name match
