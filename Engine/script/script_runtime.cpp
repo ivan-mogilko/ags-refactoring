@@ -57,9 +57,9 @@ bool ccAddExternalScriptObject(const String &name, void *ptr, IScriptObject *man
     return simp.Add(name, RuntimeScriptValue().SetScriptObject(ptr, manager), nullptr) != UINT32_MAX;
 }
 
-bool ccAddExternalScriptSymbol(const String &name, const RuntimeScriptValue &prval, ccInstance *inst)
+bool ccAddExternalScriptSymbol(const String &name, const RuntimeScriptValue &prval, AGS::Engine::RuntimeScript *script)
 {
-    return simp.Add(name, prval, inst) != UINT32_MAX;
+    return simp.Add(name, prval, script) != UINT32_MAX;
 }
 
 void ccRemoveExternalSymbol(const String &name)
