@@ -548,6 +548,7 @@ inline bool FixupArgument(RuntimeScriptValue &arg, const int fixup, const uintpt
     case FIXUP_GLOBALDATA:
         {
             ScriptVariable *gl_var = (ScriptVariable*)code;
+            assert(gl_var->RValue.IsValid());
             arg.SetGlobalVar(&gl_var->RValue);
         }
         return true;
@@ -565,6 +566,7 @@ inline bool FixupArgument(RuntimeScriptValue &arg, const int fixup, const uintpt
             const ScriptImport *import = simp.GetByIndex(static_cast<uint32_t>(code));
             if (import)
             {
+                assert(import->Value.IsValid());
                 arg = import->Value;
             }
             else
