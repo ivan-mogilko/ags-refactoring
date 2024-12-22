@@ -792,6 +792,9 @@
     <ClCompile Include="..\..\Engine\platform\windows\setup\advancedpagedialog.cpp">
       <Filter>Source Files\setup</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Engine\util\asyncjobmanager.cpp">
+      <Filter>Source Files\util</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Engine\ac\asset_helper.h">
@@ -1585,6 +1588,9 @@
     </ClInclude>
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptrestoredsaveinfo.h">
       <Filter>Header Files\ac\dynobj</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Engine\util\asyncjobmanager.h">
+      <Filter>Header Files\util</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

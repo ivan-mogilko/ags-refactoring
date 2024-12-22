@@ -660,6 +660,7 @@
     <ClCompile Include="..\..\Engine\script\script_api.cpp" />
     <ClCompile Include="..\..\Engine\script\script_runtime.cpp" />
     <ClCompile Include="..\..\Engine\script\systemimports.cpp" />
+    <ClCompile Include="..\..\Engine\util\asyncjobmanager.cpp" />
     <ClCompile Include="..\..\Engine\util\sdl2_util.cpp" />
     <ClCompile Include="..\..\libsrc\mojoAL\mojoal.c" />
   </ItemGroup>
@@ -925,6 +926,7 @@
     <ClInclude Include="..\..\Engine\util\library.h" />
     <ClInclude Include="..\..\Engine\util\library_windows.h" />
     <ClInclude Include="..\..\Engine\util\sdl2_util.h" />
+    <ClInclude Include="..\..\Engine\util\asyncjobmanager.h" />
     <ClInclude Include="..\..\Engine\util\threading.h" />
     <ClInclude Include="..\..\libsrc\mojoAL\AL\al.h" />
     <ClInclude Include="..\..\libsrc\mojoAL\AL\alc.h" />

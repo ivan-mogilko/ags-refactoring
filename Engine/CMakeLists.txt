@@ -412,6 +412,8 @@ target_sources(engine
     script/script_runtime.h
     script/systemimports.cpp
     script/systemimports.h
+    util/asyncjobmanager.cpp
+    util/asyncjobmanager.h
     util/library.h
     util/library_dummy.h
     util/library_posix.h
