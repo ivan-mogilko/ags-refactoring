@@ -245,6 +245,8 @@ target_sources(engine
     ac/system.h
     ac/textbox.cpp
     ac/textbox.h
+    ac/texturecache.cpp
+    ac/texturecache.h
     ac/timer.cpp
     ac/timer.h
     ac/translation.cpp

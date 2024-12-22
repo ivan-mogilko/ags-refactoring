@@ -561,6 +561,7 @@
     <ClCompile Include="..\..\Engine\ac\string.cpp" />
     <ClCompile Include="..\..\Engine\ac\system.cpp" />
     <ClCompile Include="..\..\Engine\ac\textbox.cpp" />
+    <ClCompile Include="..\..\Engine\ac\texturecache.cpp" />
     <ClCompile Include="..\..\Engine\ac\timer.cpp" />
     <ClCompile Include="..\..\Engine\ac\translation.cpp" />
     <ClCompile Include="..\..\Engine\ac\video_script.cpp" />
@@ -813,6 +814,7 @@
     <ClInclude Include="..\..\Engine\ac\string.h" />
     <ClInclude Include="..\..\Engine\ac\system.h" />
     <ClInclude Include="..\..\Engine\ac\textbox.h" />
+    <ClInclude Include="..\..\Engine\ac\texturecache.h" />
     <ClInclude Include="..\..\Engine\ac\timer.h" />
     <ClInclude Include="..\..\Engine\ac\topbarsettings.h" />
     <ClInclude Include="..\..\Engine\ac\translation.h" />

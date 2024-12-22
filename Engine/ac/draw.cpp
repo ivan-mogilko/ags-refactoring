@@ -42,6 +42,7 @@
 #include "ac/screenoverlay.h"
 #include "ac/string.h"
 #include "ac/system.h"
+#include "ac/texturecache.h"
 #include "ac/viewframe.h"
 #include "ac/walkablearea.h"
 #include "ac/walkbehind.h"
@@ -206,150 +207,7 @@ struct ObjectCache
         , zoom(zoom_), rotation(rotation_), flip(flip_), x(posx_), y(posy_) { }
 };
 
-//
-// TextureCache class stores textures created by the GraphicsDriver from plain bitmaps.
-// Consists of two parts:
-// * A long-term MRU cache, which keeps texture data even when it's not in immediate use,
-//   and disposes less used textures to free space when reaching the configured mem limit.
-// * A short-term cache of texture references, which keeps only weak refs to the textures
-//   that are currently in use. This short-term cache lets to keep reusing same texture
-//   so long as there's at least one object on screen that uses it.
-// NOTE: because of this two-component structure, TextureCache has to override
-// number of ResourceCache's parent methods. This design may probably be improved.
-class TextureCache :
-    public ResourceCache<uint32_t, std::shared_ptr<Texture>>
-{
-public:
-    TextureCache(SpriteCache &spriteset)
-        : _spriteset(spriteset) {}
-
-    // Gets existing texture from either MRU cache, or short-term cache
-    const std::shared_ptr<Texture> Get(const uint32_t &sprite_id)
-    {
-        assert(sprite_id != UINT32_MAX); // only valid sprite IDs may be stored
-        if (sprite_id == UINT32_MAX)
-            return nullptr;
-
-        // Begin getting texture data, first check the MRU cache
-        auto txdata = ResourceCache::Get(sprite_id);
-        if (txdata)
-            return txdata;
-
-        // If not found in MRU cache, try the short-term cache, which
-        // may still hold it so long as there are active textures on screen
-        const auto found = _txRefs.find(sprite_id);
-        if (found != _txRefs.end())
-        {
-            txdata = found->second.lock();
-            // If found, then cache the texture again, and return
-            if (txdata)
-            {
-                Put(sprite_id, txdata);
-                return txdata;
-            }
-        }
-        return nullptr;
-    }
-
-    // Gets existing texture, or load a sprite and create texture from it;
-    // optionally, if "source" bitmap is provided, then use it
-    std::shared_ptr<Texture> GetOrLoad(uint32_t sprite_id, Bitmap *source, bool opaque)
-    {
-        assert(sprite_id != UINT32_MAX); // only valid sprite IDs may be stored
-        if (sprite_id == UINT32_MAX)
-            return nullptr;
-
-        // Try getting existing texture first
-        auto txdata = Get(sprite_id);
-        if (txdata)
-            return txdata;
-
-        // If not in any cache, then try loading the sprite's bitmap,
-        // and create a texture data from it
-        Bitmap *bitmap = source;
-        std::unique_ptr<Bitmap> tmp_source;
-        if (!source)
-        {
-            // Following is a logic of not keeping raw sprite in the cache,
-            // and thus potentially saving much RAM.
-            // - if texture cache's capacity is > 3/4 of raw sprite cache,
-            //   then there's little to no practical reason to keep a raw image.
-            // This may be adjusted, or added more rules, as seems necessary.
-            bool skip_rawcache =
-                GetMaxCacheSize() > (3 * (_spriteset.GetMaxCacheSize() / 4));
-
-            if (_spriteset.IsSpriteLoaded(sprite_id) || !skip_rawcache)
-            { // if it's already there, or we are not allowed to skip, then cache normally
-                bitmap = _spriteset[sprite_id];
-            }
-            else
-            { // if skipping, ask it to only load, but not keep in raw cache
-                tmp_source = _spriteset.LoadSpriteNoCache(sprite_id);
-                bitmap = tmp_source.get();
-            }
-            if (!bitmap)
-                return nullptr;
-        }
-
-        txdata.reset(gfxDriver->CreateTexture(bitmap, opaque));
-        if (!txdata)
-            return nullptr;
-
-        txdata->ID = sprite_id;
-        _txRefs[sprite_id] = txdata;
-        Put(sprite_id, txdata);
-        return txdata;
-    }
-
-    // Deletes the cached item
-    void Dispose(const uint32_t &sprite_id)
-    {
-        assert(sprite_id != UINT32_MAX); // only valid sprite IDs may be stored
-        // Reset sprite ID for any remaining shared txdata
-        DetachSharedTexture(sprite_id);
-        ResourceCache::Dispose(sprite_id);
-    }
-
-    // Removes the item from the cache and returns to the caller.
-    std::shared_ptr<Texture> Remove(const uint32_t &sprite_id)
-    {
-        assert(sprite_id != UINT32_MAX); // only valid sprite IDs may be stored
-        // Reset sprite ID for any remaining shared txdata
-        DetachSharedTexture(sprite_id);
-        return ResourceCache::Remove(sprite_id);
-    }
-
-private:
-    size_t CalcSize(const std::shared_ptr<Texture> &item) override
-    {
-        assert(item);
-        return item ? item->GetMemSize() : 0u;
-    }
-
-    // Marks a shared texture with the invalid sprite ID,
-    // this logically disconnects this texture from the cache,
-    // and the game objects will be forced to recreate it on the next update
-    void DetachSharedTexture(uint32_t sprite_id)
-    {
-        const auto found = _txRefs.find(sprite_id);
-        if (found != _txRefs.end())
-        {
-            auto txdata = found->second.lock();
-            if (txdata)
-                txdata->ID = UINT32_MAX;
-            _txRefs.erase(sprite_id);
-        }
-    }
-
-    // A reference to the raw sprites cache, which is also used to load
-    // sprites from the asset file.
-    SpriteCache &_spriteset;
-    // Texture short-term cache:
-    // - caches textures while they are in the immediate use;
-    // - this lets to share same texture data among multiple sprites on screen.
-    typedef std::weak_ptr<Texture> TexDataRef;
-    std::unordered_map<uint32_t, TexDataRef> _txRefs;
-} texturecache(spriteset);
+TextureCache texturecache(spriteset);
 
 // actsps is used for temporary storage of the bitmap and texture
 // of the latest version of the sprite (room objects and characters);
@@ -620,6 +478,8 @@ void init_draw_method()
     init_room_drawdata();
     if (gfxDriver->UsesMemoryBackBuffer())
         gfxDriver->GetMemoryBackBuffer()->Clear();
+
+    texturecache.SetGraphicsDriver(gfxDriver);
 }
 
 void dispose_draw_method()
