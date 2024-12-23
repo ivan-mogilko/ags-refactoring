@@ -51,15 +51,18 @@ uint32_t ScriptSymbolsMap::GetIndexOfAny(const String &name) const
 {
     // Import names may be potentially formed as:
     //
-    //     [type::]name[^argnum]
+    //     [type::]name[^argnum][^arglist]
     //
     // where "type" is the name of a type, "name" is the name of a function,
-    // "argnum" is the number of arguments.
+    // "argnum" is the number of arguments, and "arglist" is a '^' separated
+    // list of types of return value and function args.
 
-    const size_t argnum_at = name.FindChar(_appendageSeparator);
+    const size_t argnum_at = std::min(name.GetLength(), name.FindChar(_appendageSeparator));
+    const size_t arglist_at = std::min(name.GetLength(), name.FindChar(_appendageSeparator, argnum_at + 1));
     // TODO: optimize this by supporting string views! or compare methods which let compare with a substring of input
     const String name_only = name.Left(argnum_at);
-    const String argnum_only = (argnum_at != UINT32_MAX) ? name.Mid(argnum_at + 1) : String();
+    const String argnum_only = name.Mid(argnum_at + 1, arglist_at - argnum_at - 1);
+    const String arglist_only = name.Mid(arglist_at + 1);
 
     // Scan the range of possible matches, starting with pure name without appendages.
     // The match logic is this:
@@ -79,32 +82,68 @@ uint32_t ScriptSymbolsMap::GetIndexOfAny(const String &name) const
         // If base name is not matching, then there's no reason to continue the range
         if (try_sym.CompareLeft(name_only, argnum_at) != 0)
             break;
+
         // If the symbol is longer, but there's no separator after base name,
         // then the symbol has a different, longer base name (e.g. "FindChar" vs "FindCharacter")
         if ((try_sym.GetLength() > name_only.GetLength()) && try_sym[name_only.GetLength()] != _appendageSeparator)
             continue;
-        // If the request is without appendage, then choose the first found symbol
-        // which has at least base name matching (it will be exact match if one exists in symbol map)
-        if (argnum_at == String::NoIndex)
+
+        // Search for appendage separators in the matching symbol
+        const size_t sym_argnum_at = std::min(try_sym.GetLength(), try_sym.FindChar(_appendageSeparator, argnum_at));
+        const size_t sym_arglist_at = std::min(try_sym.GetLength(), try_sym.FindChar(_appendageSeparator, sym_argnum_at + 1));
+
+        //---------------------------------------------------------------------
+        // Check the argnum appendage
+
+        // If the symbol does not have any appendages, then:
+        // - if request does not have any either, that's the exact match;
+        // - otherwise save it as a best match and continue searching;
+        if (sym_argnum_at == try_sym.GetLength())
         {
-            if ((try_sym.GetLength() == name_only.GetLength()) ||
-                _allowMatchExpanded)
-            {
+            if (argnum_at == name.GetLength())
                 return it->second;
-            }
-            break; // exact base-name match would be first in order, so no reason to continue
-        }
-        
-        // Second - compare argnum appendage
-        // If the request has appendage, but the symbol does not, then save it as a best match and continue
-        if (try_sym.GetLength() == name_only.GetLength())
-        {
             best_match = it->second;
             continue;
         }
 
+        // If the request is without argnum, then optionally choose the first found symbol
+        // which has at least base name matching
+        if (argnum_at == name.GetLength())
+        {
+            if (_allowMatchExpanded)
+                return it->second;
+            break; // exact base-name match would be first in order, so no reason to continue
+        }
+
         // Compare argnum appendage, and skip on failure
-        if (try_sym.CompareMid(argnum_only, argnum_at + 1) != 0)
+        if ((sym_arglist_at != arglist_at) || try_sym.CompareMid(argnum_only, argnum_at + 1) != 0)
+            continue;
+
+        //---------------------------------------------------------------------
+        // Check the arglist appendage
+
+        // If the symbol does not have an arglist, then:
+        // - if request does not have any either, that's the exact match;
+        // - otherwise save it as a best match and continue searching;
+        if (sym_arglist_at == try_sym.GetLength())
+        {
+            if (arglist_at == name.GetLength())
+                return it->second;
+            best_match = it->second;
+            continue;
+        }
+
+        // If the request is without arglist, then optionally choose the first found symbol
+        // which has at least base name + argnum matching
+        if (arglist_at == name.GetLength())
+        {
+            if (_allowMatchExpanded)
+                return it->second;
+            break; // exact base-name match would be first in order, so no reason to continue
+        }
+
+        // Compare arglist appendage, and skip on failure
+        if ((name.GetLength() != try_sym.GetLength()) || try_sym.CompareMid(arglist_only, arglist_at + 1) != 0)
             continue;
 
         // Matched whole appendage, found exact match
