@@ -1446,6 +1446,7 @@ void AGS::Parser::ParseFuncdecl_Checks(TypeQualifierSet tqs, Symbol struct_of_fu
             ReferenceMsgSym("Cannot return the non-managed struct type '%s'", return_vartype).c_str(),
             _sym.GetName(return_vartype).c_str());
 
+    // FIXME: move to a Post-parse-parameterlist, for function overloading
     if (PP::kPreAnalyze == _pp &&
         body_follows &&
         _sym.IsFunction(name_of_func) &&
@@ -1531,34 +1532,34 @@ void AGS::Parser::ParseFuncdecl_HandleFunctionOrImportIndex(TypeQualifierSet tqs
             _sym.GetName(name_of_func).c_str(),
             imports_idx);
 
-    // Append the number of parameters to the name of the import:
-    // this lets the engine to link different implementations depending on API
-    // which was used when compiling the script.
-    // (Sort of a limited "function overloading")
-    if (_scrip.imports[imports_idx].find('^') == std::string::npos)
-    {
-        _scrip.imports[imports_idx].append(ParseDuncdecl_GenerateImportNameAppendage(name_of_func));
-    }
-
     _importLabels.SetLabelValue(name_of_func, imports_idx);
 }
 
-void AGS::Parser::ParseFuncdecl(TypeQualifierSet tqs, Vartype return_vartype, Symbol struct_of_func, Symbol name_of_func, bool no_loop_check, bool body_follows)
+Symbol AGS::Parser::ParseFuncdecl(TypeQualifierSet tqs, Vartype return_vartype, Symbol struct_of_func, Symbol name_of_func, bool no_loop_check, bool body_follows)
 {
     if (0 == _sym.GetName(name_of_func).compare(0u, _builtinSymbolPrefix.length(), _builtinSymbolPrefix))
         UserError("Function names may not begin with '__Builtin_'");
+
+    // Since we support function overloading, we distinct a "master" entry under the standard name,
+    // and actual function entries, registered under names containing full type definition
+    // (which encodes return type and parameter list).
+    const Symbol master_func = name_of_func;
+    Symbol variant_func = _sym.FindOrAdd("____temp_fn_decl"); // FIXME: this ugly hack
+    _sym.entries[variant_func] = SymbolTableEntry(_sym.entries[master_func]);
 
     // If the parameter list begins with an extender parameter then this has already been resolved at this point
     // and we're behind this parameter. Otherwise, we're directly behind the opening '('.
     body_follows = ParseFuncdecl_DoesBodyFollow();
 
-    ParseFuncdecl_Checks(tqs, struct_of_func, name_of_func, return_vartype, body_follows, no_loop_check);
+    ParseFuncdecl_Checks(tqs, struct_of_func, variant_func, return_vartype, body_follows, no_loop_check);
     
+    /* FIXME: don't understand the proper order of checks....
+    //
     // A forward decl can be written with the "import" keyword (when allowed in the options).
     // This isn't an import proper, so reset the "import" flag in this case.
     if (tqs[TQ::kImport] &&  // This declaration has 'import'
-        _sym.IsFunction(name_of_func) &&
-        !_sym[name_of_func].FunctionD->TypeQualifiers[TQ::kImport]) // but symbol table hasn't 'import'
+        _sym.IsFunction(variant_func) &&
+        !_sym[variant_func].FunctionD->TypeQualifiers[TQ::kImport]) // but symbol table hasn't 'import'
     {
         if (FlagIsSet(_options, SCOPT_NOIMPORTOVERRIDE))
             UserError(ReferenceMsgSym(
@@ -1566,6 +1567,7 @@ void AGS::Parser::ParseFuncdecl(TypeQualifierSet tqs, Vartype return_vartype, Sy
                 name_of_func).c_str());
         tqs[TQ::kImport] = false;
     }
+    */
 
     if (PP::kMain == _pp && body_follows)
     {
@@ -1577,17 +1579,49 @@ void AGS::Parser::ParseFuncdecl(TypeQualifierSet tqs, Vartype return_vartype, Sy
         _scrip.OffsetToLocalVarBlock += SIZE_OF_STACK_CELL;
     }
 
-    // Stash away the known info about the function so that we can check whether this declaration is compatible
-    std::unique_ptr<SymbolTableEntry::FunctionDesc> known_info{ _sym[name_of_func].FunctionD };
-    _sym[name_of_func].FunctionD = nullptr;
-    size_t const known_declared = _sym.GetDeclared(name_of_func);
+    ParseFuncdecl_MasterData2Sym(tqs, return_vartype, struct_of_func, variant_func, body_follows);
+    ParseFuncdecl_Parameters(variant_func, body_follows);
 
-    ParseFuncdecl_MasterData2Sym(tqs, return_vartype, struct_of_func, name_of_func, body_follows);
-    ParseFuncdecl_Parameters(name_of_func, body_follows);
+    // Now when we know full parameter list, we may finally generate the function variant name,
+    // register the proper symbol entry, and then do final post-parsing checks
+    std::string fn_variant_name = _sym.entries[master_func].Name + ParseDuncdecl_GenerateImportNameAppendage(variant_func);
+
+    // Check if the function variant already exists.
+    // If it does not exist, then create a new final entry and copy temp entry there.
+    // If it does exist, then stash away the known info about the function so that we can check whether
+    // this declaration is compatible; and replace entry in the sym table.
+    Symbol const known_function = _sym.Find(fn_variant_name);
+    size_t const known_declared = _sym.GetDeclared(known_function);
+    std::unique_ptr<SymbolTableEntry::FunctionDesc> known_info;
+    if (known_function == kKW_NoSymbol)
+    {
+        Symbol real_variant_func = _sym.Add(fn_variant_name);
+        _sym.entries[real_variant_func] = SymbolTableEntry(_sym.entries[variant_func]);
+        _sym.entries[real_variant_func].Name = fn_variant_name;
+        variant_func = real_variant_func;
+    }
+    else
+    {
+        known_info = std::unique_ptr<SymbolTableEntry::FunctionDesc>{ _sym[known_function].FunctionD };
+        _sym[known_function].FunctionD = new SymbolTableEntry::FunctionDesc(*_sym.entries[variant_func].FunctionD);
+        variant_func = known_function;
+    }
     
-    ParseFuncdecl_CheckAndAddKnownInfo(name_of_func, known_info.get(), known_declared, body_follows);
+    ParseFuncdecl_CheckAndAddKnownInfo(variant_func, known_info.get(), known_declared, body_follows);
 
-    ParseFuncdecl_HandleFunctionOrImportIndex(tqs, struct_of_func, name_of_func, body_follows);
+    ParseFuncdecl_HandleFunctionOrImportIndex(tqs, struct_of_func, variant_func, body_follows);
+
+    // Setup a connection between master entry and its variant
+    if (known_function == kKW_NoSymbol)
+    {
+        _sym.MakeEntryFunction(master_func);
+        _sym.entries[master_func].FunctionD->IsMasterEntry = true;
+        _sym.entries[master_func].FunctionD->IsConstructor = _sym.entries[variant_func].FunctionD->IsConstructor;
+        _sym.entries[master_func].FunctionD->Variants.push_back(variant_func);
+        _sym.entries[variant_func].FunctionD->MasterFunction = master_func;
+    }
+
+    return variant_func;
 }
 
 int AGS::Parser::IndexOfLeastBondingOperator(SrcList &expression)
@@ -4952,16 +4986,18 @@ void AGS::Parser::ParseQualifiers(TypeQualifierSet &tqs)
     };
 }
 
-void AGS::Parser::ParseStruct_FuncDecl(TypeQualifierSet tqs, Symbol struct_of_func, Vartype vartype, Symbol name_of_func)
+Symbol AGS::Parser::ParseStruct_FuncDecl(TypeQualifierSet tqs, Symbol struct_of_func, Vartype vartype, Symbol name_of_func)
 {
     if (tqs[TQ::kWriteprotected])
         UserError("Cannot apply 'writeprotected' to this function declaration");
 
     SkipNextSymbol(_src, kKW_OpenParenthesis); 
-    ParseFuncdecl(tqs, vartype, struct_of_func, name_of_func, false, false);
+    Symbol const func_variant_name =
+        ParseFuncdecl(tqs, vartype, struct_of_func, name_of_func, false, false);
 
     // Can't code a body behind the function, so the next symbol must be ';'
-    return Expect(kKW_Semicolon, _src.PeekNext());
+    Expect(kKW_Semicolon, _src.PeekNext());
+    return func_variant_name;
 }
 
 void AGS::Parser::ParseStruct_Attribute_CheckFunc(Symbol name_of_func, bool is_setter, bool is_indexed, Vartype vartype)
@@ -5344,13 +5380,15 @@ void AGS::Parser::ParseStruct_VariableOrFunctionDefn(Symbol name_of_struct, Type
     _sym.MakeEntryComponent(qualified_component);
     _sym[qualified_component].ComponentD->Component = unqualified_component;
     _sym[qualified_component].ComponentD->Parent = name_of_struct;
-    _sym[name_of_struct].VartypeD->Components[unqualified_component] = qualified_component;
 
+    Symbol variant_component = qualified_component;
     if (is_function)
-        ParseStruct_FuncDecl(tqs, name_of_struct, vartype, qualified_component);
-    else 
+        variant_component = ParseStruct_FuncDecl(tqs, name_of_struct, vartype, qualified_component);
+    else
         ParseStruct_VariableDefn(tqs, vartype, name_of_struct, qualified_component);
 
+    // FIXME: make list of components per unqualified comp symbol
+    _sym[name_of_struct].VartypeD->Components[unqualified_component] = qualified_component;
     if (_sym.IsConstructor(qualified_component))
         _sym[name_of_struct].VartypeD->Constructor = qualified_component;
     _sym.SetDeclared(qualified_component, declaration_start);
@@ -5901,8 +5939,9 @@ void AGS::Parser::ParseVartype_FuncDecl(TypeQualifierSet tqs, Vartype vartype, S
     // func has been either declared within the struct definition or as extender.
 
     body_follows = ParseFuncdecl_DoesBodyFollow();
-    ParseFuncdecl(tqs, vartype, struct_name, func_name, false, body_follows);
-    _sym.SetDeclared(func_name, declaration_start);
+    Symbol const func_variant_name =
+        ParseFuncdecl(tqs, vartype, struct_name, func_name, false, body_follows);
+    _sym.SetDeclared(func_variant_name, declaration_start);
 
     if (!body_follows)
         return;
@@ -5912,10 +5951,10 @@ void AGS::Parser::ParseVartype_FuncDecl(TypeQualifierSet tqs, Vartype vartype, S
             ReferenceMsgSym("Function bodies cannot nest, but the body of function %s is still open. (Did you forget a '}'?)", func_name).c_str(),
             _sym.GetName(name_of_current_func).c_str());
 
-    _sym[func_name].FunctionD->NoLoopCheck = no_loop_check;
+    _sym[func_variant_name].FunctionD->NoLoopCheck = no_loop_check;
 
     // We've started a function, remember what it is.
-    name_of_current_func = func_name;
+    name_of_current_func = func_variant_name;
     struct_of_current_func = struct_name;
 }
 
@@ -6927,6 +6966,8 @@ void AGS::Parser::Parse_BlankOutUnusedImports()
         // setting unused import entries to "".
         if (_sym.IsFunction(entries_idx))
         {
+            if (_sym.IsFunctionMaster(entries_idx))
+                continue; // Master function entries are bare, they don't associate to real functions
             if(_sym[entries_idx].FunctionD->TypeQualifiers[TQ::kImport])
                 _scrip.imports[_sym[entries_idx].FunctionD->Offset][0] = '\0';
             continue;

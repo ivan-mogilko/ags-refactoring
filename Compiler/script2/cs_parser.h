@@ -529,7 +529,8 @@ private:
 
     // Parse a function declaration.
     // We're behind the opening '(', and any first extender parameter has already be resolved.
-    void ParseFuncdecl(TypeQualifierSet tqs, Vartype return_vartype, Symbol struct_of_func, Symbol name_of_func, bool no_loop_check, bool body_follows);
+    // Returns function variant symbol, which should be used to finish this function's registration.
+    Symbol ParseFuncdecl(TypeQualifierSet tqs, Vartype return_vartype, Symbol struct_of_func, Symbol name_of_func, bool no_loop_check, bool body_follows);
 
     // Return in 'idx' the index of the operator in the list that binds the least
     // so that either side of it can be evaluated first. '-1' if no operator was found
@@ -809,7 +810,8 @@ private:
 
     void ParseQualifiers(TypeQualifierSet &tqs);
 
-    void ParseStruct_FuncDecl(TypeQualifierSet tqs, Symbol struct_of_func, Vartype vartype, Symbol name_of_func);
+    // Returns function variant symbol, which should be used to finish this function's registration.
+    Symbol ParseStruct_FuncDecl(TypeQualifierSet tqs, Symbol struct_of_func, Vartype vartype, Symbol name_of_func);
 
     void ParseStruct_Attribute_ParamList(Symbol struct_of_func, Symbol name_of_func, bool is_setter, bool is_indexed, Vartype vartype);
 

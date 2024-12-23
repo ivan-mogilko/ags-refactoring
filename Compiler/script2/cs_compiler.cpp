@@ -157,9 +157,11 @@ static void ccCompileDataTOC(ScriptTOCBuilder &tocb,
         }
 
         // Add functions
+        // NOTE: we skip master entries, as these are not associated with real functions.
         // NOTE: we skip imported functions, as these are not useful in TOC at the moment;
         // but if a need arises, we may easily add these as well.
-        if (ste.FunctionD && !ste.FunctionD->TypeQualifiers[TQ::kImport])
+        if (ste.FunctionD && !ste.FunctionD->IsMasterEntry &&
+            !ste.FunctionD->TypeQualifiers[TQ::kImport])
         {
             uint32_t func_flags = 0u;
             if (ste.FunctionD->IsVariadic)

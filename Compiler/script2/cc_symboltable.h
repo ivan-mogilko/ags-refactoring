@@ -305,6 +305,10 @@ struct SymbolTableEntry : public SymbolTableConstant
         bool IsConstructor = false;
         bool IsVariadic = false;
         bool NoLoopCheck = false;
+        bool IsMasterEntry = false; // is bare entry, only stores overload references
+        Symbol MasterFunction = kKW_NoSymbol; // master entry for function overloads
+        // This function's overloads (filled in master entry only)
+        std::vector<Symbol> Variants;
     } *FunctionD = nullptr;
 
     // For literal values, e.g. 10, "foo", 2.0
@@ -345,7 +349,10 @@ struct SymbolTableEntry : public SymbolTableConstant
         AGS::Vartype BaseVartype = kKW_NoSymbol;
         std::vector<size_t> Dims = {}; // For classic arrays: Number of elements in each dimension of static array
         std::map<Symbol, Symbol> Components = {}; // Maps the unqualified component to the qualified component
+        // std::map<Symbol, std::vector<Symbol>> Components = {}; // Maps the unqualified component to the list of qualified components (with overloads)
         Symbol Constructor = kKW_NoSymbol; // For structs: this vartype's constructor (also contained in Components)
+        // For structs: this vartype's constructors, can have overloads (also contained in Components)
+        // std::vector<Symbol> Constructors = { kKW_NoSymbol };
         Symbol Parent = kKW_NoSymbol; // For structs: this vartype extends the Parent
         VartypeFlags Flags;
     } *VartypeD = nullptr;
@@ -440,6 +447,10 @@ public:
     inline bool IsDelimeter(Symbol s) const { return nullptr != entries.at(s).DelimeterD; }
     inline void MakeEntryDelimeter(Symbol s) { if (!entries.at(s).DelimeterD) entries.at(s).DelimeterD = new SymbolTableEntry::DelimeterDesc; }
     inline bool IsFunction(Symbol s) const { return nullptr != entries.at(s).FunctionD; }
+    inline bool IsFunctionMaster(Symbol s) const { return (nullptr != entries.at(s).FunctionD) && (entries.at(s).FunctionD->IsMasterEntry); }
+    inline bool IsFunctionVariant(Symbol s) const { return (nullptr != entries.at(s).FunctionD) && (entries.at(s).FunctionD->MasterFunction != kKW_NoSymbol); }
+    // FIXME: better name?
+    inline bool IsFunctionExact(Symbol s) const { return (nullptr != entries.at(s).FunctionD) && (!entries.at(s).FunctionD->IsMasterEntry); }
     inline bool IsConstructor(Symbol s) const { return (nullptr != entries.at(s).FunctionD) && (entries.at(s).FunctionD->IsConstructor); }
     inline void MakeEntryFunction(Symbol s) { if (!entries.at(s).FunctionD) entries.at(s).FunctionD = new SymbolTableEntry::FunctionDesc; }
     inline bool IsLiteral(Symbol s) const { return nullptr != entries.at(s).LiteralD; }
@@ -521,12 +532,15 @@ public:
     bool IsManagedVartype(Symbol s) const;
 
     // Functions
+    // NOTE: only function variants have parameter list, master entries have Overloads list instead
+    inline bool FuncHasParameterList(Symbol func) const
+        { return IsFunctionExact(func); }
     inline size_t FuncParamsCount(Symbol func) const
-        { return IsFunction(func) ? entries.at(func).FunctionD->Parameters.size() - 1u : 0u; }
+        { return IsFunctionExact(func) ? entries.at(func).FunctionD->Parameters.size() - 1u : 0u; }
     inline bool IsVariadicFunc(Symbol func) const
-        { return IsFunction(func) && entries.at(func).FunctionD->IsVariadic; }
+        { return IsFunctionExact(func) && entries.at(func).FunctionD->IsVariadic; }
     inline AGS::Vartype FuncReturnVartype(Symbol func) const
-        { return IsFunction(func) ? entries.at(func).FunctionD->Parameters[0u].Vartype : kKW_NoSymbol; }
+        { return IsFunctionExact(func) ? entries.at(func).FunctionD->Parameters[0u].Vartype : kKW_NoSymbol; }
 
     // Variables
     inline bool IsImport(Symbol s) const

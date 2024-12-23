@@ -537,6 +537,12 @@ std::string const AGS::SymbolTable::GetName(AGS::Symbol symbl) const
         return std::string("(end of input)");
     if (static_cast<size_t>(symbl) >= entries.size())
         return std::string("(invalid symbol)");
+    if (IsFunctionVariant(symbl))
+    {
+        // Report master entry's name, as the variant's name contains appendages and has special purposes
+        // FIXME: or should we form a human-readable function variant name??
+        return entries[entries[symbl].FunctionD->MasterFunction].Name;
+    }
     if (IsDynpointerVartype(symbl) &&
         IsAutoptrVartype(VartypeWithout(VTT::kDynpointer, symbl)))
     {
