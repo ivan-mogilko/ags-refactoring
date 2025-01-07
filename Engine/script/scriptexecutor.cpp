@@ -100,6 +100,28 @@ void ScriptThread::SaveState(const ScriptExecPosition &pos, std::deque<ScriptExe
     _stackDataOffset = stackdata_off;
 }
 
+void ScriptThread::ResetState()
+{
+    _callstack = {};
+    _pos = {};
+    _stackBeginOff = 0u;
+    _stackDataBeginOff = 0u;
+    _stackOffset = 0u;
+    _stackDataOffset = 0u;
+}
+
+void ScriptThread::CopyThread(const ScriptThread *thread)
+{
+    _stack = thread->GetStack();
+    _stackdata = thread->GetStackData();
+    _callstack = thread->GetCallStack();
+    _pos = thread->GetPosition();
+    _stackBeginOff = thread->GetStackBegin();
+    _stackDataBeginOff = thread->GetStackDataBegin();
+    _stackOffset = thread->GetStackOffset();
+    _stackDataOffset = thread->GetStackDataOffset();
+}
+
 
 // Function call stack is used to temporarily store
 // values before passing them to script function
@@ -187,12 +209,14 @@ ScriptExecError ScriptExecutor::Run(ScriptThread *thread, const RuntimeScript *s
 
     const ScriptExecError reterr = Run(script, start_at, params, param_count);
 
+    // NOTE: do PopThread even if suspended, because only active thread gets suspended
     PopThread();
 
     const bool was_aborted = (_flags & kScExecState_Aborted) != 0;
+    const bool was_suspended = (_flags & kScExecState_Suspended) != 0;
     const bool has_nested_calls = _callstack.size() > 0;
     // Clear exec state
-    _flags = (kScExecState_Running * has_nested_calls);
+    _flags = (kScExecState_Running * has_nested_calls); // FIXME: what about thread stack???
     _returnValue = 0;
     currentline = 0;
 
@@ -208,15 +232,86 @@ ScriptExecError ScriptExecutor::Run(ScriptThread *thread, const RuntimeScript *s
     if (new_line_hook)
         new_line_hook(nullptr, 0);
 
-    return was_aborted ?
-        kScExecErr_Aborted :
-        kScExecErr_None;
+    if (was_aborted)
+        return kScExecErr_Aborted;
+    else if (was_suspended)
+        return kScExecErr_Suspended;
+    return kScExecErr_None;
 }
 
 void ScriptExecutor::Abort()
 {
     if (_pc != 0)
         _flags |= kScExecState_Aborted;
+}
+
+ScriptExecError ScriptExecutor::ResumeThread(ScriptThread *thread)
+{
+    assert(thread);
+    cc_clear_error();
+
+    if (IsBusy())
+    {
+        cc_error("ScriptExecutor is busy");
+        return kScExecErr_Busy;
+    }
+
+    if (!thread)
+    {
+        cc_error("bad input arguments in ScriptExecutor::ResumeThread");
+        return kScExecErr_Generic;
+    }
+
+    if (thread == _thread)
+    {
+        cc_error("cannot resume script thread when it is already being run");
+        return kScExecErr_Generic;
+    }
+
+    // Prepare executor for run
+    _flags = (_flags & ~(kScExecState_Aborted | kScExecErr_Suspended)) | kScExecState_Running | kScExecState_Busy;
+    _returnValue = 0;
+    currentline = 0; // FIXME: stop using a global variable
+
+    PushThread(thread);
+
+    // NOTE: use restored pos from thread, init at PushThread
+    const ScriptExecError reterr = Run(_pc);
+
+    // NOTE: do PopThread even if suspended, because only active thread gets suspended
+    PopThread();
+
+    const bool was_aborted = (_flags & kScExecState_Aborted) != 0;
+    const bool was_suspended = (_flags & kScExecState_Suspended) != 0;
+    const bool has_nested_calls = _callstack.size() > 0;
+    // Clear exec state
+    _flags = (kScExecState_Running * has_nested_calls); // FIXME: what about thread stack???
+    _returnValue = 0;
+    currentline = 0;
+
+    if (reterr != kScExecErr_None)
+        return reterr;
+
+    // NOTE that if proper multithreading is added this will need
+    // to be reconsidered, since the GC could be run in the middle 
+    // of a RET from a function or something where there is an 
+    // object with ref count 0 that is in use
+    pool.RunGarbageCollectionIfAppropriate();
+
+    if (new_line_hook)
+        new_line_hook(nullptr, 0);
+
+    if (was_aborted)
+        return kScExecErr_Aborted;
+    else if (was_suspended)
+        return kScExecErr_Suspended;
+    return kScExecErr_None;
+}
+
+void ScriptExecutor::SuspendThread()
+{
+    if (_pc != 0)
+        _flags |= kScExecState_Suspended;
 }
 
 void ScriptExecutor::PushThread(ScriptThread *thread)
@@ -262,6 +357,7 @@ void ScriptExecutor::PopThread()
     // If the previous thread is not the same thread, then save latest state
     if (_threadStack.empty() || _threadStack.back() != _thread)
     {
+        // FIXME: should save or reset popped thread state depending on sitation?
         _thread->SaveState(ScriptExecPosition(_current, _pc, _lineNumber), _callstack,
                 _stackBegin - _thread->GetStack().data(),
                 _stackdataBegin - _thread->GetStackData().data(),
@@ -493,15 +589,22 @@ ScriptExecError ScriptExecutor::Run(const RuntimeScript *script, int32_t curpc, 
 
     const ScriptExecError reterr = Run(curpc);
 
-    // Cleanup before returning, even if error
-    ASSERT_STACK_SIZE(param_count);
-    PopValuesFromStack(param_count);
     if (reterr != kScExecErr_None)
         return reterr;
 
-    // Final assert: stack must be reset to where it was before starting this script
+    // The only case when we do not reset executor & thread state
+    // it's when the thread was suspended -
+    if ((_flags & kScExecState_Suspended) != 0)
+        return kScExecErr_None;
+
+    // Cleanup and assert stack state:
+    // stack must be reset to where it was before starting this script
     if ((_flags & kScExecState_Aborted) == 0)
+    {
+        ASSERT_STACK_SIZE(param_count);
+        PopValuesFromStack(param_count);
         ASSERT_STACK_UNWINDED(oldstack, oldstackdata);
+    }
 
     if (is_nested_run)
     {
@@ -648,7 +751,7 @@ ScriptExecError ScriptExecutor::Run(int32_t curpc)
 
     /* Main bytecode execution loop */
     //=====================================================================
-    while ((_flags & kScExecState_Aborted) == 0)
+    while ((_flags & (kScExecState_Aborted | kScExecState_Suspended)) == 0)
     {
         // WARNING: a time-critical code ahead;
         // trying to pick some of the code out to separate function(s)
@@ -1415,6 +1518,7 @@ ScriptExecError ScriptExecutor::Run(int32_t curpc)
         {
             const auto arg_lit = codeOp.Arg1i();
             PopFromFuncCallStack(func_callstack, arg_lit);
+            ASSERT_CC_ERROR();
             if (was_just_callas >= 0)
             {
                 ASSERT_STACK_SIZE(arg_lit);
@@ -1968,7 +2072,11 @@ void ScriptExecutor::PopFromFuncCallStack(FunctionCallStack &func_callstack, int
 {
     if (func_callstack.Count == 0)
     {
-        cc_error("function callstack underflow");
+        // FIXME: temp disabled error for coroutine ----
+        // must move func_callstack to the thread! --
+        // and few other "state" things like "was_just_callas"...
+        //
+        //cc_error("function callstack underflow");
         return;
     }
 

@@ -27,6 +27,7 @@ enum ScriptExecError
 {
     kScExecErr_None = 0, // ok
     kScExecErr_Aborted = 100, // aborted by request
+    kScExecErr_Suspended = 200, // suspended by request
     kScExecErr_Generic = -1, // any generic exec error; use cc_get_error()
     kScExecErr_FuncNotFound = -2, // requested function is not found in script
     kScExecErr_InvalidArgNum = -3, // invalid number of args (not in supported range)
@@ -41,6 +42,7 @@ enum ScriptExecState
     kScExecState_Busy    = 0x04, // in the bytecode execution loop;
                                  // reset while waiting for the nested engine calls
     kScExecState_Alive   = 0x08, // updated periodically to confirm that script exec isn't stuck
+    kScExecState_Suspended = 0x10, // scheduled to suspend
 };
 
 // ScriptPosition defines position in the executed script
@@ -66,6 +68,8 @@ public:
     const String &GetName() const { return _name; }
     std::vector<RuntimeScriptValue> &GetStack() { return _stack; }
     std::vector<uint8_t> &GetStackData() { return _stackdata; }
+    const std::vector<RuntimeScriptValue> &GetStack() const { return _stack; }
+    const std::vector<uint8_t> &GetStackData() const { return _stackdata; }
     const std::deque<ScriptExecPosition> &GetCallStack() const { return _callstack; }
     const ScriptExecPosition &GetPosition() const { return _pos; }
     size_t GetStackBegin() const { return _stackBeginOff; }
@@ -79,6 +83,10 @@ public:
     // Record script execution state in the thread object
     void SaveState(const ScriptExecPosition &pos, std::deque<ScriptExecPosition> &callstack,
         size_t stack_begin, size_t stackdata_begin, size_t stack_off, size_t stackdata_off);
+    void ResetState();
+
+    // Copies all data and exec state
+    void CopyThread(const ScriptThread *thread);
 
 private:
     void Alloc();
@@ -115,6 +123,9 @@ public:
     // Schedule abortion of the current script execution;
     // the actual stop will occur whenever control returns to the ScriptExecutor.
     void    Abort();
+
+    ScriptExecError ResumeThread(ScriptThread *thread);
+    void    SuspendThread();
 
     // Tells whether any script is loaded into and being executed;
     // note that this returns positive even when executor is suspended
