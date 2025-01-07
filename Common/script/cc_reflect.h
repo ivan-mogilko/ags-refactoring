@@ -285,6 +285,8 @@ public:
         std::unordered_map<uint32_t, uint32_t> &loc_l2g,
         std::unordered_map<uint32_t, uint32_t> &type_l2g);
 
+    void AddGlobalTypeLookupAlias(const AGS::Common::String &type_name);
+
 private:
     // Map fully-qualified type name to a joint (global) typeid
     std::unordered_map<AGS::Common::String, uint32_t> _rttiLookup;

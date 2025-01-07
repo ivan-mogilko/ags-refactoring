@@ -267,6 +267,12 @@ void ccInstance::JoinRTTI(const RTTI &rtti,
     ccInstance::_rttiHelper->Generate(ccInstance::_rtti->AsConstRTTI());
 }
 
+void ccInstance::AddGlobalTypeAliases(const std::vector<String> &aliases)
+{
+    for (const auto &alias : aliases)
+        ccInstance::_rtti->AddGlobalTypeLookupAlias(alias);
+}
+
 void ccInstance::SetExecTimeout(const unsigned sys_poll_ms, const unsigned abort_ms,
     const unsigned abort_loops)
 {

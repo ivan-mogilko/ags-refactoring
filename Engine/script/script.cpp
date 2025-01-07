@@ -160,6 +160,25 @@ int run_interaction_script(const ObjectEvent &obj_evt, const InteractionEvents *
     return 0;
 }
 
+void setup_builtin_type_aliases()
+{
+    // TODO: some sort of a manager or library that can return all builtin types??
+    const char *typenames[] = {
+        "AudioChannel", "AudioClip", "GUI", "GUIControl", "Hotspot", "Inventory", "Object",
+        "Region", "WalkableArea", "Walkbehind", "Camera", "DateTime", "DialogOptionsRendering",
+        "Dictionary", "DrawingSurface", "DynamicSprite", "File", "Joystick", "Overlay",
+        "MaskPathfinder", "Set", "String", "VideoPlayer", "ViewFrame", "Viewport", 
+        // FIXME: these will require distinct dynamic managers, derived from GUIControl's manager!
+        "Button", "Label", "InvWindow", "Slider", "TextBox", "ListBox", "TextWindowGUI",
+        nullptr
+    };
+
+    std::vector<String> aliases;
+    for (const char **t = typenames; *t; ++t)
+        aliases.push_back(*t);
+    ccInstance::AddGlobalTypeAliases(aliases);
+}
+
 int create_global_script() {
     constexpr int kscript_create_error = -3; // FIXME: use global script error code
 
@@ -215,6 +234,10 @@ int create_global_script() {
         return kscript_create_error;
 
     ccSetOption(SCOPT_AUTOIMPORT, 0);
+
+    // Register built-in types under simple aliases for dynamic cast feature
+    // TODO: maybe find a better place to do this? should be done after JointRTTI is created though
+    setup_builtin_type_aliases();
 
     // Optionally dump script's TOC into the log
     if (logScriptTOC)

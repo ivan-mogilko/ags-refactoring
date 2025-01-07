@@ -150,6 +150,8 @@ public:
     static void JoinRTTI(const RTTI &rtti,
         std::unordered_map<uint32_t, uint32_t> &loc_l2g,
         std::unordered_map<uint32_t, uint32_t> &type_l2g);
+    //
+    static void AddGlobalTypeAliases(const std::vector<AGS::Common::String> &aliases);
 
     ccInstance() = default;
     ~ccInstance();
