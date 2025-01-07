@@ -3132,6 +3132,8 @@ builtin managed struct MaskPathfinder extends Pathfinder {
 };
 #endif // SCRIPT_API_v400
 
+import bool TestDynamicCast(const string type1, const string type2);
+
 
 import ColorType palette[PALETTE_SIZE];
 import Mouse mouse;

@@ -1159,6 +1159,41 @@ void ScPl_DisplayTopBar(int ypos, int ttexcol, int backcol, char *title, char *t
 }
 
 
+
+bool TestDynamicCast(const char *type1, const char *type2)
+{
+    uint32_t type1_id = UINT32_MAX, type2_id = UINT32_MAX;
+    const auto &type_lookup = ccInstance::GetRTTI()->GetTypeLookup();
+    auto type1_it = type_lookup.find(type1);
+    if (type1_it == type_lookup.end())
+        return false;
+    type1_id = type1_it->second;
+    auto type2_it = type_lookup.find(type2);
+    if (type2_it == type_lookup.end())
+        return false;
+    type2_id = type2_it->second;
+
+    // If same type, then the cast is successful
+    if (type1_id == type2_id)
+        return true;
+    // Find out if the requested type is its parent
+    const auto *type = &ccInstance::GetRTTI()->GetTypes()[type1_id];
+    while (type->parent)
+    {
+        type = type->parent;
+        if (type->this_id == type2_id)
+            return true;
+    }
+    // If nothing found, then the cast was a failure
+    return false;
+}
+
+RuntimeScriptValue Sc_TestDynamicCast(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_BOOL_POBJ2(TestDynamicCast, const char, const char);
+}
+
+
 void RegisterGlobalAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*/)
 {
     ScFnRegister global_api[] = {
@@ -1353,6 +1388,7 @@ void RegisterGlobalAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*
         { "WaitMouseKey",             API_FN_PAIR(WaitMouseKey) },
         { "WaitInput",                API_FN_PAIR(WaitInput) },
         { "SkipWait",                 API_FN_PAIR(SkipWait) },
+        { "TestDynamicCast",          API_FN_PAIR(TestDynamicCast) },
     };
 
     ccAddExternalFunctions(global_api);
