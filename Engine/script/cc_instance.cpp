@@ -147,6 +147,7 @@ const ScriptCommandInfo sccmd_info[CC_NUM_SCCMDS] =
     ScriptCommandInfo( SCMD_NEWUSEROBJECT   , "newuserobject"     , 2, kScOpOneArgIsReg ),
     ScriptCommandInfo( SCMD_NEWUSEROBJECT2  , "newuserobject2"    , 3, kScOpOneArgIsReg ),
     ScriptCommandInfo( SCMD_NEWARRAY2       , "newarray2"         , 3, kScOpOneArgIsReg ),
+    ScriptCommandInfo( SCMD_DYNAMICCAST     , "dynamiccast"       , 1, kScOpNoArgIsReg ),
 };
 
 const char *regnames[] = { "null", "sp", "mar", "ax", "bx", "cx", "op", "dx" };
@@ -208,7 +209,6 @@ struct FunctionCallStack
 
 RuntimeScriptValue ccInstance::_pluginReturnValue;
 std::unique_ptr<JointRTTI> ccInstance::_rtti;
-std::unordered_map<String, uint32_t> ccInstance::_rttiLookup;
 std::unique_ptr<RTTIHelper> ccInstance::_rttiHelper;
 
 
@@ -1520,6 +1520,58 @@ ccInstError ccInstance::Run(int32_t curpc)
             const uint32_t global_tid = _runningInst->_typeidLocal2Global[arg_typeid];
             DynObjectRef ref = ScriptUserObject::Create(global_tid, arg_size);
             reg1.SetScriptObject(ref.Obj, ref.Mgr);
+            break;
+        }
+        case SCMD_DYNAMICCAST:
+        {
+            auto &reg = _registers[SREG_MAR];
+            int32_t handle = reg.ReadInt32();
+            // Zero handle (null pointer) always casts to zero handle
+            if (handle == 0)
+                break;
+
+            const uint32_t arg_typeid = static_cast<uint32_t>(codeOp.Arg1i());
+            // TODO: this likely may be optimized by doing a fixup,
+            // which would replace a local typeid with a global one once the script is loaded;
+            assert(ccInstance::_rtti && !ccInstance::_rtti->IsEmpty());
+            const uint32_t global_tid = _runningInst->_typeidLocal2Global[arg_typeid];
+            void *object;
+            IScriptObject *manager;
+            ccGetObjectAddressAndManagerFromHandle(handle, object, manager);
+            ASSERT_CC_ERROR();
+            uint32_t obj_tid = manager->GetTypeID(object);
+            // TODO: consider assigning typeid for managers when registering them or adding object to managed pool?
+            // (unless that slows it down unnecessarily...)
+            if (obj_tid == UINT32_MAX)
+            {
+                auto it_found = ccInstance::_rtti->GetTypeLookup().find(manager->GetType());
+                if (it_found == ccInstance::_rtti->GetTypeLookup().end())
+                {
+                    // Object's type not found, consider cast failing
+                    reg.SetInt32(0);
+                    break;
+                }
+                obj_tid = it_found->second;
+            }
+
+            // If same type, then the cast is successful
+            if (obj_tid == global_tid)
+                break;
+            // Find out if the requested type is its parent
+            const auto *type = &ccInstance::_rtti->GetTypes()[obj_tid];
+            bool is_castable = false;
+            while (type->parent)
+            {
+                type = type->parent;
+                if (type->this_id == global_tid)
+                {
+                    is_castable = true;
+                    break;
+                }
+            }
+            // If nothing found, then the cast was a failure, so zero MAR
+            if (!is_castable)
+                reg.SetInt32(0);
             break;
         }
         case SCMD_FADD:
