@@ -203,4 +203,7 @@ extern size_t numScriptModules;
 
 extern std::unique_ptr<AGS::Engine::ScriptExecutor> scriptExecutor;
 
+void create_waiting_coroutine(int wait_id);
+void update_waiting_coroutine();
+
 #endif // __AGS_EE_SCRIPT__SCRIPT_H

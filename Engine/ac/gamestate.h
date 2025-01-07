@@ -180,6 +180,7 @@ struct GamePlayState
     short wait_counter = 0;
     char  wait_skipped_by = 0;      // tells how last blocking wait was skipped [not serialized]
     int   wait_skipped_by_data = 0; // extended data telling how last blocking wait was skipped [not serialized]
+    short wait_async_counter = 0;
     Rect  mbounds; // mouse cursor bounds
     int   fade_effect = 0;
     int   bg_frame_locked = 0;
