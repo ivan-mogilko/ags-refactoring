@@ -57,29 +57,37 @@ struct DisplayVars
         : Linespacing(linespacing), FullTextHeight(fulltxheight) {}
 };
 
+// Flags for displaying a text message
+enum DisplayTextFlags
+{
+    kDisplayText_None           = 0,
+    kDisplayText_StandardBox    = 0x0001,
+    kDisplayText_TextWindow     = 0x0002,
+    kDisplayText_Overchar       = 0x0004,
+    // Mask for the look style flags
+    kDisplayText_LookStyleMask  = 0x0007,
+    // TODO: expand with other flag-like options, see isThought, allowShrink etc
+};
+
 // Generates a textual image from the given text and parameters;
 // see _display_main's comment below for parameters description.
 // NOTE: this function treats text as-is, not doing any processing over it.
 // TODO: refactor this collection of args into 1-2 structs with params.
-Common::Bitmap *create_textual_image(const char *text, int asspch, int isThought,
+Common::Bitmap *create_textual_image(const char *text, int text_color, DisplayTextFlags disp_flags, int isThought,
     int &xx, int &yy, int &adjustedXX, int &adjustedYY, int wii, int usingfont, int allowShrink,
     const TopBarSettings *topbar);
 // Creates a textual overlay using the given parameters;
-// Pass yy = -1 to find Y co-ord automatically
-// allowShrink = 0 for none, 1 for leftwards, 2 for rightwards
-// pass blocking=2 to create permanent overlay
-// asspch has several meanings, which affect how the message is positioned
-//   == 0 - standard display box
-//   != 0 - text color for a speech or a regular textual overlay, where
-//     < 0 - use text window if applicable
-//     > 0 - suppose it's a classic LA-style speech above character's head
+// Pass yy = -1 to find Y co-ord automatically;
+// allowShrink = 0 for none, 1 for leftwards, 2 for rightwards;
+// pass blocking=2 to create permanent overlay;
+// disp_flags define how the message should look or be positioned (see DisplayTextFlags);
 // autoplace_at_char - tells whether overlay should autoposition itself whenever game updates.
 // NOTE: this function treats the text as-is; it assumes that any processing
 // (translation, parsing voice token) was done prior to its call.
 // TODO: refactor this collection of args into few args + 1-2 structs with extended params.
 ScreenOverlay *display_main(int xx, int yy, int wii, const char *text,
     const TopBarSettings *topbar, int disp_type, int usingfont,
-    int asspch, int isThought, int allowShrink, int autoplace_at_char = -1, bool roomlayer = false);
+    int text_color, DisplayTextFlags disp_flags, int isThought, int allowShrink, int autoplace_at_char = -1, bool roomlayer = false);
 // Displays a standard blocking message box at a given position
 void display_at(int xx, int yy, int wii, const char *text, const TopBarSettings *topbar);
 // Cleans up display message state

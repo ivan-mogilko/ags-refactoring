@@ -2599,11 +2599,8 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
         return;
     }
 
-    int textcol = speakingChar->talkcolor;
-
-    // if it's 0, it won't be recognised as speech
-    if (textcol == 0)
-        textcol = GUI::GetStandardColor(16);
+    const color_t text_color = speakingChar->talkcolor;
+    DisplayTextFlags disp_flags = kDisplayText_Overchar;
 
     Rect ui_view = play.GetUIViewport();
     int allowShrink = 0;
@@ -2925,7 +2922,7 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
             facetalkchar = &game.chars[aschar];
             if (facetalkchar->blinktimer < 0)
                 facetalkchar->blinktimer = facetalkchar->blinkinterval;
-            textcol=-textcol;
+            disp_flags = kDisplayText_TextWindow;
             // Process the first portrait view frame
             const int frame_vol = charextra[facetalkchar->index_id].GetFrameSoundVolume(facetalkchar);
             CheckViewFrame(facetalkview, facetalkloop, facetalkframe, frame_vol);
@@ -2989,7 +2986,7 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
         char_thinking = aschar;
 
     set_our_eip(155);
-    display_main(tdxp, tdyp, bwidth, texx, nullptr, DISPLAYTEXT_SPEECH, FONT_SPEECH, textcol, isThought, allowShrink, -1 /* don't autoplace */);
+    display_main(tdxp, tdyp, bwidth, texx, nullptr, DISPLAYTEXT_SPEECH, FONT_SPEECH, text_color, disp_flags, isThought, allowShrink, -1 /* don't autoplace */);
     set_our_eip(156);
     if ((play.in_conversation > 0) && (game.options[OPT_SPEECHTYPE] == 3))
         closeupface = nullptr;

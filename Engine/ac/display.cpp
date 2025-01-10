@@ -139,7 +139,7 @@ private:
 
 
 // Generates a textual image and returns a disposable bitmap
-Bitmap *create_textual_image(const char *text, int asspch, int isThought,
+Bitmap *create_textual_image(const char *text, int text_color, DisplayTextFlags disp_flags, int isThought,
     int &xx, int &yy, int &adjustedXX, int &adjustedYY, int wii, int usingfont, int allowShrink,
     const TopBarSettings *topbar)
 {
@@ -147,7 +147,7 @@ Bitmap *create_textual_image(const char *text, int asspch, int isThought,
     // Configure the textual image
     //
 
-    const bool use_speech_textwindow = (asspch < 0) && (game.options[OPT_SPEECHTYPE] >= 2);
+    const bool use_speech_textwindow = (disp_flags & kDisplayText_TextWindow) && (game.options[OPT_SPEECHTYPE] >= 2);
     const bool use_thought_gui = (isThought) && (game.options[OPT_THOUGHTGUI] > 0);
 
     int usingGui = -1;
@@ -185,7 +185,7 @@ Bitmap *create_textual_image(const char *text, int asspch, int isThought,
         yy = ui_view.GetHeight() / 2 - disp.FullTextHeight / 2 - padding;
     }
     // speech, so it wants to be above the character's head
-    else if (asspch > 0) {
+    else if (disp_flags & kDisplayText_Overchar) {
         yy -= disp.FullTextHeight;
         if (yy < 5) yy = 5;
         yy = adjust_y_for_guis(yy);
@@ -194,9 +194,8 @@ Bitmap *create_textual_image(const char *text, int asspch, int isThought,
     if (longestline < wii - paddingDoubledScaled) {
         // shrink the width of the dialog box to fit the text
         int oldWid = wii;
-        //if ((asspch >= 0) || (allowShrink > 0))
         // If it's not speech, or a shrink is allowed, then shrink it
-        if ((asspch == 0) || (allowShrink > 0))
+        if ((disp_flags & kDisplayText_StandardBox) || (allowShrink > 0))
             wii = longestline + paddingDoubledScaled;
 
         // shift the dialog box right to align it, if necessary
@@ -219,7 +218,6 @@ Bitmap *create_textual_image(const char *text, int asspch, int isThought,
     }
 
     const int extraHeight = paddingDoubledScaled;
-    color_t text_color = GUI::GetStandardColorForBitmap(15);
     const int bmp_width = std::max(2, wii);
     const int bmp_height = std::max(2, disp.FullTextHeight + extraHeight);
     Bitmap *text_window_ds = BitmapHelper::CreateTransparentBitmap(bmp_width, bmp_height, game.GetColorDepth());
@@ -235,49 +233,59 @@ Bitmap *create_textual_image(const char *text, int asspch, int isThought,
     adjustedXX = xx;
     adjustedYY = yy;
 
-    if ((strlen(todis) < 1) || (strcmp(todis, "  ") == 0) || (wii == 0));
     // if it's an empty speech line, don't draw anything
-    else if (asspch) { //text_color = GUI::GetStandardColorForBitmap(12);
+    if ((strlen(todis) < 1) || (strcmp(todis, "  ") == 0) || (wii == 0))
+        return text_window_ds;
+
+    if ((disp_flags & kDisplayText_StandardBox) == 0)
+    {
+        // Textual overlay purposed for character speech
         int ttxleft = 0, ttxtop = paddingScaled, oriwid = wii - padding * 2;
         int drawBackground = 0;
 
-        if (use_speech_textwindow) {
+        if (use_speech_textwindow)
+        {
             drawBackground = 1;
         }
-        else if (use_thought_gui) {
+        else if (use_thought_gui)
+        {
             // make it treat it as drawing inside a window now
-            if (asspch > 0)
-                asspch = -asspch;
+            disp_flags = (DisplayTextFlags)((disp_flags & ~kDisplayText_LookStyleMask) | kDisplayText_TextWindow);
             drawBackground = 1;
         }
 
         if (drawBackground)
         {
+            text_color = GUI::GetStandardColorForBitmap(15); // use fixed standard color here
             draw_text_window_and_bar(&text_window_ds, wantFreeScreenop, topbar, disp,
                 &ttxleft, &ttxtop, &adjustedXX, &adjustedYY, &wii, &text_color, 0, usingGui);
         }
 
-        for (size_t ee = 0; ee<Lines.Count(); ee++) {
-            //int ttxp=wii/2 - get_text_width_outlined(lines[ee], usingfont)/2;
+        for (size_t ee = 0; ee<Lines.Count(); ee++)
+        {
             int ttyp = ttxtop + ee * disp.Linespacing;
-            // asspch < 0 means that it's inside a text box so don't
-            // centre the text
-            if (asspch < 0) {
+            // if it's inside a text box then don't centre the text
+            if (disp_flags & kDisplayText_TextWindow)
+            {
                 if ((usingGui >= 0) &&
                     ((game.options[OPT_SPEECHTYPE] >= 2) || (isThought)))
                     text_color = text_window_ds->GetCompatibleColor(guis[usingGui].FgColor);
                 else
-                    text_color = text_window_ds->GetCompatibleColor(-asspch);
+                    text_color = text_window_ds->GetCompatibleColor(text_color);
 
                 wouttext_aligned(text_window_ds, ttxleft, ttyp, oriwid, usingfont, text_color, Lines[ee].GetCStr(), play.text_align);
             }
-            else {
-                text_color = text_window_ds->GetCompatibleColor(asspch);
+            else
+            {
+                text_color = text_window_ds->GetCompatibleColor(text_color);
                 wouttext_aligned(text_window_ds, ttxleft, ttyp, wii, usingfont, text_color, Lines[ee].GetCStr(), play.speech_text_align);
             }
         }
     }
-    else {
+    else
+    {
+        // Textual overlay purposed for the standard message box
+        text_color = GUI::GetStandardColorForBitmap(15); // use fixed standard color here
         int xoffs, yoffs, oriwid = wii - padding * 2;
         draw_text_window_and_bar(&text_window_ds, wantFreeScreenop, topbar, disp, &xoffs, &yoffs, &adjustedXX, &adjustedYY, &wii, &text_color);
 
@@ -286,7 +294,6 @@ Bitmap *create_textual_image(const char *text, int asspch, int isThought,
         for (size_t ee = 0; ee<Lines.Count(); ee++)
             wouttext_aligned(text_window_ds, xoffs, yoffs + ee * disp.Linespacing, oriwid, usingfont, text_color, Lines[ee].GetCStr(), play.text_align);
     }
-
     return text_window_ds;
 }
 
@@ -363,7 +370,7 @@ bool display_check_user_input(int skip)
 // pass blocking=2 to create permanent overlay
 ScreenOverlay *display_main(int xx, int yy, int wii, const char *text,
     const TopBarSettings *topbar, int disp_type, int usingfont,
-    int asspch, int isThought, int allowShrink, int autoplace_at_char, bool roomlayer)
+    int text_color, DisplayTextFlags disp_flags, int isThought, int allowShrink, int autoplace_at_char, bool roomlayer)
 {
     //
     // Prepare for the message display
@@ -386,7 +393,7 @@ ScreenOverlay *display_main(int xx, int yy, int wii, const char *text,
         disp_type = DISPLAYTEXT_SPEECH;
     }
 
-    if ((asspch > 0) && (disp_type < DISPLAYTEXT_NORMALOVERLAY))
+    if ((disp_flags & kDisplayText_Overchar) && (disp_type < DISPLAYTEXT_NORMALOVERLAY))
     {
         // update the all_buttons_disabled variable in advance
         // of the adjust_x/y_for_guis calls
@@ -420,7 +427,7 @@ ScreenOverlay *display_main(int xx, int yy, int wii, const char *text,
     }
 
     int adjustedXX, adjustedYY;
-    Bitmap *text_window_ds = create_textual_image(text, asspch, isThought,
+    Bitmap *text_window_ds = create_textual_image(text, text_color, disp_flags, isThought,
         xx, yy, adjustedXX, adjustedYY, wii, usingfont, allowShrink, topbar);
 
     size_t nse = add_screen_overlay(roomlayer, xx, yy, ovrtype, text_window_ds, adjustedXX - xx, adjustedYY - yy);
@@ -469,7 +476,7 @@ void display_at(int xx, int yy, int wii, const char *text, const TopBarSettings 
     try_auto_play_speech(text, text, play.narrator_speech);
 
     display_main(xx, yy, wii, text, topbar, DISPLAYTEXT_MESSAGEBOX, FONT_NORMAL,
-        0, 0, 0, -1 /* no autoplace */, false /* screen layer */);
+        0 /* color */, kDisplayText_StandardBox, 0 /*not is thought */, 0 /* no shrink */, -1 /* no autoplace */, false /* screen layer */);
 
     // Stop any blocking voice-over, if was started by this function
     if (play.IsBlockingVoiceSpeech())
