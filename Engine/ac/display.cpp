@@ -219,7 +219,7 @@ Bitmap *create_textual_image(const char *text, int asspch, int isThought,
     }
 
     const int extraHeight = paddingDoubledScaled;
-    color_t text_color = MakeColor(15);
+    color_t text_color = GUI::GetStandardColorForBitmap(15);
     const int bmp_width = std::max(2, wii);
     const int bmp_height = std::max(2, disp.FullTextHeight + extraHeight);
     Bitmap *text_window_ds = BitmapHelper::CreateTransparentBitmap(bmp_width, bmp_height, game.GetColorDepth());

@@ -2603,7 +2603,7 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
 
     // if it's 0, it won't be recognised as speech
     if (textcol == 0)
-        textcol = 16;
+        textcol = GUI::GetStandardColor(16);
 
     Rect ui_view = play.GetUIViewport();
     int allowShrink = 0;
