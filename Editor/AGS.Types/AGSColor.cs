@@ -7,6 +7,15 @@ namespace AGS.Types
 {
     public struct AGSColor
     {
+        /// <summary>
+        /// Default 32-bit transparent color used in AGS.
+        /// </summary>
+        public static int ColorNumberTransparent { get { return 0; } }
+        /// <summary>
+        /// Default palette index used for transparent color.
+        /// </summary>
+        public static int PaletteIndexTransparent { get { return 0; } }
+
         public static IColorMapper ColorMapper { get; set; }
 
         private int _agsColorNumber;

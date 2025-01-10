@@ -7,6 +7,9 @@ namespace AGS.Types
 {
     public class ColorUIEditor : UITypeEditor
     {
+        // How to display transparent color in the property grid
+        private static Color DisplayTransparent = Color.Magenta;
+
         public delegate Color? ColorGUIType(Color? color);
         public static ColorGUIType ColorGUI;
         public static GameColorDepth ColorMode = GameColorDepth.TrueColor;
@@ -59,6 +62,10 @@ namespace AGS.Types
         public override void PaintValue(PaintValueEventArgs e)
         {
             Color color = ColorFromPropertyValue(e.Context, e.Value);
+            // Fixup alpha value for display
+            // TODO: possibly paint using alpha component when we actually support it here
+            color = color.A > 0 ? Color.FromArgb(0xFF, color.R, color.G, color.B)
+                : DisplayTransparent;
             using (SolidBrush brush = new SolidBrush(color))
             {
                 e.Graphics.FillRectangle(brush, e.Bounds);
