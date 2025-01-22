@@ -85,6 +85,8 @@ void *ccGetSymbolAddress(const String &name);
 void *ccGetSymbolAddressForPlugin(const String &name);
 // Get a registered Script Object, optionally restricting to the given type name
 void *ccGetScriptObjectAddress(const String &name, const String &type);
+// Get a registered Script Object, optionally restricting to the given list of type names
+void *ccGetScriptObjectAddress(const String &name, const std::vector<String> &types);
 
 // DEBUG HOOK
 typedef void (*new_line_hook_type) (ccInstance *, int);

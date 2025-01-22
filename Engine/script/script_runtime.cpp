@@ -111,13 +111,13 @@ void *ccGetSymbolAddressForPlugin(const String &name)
     return nullptr;
 }
 
-void *ccGetScriptObjectAddress(const String &name, const String &type)
+bool ccGetScriptObjectAddress(const String &name, void *&obj_out, IScriptObject *&mgr_out)
 {
     const auto *imp = simp.GetByName(name);
     if (!imp)
-        return nullptr;
+        return false;
     if (imp->Value.Type != kScValScriptObject && imp->Value.Type != kScValPluginObject)
-        return nullptr;
+        return false;
 
     void *object;
     IScriptObject *mgr;
@@ -125,7 +125,7 @@ void *ccGetScriptObjectAddress(const String &name, const String &type)
     {
         const int32_t handle = *static_cast<const int32_t*>(imp->Value.Ptr);
         if (ccGetObjectAddressAndManagerFromHandle(handle, object, mgr) == kScValUndefined)
-            return nullptr;
+            return false;
     }
     else
     {
@@ -133,9 +133,34 @@ void *ccGetScriptObjectAddress(const String &name, const String &type)
         mgr = imp->Value.ObjMgr;
     }
 
-    if (type != mgr->GetType())
+    obj_out = object;
+    mgr_out = mgr;
+    return true;
+}
+
+void *ccGetScriptObjectAddress(const String &name, const String &type)
+{
+    void *object;
+    IScriptObject *mgr;
+    if (!ccGetScriptObjectAddress(name, object, mgr))
         return nullptr;
-    return object;
+
+    return (type == mgr->GetType()) ? object : nullptr;
+}
+
+void *ccGetScriptObjectAddress(const String &name, const std::vector<String> &types)
+{
+    void *object;
+    IScriptObject *mgr;
+    if (!ccGetScriptObjectAddress(name, object, mgr))
+        return nullptr;
+
+    for (const auto &type : types)
+    {
+        if (type == mgr->GetType())
+            return object;
+    }
+    return nullptr;
 }
 
 new_line_hook_type new_line_hook = nullptr;
