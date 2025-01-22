@@ -129,6 +129,7 @@ enum ccInstError
 // Running instance of the script
 class ccInstance
 {
+    using String = AGS::Common::String;
 public:
     // returns the currently executing instance, or NULL if none
     static ccInstance *GetCurrentInstance(void);
@@ -150,6 +151,9 @@ public:
     static void JoinRTTI(const RTTI &rtti,
         std::unordered_map<uint32_t, uint32_t> &loc_l2g,
         std::unordered_map<uint32_t, uint32_t> &type_l2g);
+    // Add lookup aliases for all RTTI types that belong to the given namespace (location).
+    // In effect this lets to find certain types by their bare name, without location spec.
+    static void AddGlobalTypeAliases(const String &location);
 
     ccInstance() = default;
     ~ccInstance();
@@ -179,14 +183,14 @@ public:
     void    AbortAndDestroy();
     
     // Call an exported function in the script
-    ccInstError CallScriptFunction(const Common::String &funcname, int32_t num_params, const RuntimeScriptValue *params);
+    ccInstError CallScriptFunction(const String &funcname, int32_t num_params, const RuntimeScriptValue *params);
     
     // Get the script's execution position and callstack as human-readable text
-    Common::String GetCallStack(int max_lines = INT_MAX) const;
+    String  GetCallStack(int max_lines = INT_MAX) const;
     // Get the script's execution position
     void    GetScriptPosition(ScriptPosition &script_pos) const;
     // Get the address of an exported symbol (function or variable) in the script
-    RuntimeScriptValue GetSymbolAddress(const Common::String &symname) const;
+    RuntimeScriptValue GetSymbolAddress(const String &symname) const;
     void    DumpInstruction(const ScriptOperation &op) const;
     // Tells whether this instance is in the process of executing the byte-code
     bool    IsBeingRun() const;
@@ -208,7 +212,7 @@ public:
     // Requires RTTI
     const std::unordered_map<uint32_t, uint32_t> &
         GetLocal2GlobalTypeMap() const { return _typeidLocal2Global; }
-    const std::unordered_map<Common::String, uint32_t> &
+    const std::unordered_map<String, uint32_t> &
         GetGlobalVariableLookup() const { return _globalVarLookup; }
 
 
@@ -227,7 +231,7 @@ private:
 
     // Searches for the function among this script's exports,
     // on success returns its starting position in bytecode, and number of arguments
-    bool    FindExportedFunction(const Common::String &fn_name, int32_t &start_at, int32_t &num_args) const;
+    bool    FindExportedFunction(const String &fn_name, int32_t &start_at, int32_t &num_args) const;
 
     // Begin executing script starting from the given bytecode index
     ccInstError Run(int32_t curpc);
@@ -299,7 +303,7 @@ private:
     // Map local script's type id to global (program-wide)
     std::unordered_map<uint32_t, uint32_t> _typeidLocal2Global;
     // Global variables name-to-index lookup (in script's TOC)
-    std::unordered_map<Common::String, uint32_t> _globalVarLookup;
+    std::unordered_map<String, uint32_t> _globalVarLookup;
 
     // Virtual machine state
     RuntimeScriptValue _registers[CC_NUM_REGISTERS]; // registers

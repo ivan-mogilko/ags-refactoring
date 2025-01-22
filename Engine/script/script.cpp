@@ -40,6 +40,7 @@
 #include "debug/debug_log.h"
 #include "debug/out.h"
 #include "main/game_run.h"
+#include "plugin/plugin_engine.h"
 #include "script/script_runtime.h"
 #include "util/string_compat.h"
 #include "media/audio/audio_system.h"
@@ -160,6 +161,18 @@ int run_interaction_script(const ObjectEvent &obj_evt, const InteractionEvents *
     return 0;
 }
 
+void setup_builtin_type_aliases()
+{
+    // Add aliases for the location "ags":
+    // this is a reserved name for the engine API types
+    ccInstance::AddGlobalTypeAliases("ags");
+    // Add aliases for the locations corresponding to all the registered plugins
+    std::vector<String> pl_names;
+    pl_get_plugin_names(pl_names);
+    for (const auto &name : pl_names)
+        ccInstance::AddGlobalTypeAliases(name);
+}
+
 int create_global_script() {
     constexpr int kscript_create_error = -3; // FIXME: use global script error code
 
@@ -215,6 +228,10 @@ int create_global_script() {
         return kscript_create_error;
 
     ccSetOption(SCOPT_AUTOIMPORT, 0);
+
+    // Register built-in types under simple aliases for dynamic cast feature
+    // TODO: maybe find a better place to do this? should be done after JointRTTI is created though
+    setup_builtin_type_aliases();
 
     // Optionally dump script's TOC into the log
     if (logScriptTOC)
