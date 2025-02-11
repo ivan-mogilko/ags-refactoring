@@ -400,7 +400,7 @@ int SetGameOption (int opt, int newval) {
     }
 
     // Handle forbidden options
-    const auto restricted_opts = GameSetupStructBase::GetRestrictedOptions();
+    const auto restricted_opts = GameSetupStruct::GetRestrictedOptions();
     for (auto r_opt : restricted_opts)
     {
         if (r_opt == opt)

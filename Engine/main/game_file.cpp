@@ -129,7 +129,7 @@ static inline HError MakeScriptLoadError(const char *name)
 // These are optional, so no error is raised if some of these are not found.
 // For those that do exist, reads them and replaces any scripts of same kind
 // in the already loaded game data.
-HError LoadGameScripts(LoadedGameEntities &ents)
+HError LoadGameScripts(LoadedGame &ents)
 {
     // Global script
     auto in = AssetMgr->OpenAsset("GlobalScript.o");
@@ -180,7 +180,7 @@ HError LoadGameScripts(LoadedGameEntities &ents)
 HError load_game_file()
 {
     MainGameSource src;
-    LoadedGameEntities ents(game);
+    LoadedGame ents;
     HError err = (HError)OpenMainGameFileFromDefaultAsset(src, AssetMgr.get());
     if (!err)
         return err;
@@ -203,7 +203,7 @@ HError load_game_file()
     err = LoadGameScripts(ents);
     if (!err)
         return err;
-    err = (HError)InitGameState(ents, src.DataVersion);
+    err = (HError)InitGameState(game, std::move(ents), src.DataVersion);
     if (!err)
         return err;
 

@@ -151,7 +151,7 @@ void InitAndRegisterAudioObjects(GameSetupStruct &game)
 }
 
 // Initializes characters and registers them in the script system
-void InitAndRegisterCharacters(GameSetupStruct &game, const LoadedGameEntities &ents)
+void InitAndRegisterCharacters(GameSetupStruct &game, const LoadedGame &ents)
 {
     // ensure at least 1 element, we must register buffer
     StaticCharacterArray.resize(std::max(1, game.numcharacters));
@@ -311,9 +311,8 @@ void RegisterStaticArrays(GameSetupStruct &game)
 }
 
 // Initializes various game entities and registers them in the script system
-HError InitAndRegisterGameEntities(const LoadedGameEntities &ents)
+HError InitAndRegisterGameEntities(GameSetupStruct &game, const LoadedGame &ents)
 {
-    GameSetupStruct &game = ents.Game;
     InitAndRegisterAudioObjects(game);
     InitAndRegisterCharacters(game, ents);
     InitAndRegisterDialogs(game);
@@ -332,9 +331,9 @@ HError InitAndRegisterGameEntities(const LoadedGameEntities &ents)
     return HError::None();
 }
 
-void LoadFonts(GameSetupStruct &game, GameDataVersion data_ver)
+void LoadFonts(const GameSetupStruct &game, GameDataVersion data_ver)
 {
-    for (int i = 0; i < game.numfonts; ++i) 
+    for (int i = 0; i < game.numfonts; ++i)
     {
         if (!game.fonts[i].Filename.IsEmpty())
         {
@@ -410,9 +409,10 @@ void InitGameResolution(GameSetupStruct &game, GameDataVersion data_ver)
     scsystem.viewport_height = play.GetMainViewport().GetHeight();
 }
 
-HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion data_ver)
+HGameInitError InitGameState(GameSetupStruct &game, LoadedGame &&ents, GameDataVersion data_ver)
 {
-    GameSetupStruct &game = ents.Game;
+    // FIXME: this is ugly, but we secretly know that this only moves part of the ents
+    game = GameSetupStruct(std::move(ents));
     const ScriptAPIVersion base_api = (ScriptAPIVersion)game.options[OPT_BASESCRIPTAPI];
     const ScriptAPIVersion compat_api = (ScriptAPIVersion)game.options[OPT_SCRIPTCOMPATLEV];
     const char *base_api_name = GetScriptAPIName(base_api);
@@ -467,7 +467,7 @@ HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion dat
     // Set number of game channels corresponding to the loaded game version
     game.numGameChannels = MAX_GAME_CHANNELS;
     game.numCompatGameChannels = MAX_GAME_CHANNELS;
-    HError err = InitAndRegisterGameEntities(ents);
+    HError err = InitAndRegisterGameEntities(game, ents);
     if (!err)
         return new GameInitError(kGameInitErr_EntityInitFail, err);
     LoadFonts(game, data_ver);

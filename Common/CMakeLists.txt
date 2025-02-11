@@ -29,8 +29,6 @@ target_sources(common
     ac/game_version.h
     ac/gamesetupstruct.cpp
     ac/gamesetupstruct.h
-    ac/gamesetupstructbase.cpp
-    ac/gamesetupstructbase.h
     ac/gamestructdefines.h
     ac/inventoryiteminfo.cpp
     ac/inventoryiteminfo.h

@@ -17,7 +17,6 @@
 // options, lists of static game entities and compiled scripts modules.
 //
 //=============================================================================
-
 #ifndef __AGS_CN_GAME__MAINGAMEFILE_H
 #define __AGS_CN_GAME__MAINGAMEFILE_H
 
@@ -35,9 +34,8 @@
 #include "util/string.h"
 #include "util/version.h"
 
-struct GameSetupStruct;
-struct DialogTopic;
-struct ViewStruct;
+struct GameBasicProperties;
+struct LoadedGame;
 
 namespace AGS
 {
@@ -96,41 +94,6 @@ struct MainGameSource
     MainGameSource();
 };
 
-// Struct contains an extended data loaded for chars.
-// At the runtime it goes into CharacterExtras struct, which is currently
-// not exposed. This may be fixed by future refactoring, such as merging
-// CharacterExtras with CharacterInfo structs.
-struct CharDataEx
-{
-    Common::BlendMode BlendMode = kBlend_Normal;
-};
-
-// LoadedGameEntities is meant for keeping objects loaded from the game file.
-// Because copying/assignment methods are not properly implemented for some
-// of these objects yet, they have to be attached using references to be read
-// directly. This is temporary solution that has to be resolved by the future
-// code refactoring.
-struct LoadedGameEntities
-{
-    GameSetupStruct        &Game; // FIXME: have an object, not ref, and std::move
-    std::vector<CharDataEx> CharEx;
-    std::vector<GUIMain>    Guis;
-    GUICollection           GuiControls;
-    std::vector<DialogTopic> Dialogs;
-    std::vector<ViewStruct> Views;
-    UScript                 GlobalScript;
-    UScript                 DialogScript;
-    std::vector<UScript>    ScriptModules;
-    std::vector<PluginInfo> PluginInfos;
-
-    // Original sprite data (when it was read into const-sized arrays)
-    size_t                  SpriteCount;
-    std::vector<uint8_t>    SpriteFlags; // SPF_* flags
-
-    LoadedGameEntities(GameSetupStruct &game);
-    ~LoadedGameEntities();
-};
-
 class AssetManager;
 
 // Tells if the given path (library filename) contains main game file
@@ -145,14 +108,14 @@ HGameFileError     OpenMainGameFile(const String &filename, MainGameSource &src)
 // Opens main game file for reading using the current Asset Manager (uses default asset name)
 HGameFileError     OpenMainGameFileFromDefaultAsset(MainGameSource &src, AssetManager *mgr);
 // Reads game data, applies necessary conversions to match current format version
-HGameFileError     ReadGameData(LoadedGameEntities &ents, std::unique_ptr<Stream> &&in, GameDataVersion data_ver);
+HGameFileError     ReadGameData(LoadedGame &ents, std::unique_ptr<Stream> &&in, GameDataVersion data_ver);
 // Pre-reads the heading game data, just enough to identify the game and its special file locations
-void               PreReadGameData(GameSetupStruct &game, std::unique_ptr<Stream> &&in, GameDataVersion data_ver);
+void               PreReadGameData(GameBasicProperties &game, std::unique_ptr<Stream> &&in, GameDataVersion data_ver);
 // Applies necessary updates, conversions and fixups to the loaded data
 // making it compatible with current engine
-HGameFileError     UpdateGameData(LoadedGameEntities &ents, GameDataVersion data_ver);
+HGameFileError     UpdateGameData(LoadedGame &ents, GameDataVersion data_ver);
 // Ensures that the game saves directory path is valid
-void               FixupSaveDirectory(GameSetupStruct &game);
+void               FixupSaveDirectory(GameBasicProperties &game);
 
 } // namespace Common
 } // namespace AGS

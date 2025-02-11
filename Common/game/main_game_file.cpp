@@ -14,6 +14,7 @@
 #include <cstdio>
 #include "ac/audiocliptype.h"
 #include "ac/dialogtopic.h"
+#include "ac/game_version.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/spritecache.h"
 #include "ac/view.h"
@@ -90,14 +91,6 @@ String GetMainGameFileErrorText(MainGameFileErrorType err)
     }
     return "Unknown error.";
 }
-
-LoadedGameEntities::LoadedGameEntities(GameSetupStruct &game)
-    : Game(game)
-    , SpriteCount(0)
-{
-}
-
-LoadedGameEntities::~LoadedGameEntities() = default;
 
 bool IsMainGameLibrary(const String &filename)
 {
@@ -213,85 +206,6 @@ HGameFileError OpenMainGameFileFromDefaultAsset(MainGameSource &src, AssetManage
     return OpenMainGameFileBase(src);
 }
 
-HGameFileError ReadDialogScript(UScript &dialog_script, Stream *in, GameDataVersion data_ver)
-{
-    dialog_script.reset(ccScript::CreateFromStream(in));
-    if (dialog_script == nullptr)
-        return new MainGameFileError(kMGFErr_CreateDialogScriptFailed, cc_get_error().ErrorString);
-    return HGameFileError::None();
-}
-
-HGameFileError ReadScriptModules(std::vector<UScript> &sc_mods, Stream *in, GameDataVersion data_ver)
-{
-    int count = in->ReadInt32();
-    sc_mods.resize(count);
-    for (int i = 0; i < count; ++i)
-    {
-        sc_mods[i].reset(ccScript::CreateFromStream(in));
-        if (sc_mods[i] == nullptr)
-            return new MainGameFileError(kMGFErr_CreateScriptModuleFailed, cc_get_error().ErrorString);
-    }
-    return HGameFileError::None();
-}
-
-void ReadViews(GameSetupStruct &game, std::vector<ViewStruct> &views, Stream *in, GameDataVersion data_ver)
-{
-    views.resize(game.numviews);
-        for (int i = 0; i < game.numviews; ++i)
-        {
-            views[i].ReadFromFile(in);
-        }
-}
-
-void ReadDialogs(std::vector<DialogTopic> &dialog, Stream *in, GameDataVersion data_ver, int dlg_count)
-{
-    dialog.resize(dlg_count);
-    for (int i = 0; i < dlg_count; ++i)
-    {
-        dialog[i].ReadFromFile(in);
-    }
-}
-
-HGameFileError ReadPlugins(std::vector<PluginInfo> &infos, Stream *in)
-{
-    int fmt_ver = in->ReadInt32();
-    if (fmt_ver != 1)
-        return new MainGameFileError(kMGFErr_PluginDataFmtNotSupported, String::FromFormat("Version: %d, supported: %d", fmt_ver, 1));
-
-    int pl_count = in->ReadInt32();
-    for (int i = 0; i < pl_count; ++i)
-    {
-        String name = String::FromStream(in);
-        size_t datasize = in->ReadInt32();
-        // just check for silly datasizes
-        if (datasize > PLUGIN_SAVEBUFFERSIZE)
-            return new MainGameFileError(kMGFErr_PluginDataSizeTooLarge, String::FromFormat("Required: %zu, max: %zu", datasize, (size_t)PLUGIN_SAVEBUFFERSIZE));
-
-        PluginInfo info;
-        info.Name = name;
-        if (datasize > 0)
-        {
-            info.Data.resize(datasize);
-            in->Read(info.Data.data(), datasize);
-        }
-        infos.push_back(info);
-    }
-    return HGameFileError::None();
-}
-
-void ApplySpriteData(GameSetupStruct &game, const LoadedGameEntities &ents, GameDataVersion data_ver)
-{
-    if (ents.SpriteCount == 0)
-        return;
-
-    // Apply sprite flags read from original format (sequential array)
-    game.SpriteInfos.resize(ents.SpriteCount);
-    for (size_t i = 0; i < ents.SpriteCount; ++i)
-    {
-        game.SpriteInfos[i].Flags = ents.SpriteFlags[i];
-    }
-}
-
 // Lookup table for scaling 5 bit colors up to 8 bits,
 // copied from Allegro 4 library, preventing an extra dependency.
 static const uint8_t RGBScale5[32]
@@ -319,7 +233,7 @@ static const uint8_t RGBScale6[64]
 // Remaps color number from legacy to new format:
 // * palette index in 8-bit game,
 // * encoded 32-bit A8R8G8B8 in 32-bit game.
-static int RemapFromLegacyColourNumber(const GameSetupStruct &game, int color, bool is_bg = false)
+static int RemapFromLegacyColourNumber(const GameBasicProperties &game, int color, bool is_bg = false)
 {
     if (game.color_depth == 1)
         return color; // keep palette index
@@ -348,7 +262,7 @@ static int RemapFromLegacyColourNumber(const GameSetupStruct &game, int color, b
     return blue | (green << 8) | (red << 16) | (0xFF << 24);
 }
 
-void UpgradeGame(GameSetupStruct &game, GameDataVersion data_ver)
+void UpgradeGame(GameBasicProperties &game, GameDataVersion data_ver)
 {
     if (data_ver < kGameVersion_362)
     {
@@ -362,7 +276,7 @@ void UpgradeGame(GameSetupStruct &game, GameDataVersion data_ver)
     }
 }
 
-void UpgradeFonts(GameSetupStruct &game, GameDataVersion data_ver)
+void UpgradeFonts(LoadedGame &game, GameDataVersion data_ver)
 {
     if (data_ver < kGameVersion_400_10)
     {
@@ -379,12 +293,12 @@ void UpgradeFonts(GameSetupStruct &game, GameDataVersion data_ver)
 }
 
 // Convert audio data to the current version
-void UpgradeAudio(GameSetupStruct &game, LoadedGameEntities &ents, GameDataVersion data_ver)
+void UpgradeAudio(LoadedGame &game, GameDataVersion data_ver)
 {
 }
 
 // Convert character data to the current version
-void UpgradeCharacters(GameSetupStruct &game, GameDataVersion data_ver)
+void UpgradeCharacters(LoadedGame &game, GameDataVersion data_ver)
 {
     const int char_count = game.numcharacters;
     auto &chars = game.chars;
@@ -408,56 +322,56 @@ void UpgradeCharacters(GameSetupStruct &game, GameDataVersion data_ver)
     }
 }
 
-void UpgradeGUI(GameSetupStruct &game, LoadedGameEntities &ents, GameDataVersion data_ver)
+void UpgradeGUI(LoadedGame &game, GameDataVersion data_ver)
 {
     // Previously, Buttons and Labels had a fixed Translated behavior
     if (data_ver < kGameVersion_361)
     {
-        for (auto &btn : ents.GuiControls.Buttons)
+        for (auto &btn : game.GuiControls.Buttons)
             btn.SetTranslated(true); // always translated
-        for (auto &lbl : ents.GuiControls.Labels)
+        for (auto &lbl : game.GuiControls.Labels)
             lbl.SetTranslated(true); // always translated
     }
 
     // 32-bit color properties
     if (data_ver < kGameVersion_400_09)
     {
-        for (auto &gui : ents.Guis)
+        for (auto &gui : game.Guis)
         {
             gui.BgColor = RemapFromLegacyColourNumber(game, gui.BgColor, true);
             gui.FgColor = RemapFromLegacyColourNumber(game, gui.FgColor, !gui.IsTextWindow()
                 /* right, treat border as background for normal gui */);
         }
 
-        for (auto &btn : ents.GuiControls.Buttons)
+        for (auto &btn : game.GuiControls.Buttons)
         {
             btn.TextColor = RemapFromLegacyColourNumber(game, btn.TextColor);
         }
 
-        for (auto &lbl : ents.GuiControls.Labels)
+        for (auto &lbl : game.GuiControls.Labels)
         {
             lbl.TextColor = RemapFromLegacyColourNumber(game, lbl.TextColor);
         }
 
-        for (auto &list : ents.GuiControls.ListBoxes)
+        for (auto &list : game.GuiControls.ListBoxes)
         {
             list.TextColor = RemapFromLegacyColourNumber(game, list.TextColor);
             list.SelectedBgColor = RemapFromLegacyColourNumber(game, list.SelectedBgColor, true);
             list.SelectedTextColor = RemapFromLegacyColourNumber(game, list.SelectedTextColor);
         }
 
-        for (auto &tbox : ents.GuiControls.TextBoxes)
+        for (auto &tbox : game.GuiControls.TextBoxes)
         {
             tbox.TextColor = RemapFromLegacyColourNumber(game, tbox.TextColor);
         }
     }
 }
 
-void UpgradeMouseCursors(GameSetupStruct &game, GameDataVersion data_ver)
+void UpgradeMouseCursors(LoadedGame &game, GameDataVersion data_ver)
 {
 }
 
-void FixupSaveDirectory(GameSetupStruct &game)
+void FixupSaveDirectory(GameBasicProperties &game)
 {
     // If the save game folder was not specified by game author, create one of
     // the game name, game GUID, or uniqueid, as a last resort
@@ -474,24 +388,11 @@ void FixupSaveDirectory(GameSetupStruct &game)
     game.saveGameFolderName = Path::FixupSharedFilename(game.saveGameFolderName);
 }
 
-HGameFileError ReadSpriteFlags(LoadedGameEntities &ents, Stream *in, GameDataVersion data_ver)
-{
-    size_t sprcount = in->ReadInt32();
-    if (sprcount > (size_t)SpriteCache::MAX_SPRITE_INDEX + 1)
-        return new MainGameFileError(kMGFErr_TooManySprites, String::FromFormat("Count: %zu, max: %zu", sprcount, (size_t)SpriteCache::MAX_SPRITE_INDEX + 1));
-
-    ents.SpriteCount = sprcount;
-    ents.SpriteFlags.resize(sprcount);
-    in->Read(ents.SpriteFlags.data(), sprcount);
-    return HGameFileError::None();
-}
-
-
 // GameDataExtReader reads main game data's extension blocks
 class GameDataExtReader : public DataExtReader
 {
 public:
-    GameDataExtReader(LoadedGameEntities &ents, GameDataVersion data_ver, std::unique_ptr<Stream> &&in)
+    GameDataExtReader(LoadedGame &ents, GameDataVersion data_ver, std::unique_ptr<Stream> &&in)
         : DataExtReader(std::move(in), kDataExt_NumID8 | kDataExt_File64)
         , _ents(ents)
         , _dataVer(data_ver)
@@ -502,30 +403,30 @@ protected:
         soff_t block_len, bool &read_next) override;
     HError ReadCustomProperties(Stream *in, const char *obj_type, size_t expect_obj_count, std::vector<StringIMap> &obj_values);
 
-    LoadedGameEntities &_ents;
+    LoadedGame &_ents;
     GameDataVersion _dataVer {};
 };
 
-static HError ReadInteractionScriptModules(Stream *in, LoadedGameEntities &ents)
+static HError ReadInteractionScriptModules(Stream *in, LoadedGame &ents)
 {
     // Updated InteractionEvents format, which specifies script module
     // for object interaction events
     size_t num_chars = in->ReadInt32();
-    if (num_chars != ents.Game.chars.size())
-        return new Error(String::FromFormat("Mismatching number of characters: read %zu expected %zu", num_chars, ents.Game.chars.size()));
-    for (size_t i = 0; i < (size_t)ents.Game.numcharacters; ++i)
-        ents.Game.charScripts[i] = InteractionEvents::CreateFromStream_v362(in);
+    if (num_chars != ents.chars.size())
+        return new Error(String::FromFormat("Mismatching number of characters: read %zu expected %zu", num_chars, ents.chars.size()));
+    for (size_t i = 0; i < num_chars; ++i)
+        ents.charScripts[i] = InteractionEvents::CreateFromStream_v362(in);
     uint32_t num_invitems = in->ReadInt32();
-    if (num_invitems != ents.Game.numinvitems)
-        return new Error(String::FromFormat("Mismatching number of inventory items: read %zu expected %zu", num_invitems, (size_t)ents.Game.numinvitems));
-    for (uint32_t i = 0; i < (uint32_t)ents.Game.numinvitems; ++i)
-        ents.Game.invScripts[i] = InteractionEvents::CreateFromStream_v362(in);
+    if (num_invitems != ents.numinvitems)
+        return new Error(String::FromFormat("Mismatching number of inventory items: read %zu expected %zu", num_invitems, (size_t)ents.numinvitems));
+    for (uint32_t i = 0; i < (uint32_t)ents.numinvitems; ++i)
+        ents.invScripts[i] = InteractionEvents::CreateFromStream_v362(in);
 
     // Script module specification for GUI events
     uint32_t num_gui = in->ReadInt32();
-    if (num_gui != ents.Game.numgui)
-        return new Error(String::FromFormat("Mismatching number of GUI: read %zu expected %zu", num_gui, (size_t)ents.Game.numgui));
-    for (size_t i = 0; i < (size_t)ents.Game.numgui; ++i)
+    if (num_gui != ents.numgui)
+        return new Error(String::FromFormat("Mismatching number of GUI: read %zu expected %zu", num_gui, (size_t)ents.numgui));
+    for (size_t i = 0; i < (size_t)ents.numgui; ++i)
         ents.Guis[i].ScriptModule = StrUtil::ReadString(in);
     return HError::None();
 }
@@ -550,6 +451,7 @@ HError GameDataExtReader::ReadBlock(Stream *in, int /*block_id*/, const String &
     soff_t /*block_len*/, bool &read_next)
 {
     read_next = true;
+    auto &game = _ents;
     // Add extensions here checking ext_id, which is an up to 16-chars name, for example:
     // if (ext_id.CompareNoCase("GUI_NEWPROPS") == 0)
     // {
@@ -557,7 +459,7 @@ HError GameDataExtReader::ReadBlock(Stream *in, int /*block_id*/, const String &
     // }
     if (ext_id.CompareNoCase("v360_fonts") == 0)
     {
-        for (FontInfo &finfo : _ents.Game.fonts)
+        for (FontInfo &finfo : game.fonts)
         {
             // adjustable font outlines
             finfo.AutoOutlineThickness = in->ReadInt32();
@@ -572,7 +474,7 @@ HError GameDataExtReader::ReadBlock(Stream *in, int /*block_id*/, const String &
     }
     else if (ext_id.CompareNoCase("v360_cursors") == 0)
     {
-        for (MouseCursor &mcur : _ents.Game.mcurs)
+        for (MouseCursor &mcur : game.mcurs)
         {
             mcur.animdelay = in->ReadInt32();
             // reserved
@@ -585,35 +487,35 @@ HError GameDataExtReader::ReadBlock(Stream *in, int /*block_id*/, const String &
     {
         // Extended object names and script names:
         // for object types that had hard name length limits
-        _ents.Game.gamename = StrUtil::ReadString(in);
-        _ents.Game.saveGameFolderName = StrUtil::ReadString(in);
+        game.gamename = StrUtil::ReadString(in);
+        game.saveGameFolderName = StrUtil::ReadString(in);
         size_t num_chars = in->ReadInt32();
-        if (num_chars != _ents.Game.chars.size())
-            return new Error(String::FromFormat("Mismatching number of characters: read %zu expected %zu", num_chars, _ents.Game.chars.size()));
-        for (int i = 0; i < _ents.Game.numcharacters; ++i)
+        if (num_chars != game.chars.size())
+            return new Error(String::FromFormat("Mismatching number of characters: read %zu expected %zu", num_chars, game.chars.size()));
+        for (int i = 0; i < game.numcharacters; ++i)
         {
-            auto &chinfo = _ents.Game.chars[i];
+            auto &chinfo = game.chars[i];
             chinfo.scrname = StrUtil::ReadString(in);
             chinfo.name = StrUtil::ReadString(in);
         }
         size_t num_invitems = in->ReadInt32();
-        if (num_invitems != _ents.Game.numinvitems)
-            return new Error(String::FromFormat("Mismatching number of inventory items: read %zu expected %zu", num_invitems, (size_t)_ents.Game.numinvitems));
-        for (int i = 0; i < _ents.Game.numinvitems; ++i)
+        if (num_invitems != game.numinvitems)
+            return new Error(String::FromFormat("Mismatching number of inventory items: read %zu expected %zu", num_invitems, (size_t)game.numinvitems));
+        for (int i = 0; i < game.numinvitems; ++i)
         {
-            _ents.Game.invinfo[i].name = StrUtil::ReadString(in);
+            game.invinfo[i].name = StrUtil::ReadString(in);
         }
         size_t num_cursors = in->ReadInt32();
-        if (num_cursors != _ents.Game.mcurs.size())
-            return new Error(String::FromFormat("Mismatching number of cursors: read %zu expected %zu", num_cursors, _ents.Game.mcurs.size()));
-        for (MouseCursor &mcur : _ents.Game.mcurs)
+        if (num_cursors != game.mcurs.size())
+            return new Error(String::FromFormat("Mismatching number of cursors: read %zu expected %zu", num_cursors, game.mcurs.size()));
+        for (MouseCursor &mcur : game.mcurs)
         {
             mcur.name = StrUtil::ReadString(in);
         }
         size_t num_clips = in->ReadInt32();
-        if (num_clips != _ents.Game.audioClips.size())
-            return new Error(String::FromFormat("Mismatching number of audio clips: read %zu expected %zu", num_clips, _ents.Game.audioClips.size()));
-        for (ScriptAudioClip &clip : _ents.Game.audioClips)
+        if (num_clips != game.audioClips.size())
+            return new Error(String::FromFormat("Mismatching number of audio clips: read %zu expected %zu", num_clips, game.audioClips.size()));
+        for (ScriptAudioClip &clip : game.audioClips)
         {
             clip.scriptName = StrUtil::ReadString(in);
             clip.fileName = StrUtil::ReadString(in);
@@ -631,19 +533,19 @@ HError GameDataExtReader::ReadBlock(Stream *in, int /*block_id*/, const String &
         // NOTE: that scripts may not be initialized at this time in case they are stored as separate
         // assets within the game package; we still read the names though to keep data format simpler
         String script_name = StrUtil::ReadString(in);
-        if (_ents.GlobalScript)
-            _ents.GlobalScript->SetScriptName(script_name.ToStdString());
+        if (game.GlobalScript)
+            game.GlobalScript->SetScriptName(script_name.ToStdString());
         script_name = StrUtil::ReadString(in);
-        if (_ents.DialogScript)
-            _ents.DialogScript->SetScriptName(script_name.ToStdString());
+        if (game.DialogScript)
+            game.DialogScript->SetScriptName(script_name.ToStdString());
         size_t module_count = in->ReadInt32();
-        if (module_count != _ents.ScriptModules.size())
-            return new Error(String::FromFormat("Mismatching number of script modules: read %zu expected %zu", module_count, _ents.ScriptModules.size()));
+        if (module_count != game.ScriptModules.size())
+            return new Error(String::FromFormat("Mismatching number of script modules: read %zu expected %zu", module_count, game.ScriptModules.size()));
         for (size_t i = 0; i < module_count; ++i)
         {
             script_name = StrUtil::ReadString(in);
-            if (_ents.ScriptModules[i])
-                _ents.ScriptModules[i]->SetScriptName(script_name.ToStdString());
+            if (game.ScriptModules[i])
+                game.ScriptModules[i]->SetScriptName(script_name.ToStdString());
         }
 
         HError err = ReadInteractionScriptModules(in, _ents);
@@ -653,9 +555,9 @@ HError GameDataExtReader::ReadBlock(Stream *in, int /*block_id*/, const String &
     else if (ext_id.CompareNoCase("v362_guictrls") == 0)
     {
         size_t num_guibut = in->ReadInt32();
-        if (num_guibut != _ents.GuiControls.Buttons.size())
-            return new Error(String::FromFormat("Mismatching number of GUI buttons: read %zu expected %zu", num_guibut, _ents.GuiControls.Buttons.size()));
-        for (GUIButton &but : _ents.GuiControls.Buttons)
+        if (num_guibut != game.GuiControls.Buttons.size())
+            return new Error(String::FromFormat("Mismatching number of GUI buttons: read %zu expected %zu", num_guibut, game.GuiControls.Buttons.size()));
+        for (GUIButton &but : game.GuiControls.Buttons)
         {
             // button padding
             but.TextPaddingHor = in->ReadInt32();
@@ -668,9 +570,9 @@ HError GameDataExtReader::ReadBlock(Stream *in, int /*block_id*/, const String &
     else if (ext_id.CompareNoCase("ext_ags399") == 0)
     {
         // new character properties
-        for (size_t i = 0; i < (size_t)_ents.Game.numcharacters; ++i)
+        for (size_t i = 0; i < (size_t)game.numcharacters; ++i)
         {
-            _ents.CharEx[i].BlendMode = (BlendMode)_in->ReadInt32();
+            game.CharEx[i].BlendMode = (BlendMode)_in->ReadInt32();
             // Reserved for colour options
             _in->Seek(sizeof(int32_t) * 3); // flags + tint rgbs + light level
             // Reserved for transform options (see brief list in savegame format)
@@ -678,9 +580,9 @@ HError GameDataExtReader::ReadBlock(Stream *in, int /*block_id*/, const String &
         }
 
         // new gui properties
-        for (size_t i = 0; i < _ents.Guis.size(); ++i)
+        for (size_t i = 0; i < game.Guis.size(); ++i)
         {
-            _ents.Guis[i].BlendMode = (BlendMode)_in->ReadInt32();
+            game.Guis[i].BlendMode = (BlendMode)_in->ReadInt32();
             // Reserved for colour options
             _in->Seek(sizeof(int32_t) * 3); // flags + tint rgbs + light level
             // Reserved for transform options (see list in savegame format)
@@ -689,18 +591,17 @@ HError GameDataExtReader::ReadBlock(Stream *in, int /*block_id*/, const String &
     }
     else if (ext_id.CompareNoCase("v400_gameopts") == 0)
     {
-        _ents.Game.faceDirectionRatio = _in->ReadFloat32();
+        game.faceDirectionRatio = _in->ReadFloat32();
         // reserve few more 32-bit values (for a total of 10)
         _in->Seek(sizeof(int32_t) * 9);
     }
     else if (ext_id.CompareNoCase("v400_customprops") == 0)
     {
-        auto &game = _ents.Game;
         game.audioclipProps.resize(game.audioClips.size());
         game.dialogProps.resize(game.numdialog);
         game.guiProps.resize(game.numgui);
 
-        HError err = ReadCustomProperties(in, "audio clips", _ents.Game.audioClips.size(), game.audioclipProps);
+        HError err = ReadCustomProperties(in, "audio clips", game.audioClips.size(), game.audioclipProps);
         if (!err)
             return err;
         err = ReadCustomProperties(in, "dialogs", game.numdialog, game.dialogProps);
@@ -711,8 +612,8 @@ HError GameDataExtReader::ReadBlock(Stream *in, int /*block_id*/, const String &
             return err;
 
         const char *guictrl_names[kGUIControlTypeNum] = { "", "gui buttons", "gui labels", "inventory windows", "sliders", "text boxes", "list boxes" };
-        size_t guictrl_counts[kGUIControlTypeNum] = { 0, _ents.GuiControls.Buttons.size(), _ents.GuiControls.Labels.size(),
-            _ents.GuiControls.InvWindows.size(), _ents.GuiControls.Sliders.size(), _ents.GuiControls.TextBoxes.size(), _ents.GuiControls.ListBoxes.size() };
+        size_t guictrl_counts[kGUIControlTypeNum] = { 0, game.GuiControls.Buttons.size(), game.GuiControls.Labels.size(),
+            game.GuiControls.InvWindows.size(), game.GuiControls.Sliders.size(), game.GuiControls.TextBoxes.size(), game.GuiControls.ListBoxes.size() };
         for (int i = kGUIButton; i < kGUIControlTypeNum; ++i)
         {
             err = ReadCustomProperties(in, guictrl_names[i], guictrl_counts[i], game.guicontrolProps[i]);
@@ -723,9 +624,9 @@ HError GameDataExtReader::ReadBlock(Stream *in, int /*block_id*/, const String &
     else if (ext_id.CompareNoCase("v400_fontfiles") == 0)
     {
         size_t font_count = in->ReadInt32();
-        if (font_count != _ents.Game.numfonts)
-            return new Error(String::FromFormat("Mismatching number of fonts: read %zu expected %zu", font_count, (size_t)_ents.Game.numfonts));
-        for (FontInfo &finfo : _ents.Game.fonts)
+        if (font_count != game.numfonts)
+            return new Error(String::FromFormat("Mismatching number of fonts: read %zu expected %zu", font_count, (size_t)game.numfonts));
+        for (FontInfo &finfo : game.fonts)
         {
             finfo.Filename = StrUtil::ReadString(in);
         }
@@ -739,15 +640,21 @@ HError GameDataExtReader::ReadBlock(Stream *in, int /*block_id*/, const String &
 
 
 // Search and read only data belonging to the general game info
-class GameDataExtPreloader : public GameDataExtReader
+class GameDataExtPreloader : public DataExtReader
 {
 public:
-    GameDataExtPreloader(LoadedGameEntities &ents, GameDataVersion data_ver, std::unique_ptr<Stream> &&in)
-        : GameDataExtReader(ents, data_ver, std::move(in)) {}
+    GameDataExtPreloader(GameBasicProperties &game, GameDataVersion data_ver, std::unique_ptr<Stream> &&in)
+        : DataExtReader(std::move(in), kDataExt_NumID8 | kDataExt_File64)
+        , _game(game)
+        , _dataVer(data_ver)
+    {}
 
 protected:
     HError ReadBlock(Stream *in, int block_id, const String &ext_id,
         soff_t block_len, bool &read_next) override;
+
+    GameBasicProperties &_game;
+    GameDataVersion _dataVer{};
 };
 
 HError GameDataExtPreloader::ReadBlock(Stream *in, int /*block_id*/, const String &ext_id,
@@ -755,10 +662,11 @@ HError GameDataExtPreloader::ReadBlock(Stream *in, int /*block_id*/, const Strin
 {
     // Try reading only data which belongs to the general game info
     read_next = true;
+    auto &game = _game;
     if (ext_id.CompareNoCase("v361_objnames") == 0)
     {
-        _ents.Game.gamename = StrUtil::ReadString(in);
-        _ents.Game.saveGameFolderName = StrUtil::ReadString(in);
+        game.gamename = StrUtil::ReadString(in);
+        game.saveGameFolderName = StrUtil::ReadString(in);
         read_next = false; // we're done
     }
     SkipBlock(); // prevent assertion trigger
@@ -766,76 +674,21 @@ HError GameDataExtPreloader::ReadBlock(Stream *in, int /*block_id*/, const Strin
 }
 
 
-HGameFileError ReadGameData(LoadedGameEntities &ents, std::unique_ptr<Stream> &&s_in, GameDataVersion data_ver)
+HGameFileError ReadGameData(LoadedGame &ents, std::unique_ptr<Stream> &&s_in, GameDataVersion data_ver)
 {
-    GameSetupStruct &game = ents.Game;
     Stream *in = s_in.get(); // for convenience
 
     //-------------------------------------------------------------------------
     // The standard data section.
     //-------------------------------------------------------------------------
-    GameSetupStruct::SerializeInfo sinfo;
-    game.GameSetupStructBase::ReadFromFile(in, data_ver, sinfo);
-    game.read_savegame_info(in, data_ver); // here we also read GUID in v3.* games
-
-    Debug::Printf(kDbgMsg_Info, "Game title: '%s'", game.gamename.GetCStr());
-    Debug::Printf(kDbgMsg_Info, "Game uid (old format): `%d`", game.uniqueid);
-    Debug::Printf(kDbgMsg_Info, "Game guid: '%s'", game.guid);
-
-    if (game.GetGameRes().IsNull())
-        return new MainGameFileError(kMGFErr_InvalidNativeResolution);
-
-    game.read_font_infos(in, data_ver);
-    HGameFileError err = ReadSpriteFlags(ents, in, data_ver);
-    if (!err)
-        return err;
-    game.ReadInvInfo(in);
-    err = game.read_cursors(in);
-    if (!err)
-        return err;
-    game.read_interaction_scripts(in, data_ver);
-    if (sinfo.HasWordsDict)
-        game.read_words_dictionary(in);
-
-    if (sinfo.HasCCScript)
-    {
-        ents.GlobalScript.reset(ccScript::CreateFromStream(in));
-        if (!ents.GlobalScript)
-            return new MainGameFileError(kMGFErr_CreateGlobalScriptFailed, cc_get_error().ErrorString);
-        err = ReadDialogScript(ents.DialogScript, in, data_ver);
-        if (!err)
-            return err;
-        err = ReadScriptModules(ents.ScriptModules, in, data_ver);
-        if (!err)
-            return err;
-    }
-
-    ReadViews(game, ents.Views, in, data_ver);
-
-    game.read_characters(in);
-    game.read_lipsync(in, data_ver);
-    game.skip_messages(in, sinfo.HasMessages, data_ver);
-
-    ReadDialogs(ents.Dialogs, in, data_ver, game.numdialog);
-    GUIRefCollection guictrl_refs(ents.GuiControls);
-    HError err2 = GUI::ReadGUI(ents.Guis, guictrl_refs, in);
-    if (!err2)
-        return new MainGameFileError(kMGFErr_GameEntityFailed, err2);
-    game.numgui = ents.Guis.size();
-
-    err = ReadPlugins(ents.PluginInfos, in);
+    HGameFileError err = ents.ReadFromFile(in, data_ver);
+    // Print game title information always
+    Debug::Printf(kDbgMsg_Info, "Game title: '%s'", ents.gamename.GetCStr());
+    Debug::Printf(kDbgMsg_Info, "Game uid (old format): `%d`", ents.uniqueid);
+    Debug::Printf(kDbgMsg_Info, "Game guid: '%s'", ents.guid);
     if (!err)
         return err;
 
-    err = game.read_customprops(in, data_ver);
-    if (!err)
-        return err;
-    err = game.read_audio(in, data_ver);
-    if (!err)
-        return err;
-    game.read_room_names(in, data_ver);
-
-    ents.CharEx.resize(game.numcharacters);
     //-------------------------------------------------------------------------
     // All the extended data, for AGS > 3.5.0.
     //-------------------------------------------------------------------------
@@ -844,26 +697,23 @@ HGameFileError ReadGameData(LoadedGameEntities &ents, std::unique_ptr<Stream> &&
     return ext_err ? HGameFileError::None() : new MainGameFileError(kMGFErr_ExtListFailed, ext_err);
 }
 
-HGameFileError UpdateGameData(LoadedGameEntities &ents, GameDataVersion data_ver)
+HGameFileError UpdateGameData(LoadedGame &game, GameDataVersion data_ver)
 {
-    GameSetupStruct &game = ents.Game;
-    ApplySpriteData(game, ents, data_ver);
     UpgradeGame(game, data_ver);
     UpgradeFonts(game, data_ver);
-    UpgradeAudio(game, ents, data_ver);
+    UpgradeAudio(game, data_ver);
     UpgradeCharacters(game, data_ver);
-    UpgradeGUI(game, ents, data_ver);
+    UpgradeGUI(game, data_ver);
     UpgradeMouseCursors(game, data_ver);
     FixupSaveDirectory(game);
     return HGameFileError::None();
 }
 
-void PreReadGameData(GameSetupStruct &game, std::unique_ptr<Stream> &&s_in, GameDataVersion data_ver)
+void PreReadGameData(GameBasicProperties &game, std::unique_ptr<Stream> &&s_in, GameDataVersion data_ver)
 {
     Stream *in = s_in.get(); // for convenience
     GameSetupStruct::SerializeInfo sinfo;
-    game.GameSetupStructBase::ReadFromFile(in, data_ver, sinfo);
-    game.read_savegame_info(in, data_ver); // here we also read GUID in v3.* games
+    game.ReadFromFile(in, data_ver, sinfo);
 
     // Check for particular expansions that might have data necessary
     // for "preload" purposes
@@ -871,8 +721,7 @@ void PreReadGameData(GameSetupStruct &game, std::unique_ptr<Stream> &&s_in, Game
         return; // either no extensions, or data version is too early
 
     in->Seek(sinfo.ExtensionOffset, kSeekBegin);
-    LoadedGameEntities ents(game);
-    GameDataExtPreloader reader(ents, data_ver, std::move(s_in));
+    GameDataExtPreloader reader(game, data_ver, std::move(s_in));
     reader.Read();
 }
 

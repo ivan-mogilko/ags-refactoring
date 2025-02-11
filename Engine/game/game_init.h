@@ -16,10 +16,10 @@
 // main game file was successfully loaded.
 //
 //=============================================================================
-
 #ifndef __AGS_EE_GAME__GAMEINIT_H
 #define __AGS_EE_GAME__GAMEINIT_H
 
+#include "ac/gamesetupstruct.h"
 #include "game/main_game_file.h"
 #include "util/string.h"
 
@@ -49,7 +49,7 @@ typedef TypedCodeError<GameInitErrorType, GetGameInitErrorText> GameInitError;
 typedef ErrorHandle<GameInitError> HGameInitError;
 
 // Sets up game state for play using preloaded data
-HGameInitError InitGameState(const LoadedGameEntities &ents, GameDataVersion data_ver);
+HGameInitError InitGameState(GameSetupStruct &game, LoadedGame &&ents, GameDataVersion data_ver);
 // Applies accessibility options, some of them may override game settings
 void ApplyAccessibilityOptions();
 

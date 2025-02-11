@@ -15,7 +15,6 @@
 // PluginInfo - a struct defining general information on game plugin.
 //
 //=============================================================================
-
 #ifndef __AGS_CN_GAME__PLUGININFO_H
 #define __AGS_CN_GAME__PLUGININFO_H
 

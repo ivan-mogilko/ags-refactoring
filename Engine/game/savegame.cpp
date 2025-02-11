@@ -482,12 +482,12 @@ static void RestoreViewportsAndCameras(const RestoredData &r_data)
 }
 
 // Resets a number of options that are not supposed to be changed at runtime
-static void CopyPreservedGameOptions(GameSetupStructBase &gs, const PreservedParams &pp)
+static void CopyPreservedGameOptions(GameSetupStruct &gs, const PreservedParams &pp)
 {
-    const auto restricted_opts = GameSetupStructBase::GetRestrictedOptions();
+    const auto restricted_opts = GameSetupStruct::GetRestrictedOptions();
     for (auto opt : restricted_opts)
         gs.options[opt] = pp.GameOptions[opt];
-    const auto preserved_opts = GameSetupStructBase::GetPreservedOptions();
+    const auto preserved_opts = GameSetupStruct::GetPreservedOptions();
     for (auto opt : preserved_opts)
         gs.options[opt] = pp.GameOptions[opt];
 }

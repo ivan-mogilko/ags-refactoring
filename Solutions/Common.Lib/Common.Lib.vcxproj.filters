@@ -116,9 +116,6 @@
     <ClCompile Include="..\..\Common\ac\gamesetupstruct.cpp">
       <Filter>Source Files\ac</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Common\ac\gamesetupstructbase.cpp">
-      <Filter>Source Files\ac</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Common\ac\inventoryiteminfo.cpp">
       <Filter>Source Files\ac</Filter>
     </ClCompile>
@@ -542,9 +539,6 @@
       <Filter>Header Files\ac</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Common\ac\gamesetupstruct.h">
-      <Filter>Header Files\ac</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Common\ac\gamesetupstructbase.h">
       <Filter>Header Files\ac</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Common\ac\gamestructdefines.h">
