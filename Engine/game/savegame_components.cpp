@@ -21,7 +21,6 @@
 #include "ac/draw.h"
 #include "ac/dynamicsprite.h"
 #include "ac/game.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/gui.h"
 #include "ac/mouse.h"
@@ -35,6 +34,7 @@
 #include "ac/dynobj/cc_serializer.h"
 #include "ac/dynobj/dynobj_manager.h"
 #include "debug/out.h"
+#include "game/gameclass.h"
 #include "game/savegame_internal.h"
 #include "gfx/bitmap.h"
 #include "gui/animatingguibutton.h"
@@ -54,7 +54,7 @@
 
 using namespace Common;
 
-extern GameSetupStruct game;
+extern Game game;
 extern SpriteCache spriteset;
 extern RGB palette[256];
 extern std::vector<ViewStruct> views;

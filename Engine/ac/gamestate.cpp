@@ -15,7 +15,6 @@
 #include "ac/draw.h"
 #include "ac/game_version.h"
 #include "ac/gamestate.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/timer.h"
 #include "ac/dynobj/scriptcamera.h"
 #include "ac/dynobj/scriptsystem.h"
@@ -24,6 +23,7 @@
 #include "debug/debug_log.h"
 #include "device/mousew32.h"
 #include "game/customproperties.h"
+#include "game/gameclass.h"
 #include "game/roomstruct.h"
 #include "game/savegame_internal.h"
 #include "main/engine.h"
@@ -33,7 +33,7 @@
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
-extern GameSetupStruct game;
+extern Game game;
 extern RoomStruct thisroom;
 extern CharacterInfo *playerchar;
 extern ScriptSystem scsystem;

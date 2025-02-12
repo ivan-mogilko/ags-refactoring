@@ -23,7 +23,6 @@
 #include "ac/event.h"
 #include "ac/game.h"
 #include "ac/gamesetup.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_audio.h"
 #include "ac/global_game.h"
@@ -49,6 +48,7 @@
 #include "ac/dynobj/all_dynamicclasses.h"
 #include "ac/dynobj/managedobjectpool.h"
 #include "ac/dynobj/scriptpathfinder.h"
+#include "game/gameclass.h"
 #include "gui/guimain.h"
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
@@ -72,7 +72,7 @@
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
-extern GameSetupStruct game;
+extern Game game;
 extern RoomStatus*croom;
 extern RoomStatus troom;    // used for non-saveable rooms, eg. intro
 extern int displayed_room;

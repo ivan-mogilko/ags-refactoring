@@ -16,7 +16,6 @@
 #include "core/platform.h"
 #include "media/audio/audio.h"
 #include "ac/audiocliptype.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/dynobj/cc_audioclip.h"
 #include "ac/dynobj/cc_audiochannel.h"
 #include "ac/gamestate.h"
@@ -30,6 +29,7 @@
 #include "media/audio/sound.h"
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
+#include "game/gameclass.h"
 #include "ac/common.h"
 #include "ac/file.h"
 #include "ac/global_audio.h"
@@ -79,7 +79,7 @@ void AudioChans::DeleteClipOnChannel(int index)
     _channels[index].reset();
 }
 
-extern GameSetupStruct game;
+extern Game game;
 extern RoomStruct thisroom;
 extern CharacterInfo*playerchar;
 extern CCAudioChannel ccDynamicAudio;

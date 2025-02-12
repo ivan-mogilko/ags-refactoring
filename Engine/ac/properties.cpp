@@ -13,16 +13,16 @@
 //=============================================================================
 #include <stdio.h>
 #include "ac/common.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/properties.h"
 #include "ac/string.h"
 #include "ac/dynobj/scriptstring.h"
+#include "game/gameclass.h"
 #include "script/runtimescriptvalue.h"
 #include "util/string_utils.h"
 
 using namespace AGS::Common;
 
-extern GameSetupStruct game;
+extern Game game;
 
 // begin custom property functions
 

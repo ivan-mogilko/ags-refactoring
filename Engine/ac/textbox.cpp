@@ -13,12 +13,12 @@
 //=============================================================================
 #include <stdio.h>
 #include "ac/common.h" // quit
-#include "ac/gamesetupstruct.h"
 #include "ac/runtime_defines.h"
 #include "ac/string.h"
 #include "ac/textbox.h"
+#include "game/gameclass.h"
 
-extern GameSetupStruct game;
+extern Game game;
 
 
 // ** TEXT BOX FUNCTIONS

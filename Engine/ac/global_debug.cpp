@@ -18,7 +18,6 @@
 #include "ac/draw.h"
 #include "ac/game.h"
 #include "ac/gamesetup.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_display.h"
 #include "ac/global_room.h"
@@ -26,6 +25,7 @@
 #include "ac/sys_events.h"
 #include "ac/translation.h"
 #include "ac/walkablearea.h"
+#include "game/gameclass.h"
 #include "gfx/gfxfilter.h"
 #include "gui/guidialog.h"
 #include "script/cc_common.h"
@@ -41,7 +41,7 @@
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
-extern GameSetupStruct game;
+extern Game game;
 extern RoomStruct thisroom;
 extern CharacterInfo*playerchar;
 

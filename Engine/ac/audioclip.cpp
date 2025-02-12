@@ -16,18 +16,18 @@
 #include "ac/audiochannel.h"
 #include "ac/common.h" // quitprintf
 #include "ac/game.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/properties.h"
 #include "ac/string.h"
 #include "ac/dynobj/cc_audioclip.h"
 #include "ac/dynobj/cc_audiochannel.h"
 #include "core/assetmanager.h"
+#include "game/gameclass.h"
 #include "script/runtimescriptvalue.h"
 
 using namespace AGS::Common;
 
-extern GameSetupStruct game;
+extern Game game;
 extern ScriptAudioChannel scrAudioChannel[MAX_GAME_CHANNELS];
 extern CCAudioClip ccDynamicAudioClip;
 extern CCAudioChannel ccDynamicAudio;

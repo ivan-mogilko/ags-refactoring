@@ -12,17 +12,17 @@
 //
 //=============================================================================
 #include "ac/dynobj/scriptgame.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/game.h"
 #include "ac/gamesetup.h"
 #include "ac/gamestate.h"
 #include "ac/gui.h"
 #include "debug/debug_log.h"
+#include "game/gameclass.h"
 #include "script/cc_common.h" // cc_error
 
 using namespace AGS::Engine;
 
-extern GameSetupStruct game;
+extern Game game;
 CCScriptGame GameStaticManager;
 
 

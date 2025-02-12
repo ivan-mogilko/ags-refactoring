@@ -19,7 +19,6 @@
 #include "ac/draw.h"
 #include "ac/game.h"
 #include "ac/gamesetup.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_display.h"
 #include "ac/global_screen.h"
@@ -30,13 +29,14 @@
 #include "ac/string.h"
 #include "debug/debug_log.h"
 #include "font/fonts.h"
+#include "game/gameclass.h"
 #include "game/roomstruct.h"
 #include "main/game_run.h"
 
 using namespace AGS::Common;
 
 extern RoomStruct thisroom;
-extern GameSetupStruct game;
+extern Game game;
 
 void DisplayAtYImpl(int ypos, const char *texx, const TopBarSettings *topbar, bool as_speech);
 

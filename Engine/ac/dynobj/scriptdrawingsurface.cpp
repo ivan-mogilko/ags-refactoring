@@ -16,10 +16,10 @@
 #include "ac/draw.h"
 #include "ac/drawingsurface.h"
 #include "ac/gamestate.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/spritecache.h"
 #include "ac/runtime_defines.h"
 #include "ac/dynobj/dynobj_manager.h"
+#include "game/gameclass.h"
 #include "game/roomstruct.h"
 #include "gfx/bitmap.h"
 #include "gfx/gfx_def.h"
@@ -28,7 +28,7 @@ using namespace AGS::Common;
 
 extern RoomStruct thisroom;
 extern SpriteCache spriteset;
-extern GameSetupStruct game;
+extern Game game;
 
 Bitmap *ScriptDrawingSurface::GetBitmapSurface()
 {

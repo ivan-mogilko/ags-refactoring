@@ -153,78 +153,7 @@ public:
     std::vector<AudioClipType> audioClipTypes;
 };
 
-struct LoadedGame;
-
-// TODO: split GameSetupStruct into struct used to hold loaded game data, and actual runtime object
-struct GameSetupStruct : public GameBasicProperties, GameExtendedProperties, GameObjectData
-{
-public:
-    // TODO: why we do not use this in the engine instead of
-    // loaded_game_file_version?
-    GameDataVersion   filever = kGameVersion_Undefined;
-    Common::String    compiled_with; // version of AGS this data was created by
-    // number of accessible game audio channels (the ones under direct user control)
-    int               numGameChannels = 0;
-    // backward-compatible channel limit that may be exported to script and reserved by audiotypes
-    int               numCompatGameChannels = 0;
-
-    // TODO: I converted original array of sprite infos to vector here, because
-    // statistically in most games sprites go in long continious sequences with minimal
-    // gaps, and standard hash-map will have relatively big memory overhead compared.
-    // Of course vector will not behave very well if user has created e.g. only
-    // sprite #1 and sprite #1000000. For that reason I decided to still limit static
-    // sprite count to some reasonable number for the time being. Dynamic sprite IDs are
-    // added in sequence, so there won't be any issue with these.
-    // There could be other collection types, more optimal for this case. For example,
-    // we could use a kind of hash map containing fixed-sized arrays, where size of
-    // array is calculated based on key spread factor.
-    std::vector<SpriteInfo> SpriteInfos;
-
-    GameSetupStruct() = default;
-    GameSetupStruct(LoadedGame &&loadedgame);
-    GameSetupStruct(GameSetupStruct &&gss) = default;
-    ~GameSetupStruct() = default;
-
-    GameSetupStruct &operator =(GameSetupStruct &&gss) = default;
-
-    // Returns the expected filename of a digital audio package
-    inline AGS::Common::String GetAudioVOXName() const
-    {
-        return "audio.vox";
-    }
-
-    // Returns a list of game options that are forbidden to change at runtime
-    inline static std::array<int, 18> GetRestrictedOptions()
-    {
-        return std::array<int, 18> { {
-                OPT_DEBUGMODE, OPT_OBSOLETE_LETTERBOX, OPT_OBSOLETE_HIRES_FONTS, OPT_SPLITRESOURCES,
-                    OPT_OBSOLETE_STRICTSCRIPTING, OPT_OBSOLETE_LEFTTORIGHTEVAL, OPT_COMPRESSSPRITES, OPT_OBSOLETE_STRICTSTRINGS,
-                    OPT_OBSOLETE_NATIVECOORDINATES, OPT_OBSOLETE_SAFEFILEPATHS, OPT_DIALOGOPTIONSAPI, OPT_BASESCRIPTAPI,
-                    OPT_SCRIPTCOMPATLEV, OPT_OBSOLETE_RELATIVEASSETRES, OPT_GAMETEXTENCODING, OPT_KEYHANDLEAPI,
-                    OPT_CUSTOMENGINETAG, OPT_VOICECLIPNAMERULE
-            }};
-    }
-
-    // Returns a list of game options that must be preserved when restoring a save
-    inline static std::array<int, 1> GetPreservedOptions()
-    {
-        return std::array<int, 1> { {
-                OPT_SAVECOMPONENTSIGNORE
-            }};
-    }
-
-    // TODO: move these to a distinct runtime Game class
-    void ReadFromSavegame(Common::Stream *in);
-    void WriteForSavegame(Common::Stream *out);
-
-private:
     void ApplySpriteFlags(const std::vector<uint8_t> &sprflags);
-    void OnResolutionSet();
-
-    // Multiplier for various UI drawing sizes, meant to keep UI elements readable
-    int _relativeUIMult = 1;
-};
-
 // Struct contains an extended data loaded for chars.
 // At the runtime it goes into CharacterExtras struct, which is currently
 // not exposed. This may be fixed by future refactoring, such as merging
@@ -240,7 +169,7 @@ struct ViewStruct;
 // LoadedGame is meant for keeping global game data loaded from the game file,
 // before it is assigned to their proper positions within the program data
 // (engine's or other tool).
-struct LoadedGame : public GameBasicProperties, GameExtendedProperties, GameObjectData
+struct LoadedGame : public GameBasicProperties, public GameExtendedProperties, public GameObjectData
 {
     std::vector<CharDataEx> CharEx;
     std::vector<Common::GUIMain> Guis;

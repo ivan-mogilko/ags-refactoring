@@ -15,7 +15,6 @@
 #include "ac/common.h"
 #include "ac/display.h"
 #include "ac/draw.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_game.h"
 #include "ac/global_gui.h"
@@ -25,13 +24,14 @@
 #include "ac/string.h"
 #include "debug/debug_log.h"
 #include "font/fonts.h"
+#include "game/gameclass.h"
 #include "script/runtimescriptvalue.h"
 #include "util/string_compat.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
-extern GameSetupStruct game;
+extern Game game;
 extern std::vector<ScriptGUI> scrGui;
 
 // This is an internal script function, and is undocumented.

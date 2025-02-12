@@ -15,7 +15,6 @@
 #include "ac/object.h"
 #include "ac/character.h"
 #include "ac/gamestate.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/global_walkablearea.h"
 #include "ac/object.h"
 #include "ac/properties.h"
@@ -24,13 +23,14 @@
 #include "ac/roomstatus.h"
 #include "ac/walkablearea.h"
 #include "ac/dynobj/cc_walkablearea.h"
+#include "game/gameclass.h"
 #include "game/roomstruct.h"
 #include "gfx/bitmap.h"
 
 using namespace AGS::Common;
 
 extern RoomStruct thisroom;
-extern GameSetupStruct game;
+extern Game game;
 extern int displayed_room;
 extern RoomStatus*croom;
 extern RoomObject*objs;

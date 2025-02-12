@@ -19,7 +19,6 @@
 #include "ac/dialog.h"
 #include "ac/event.h"
 #include "ac/game.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_audio.h"
 #include "ac/global_display.h"
@@ -35,6 +34,7 @@
 #include "debug/debugger.h"
 #include "debug/debug_log.h"
 #include "debug/out.h"
+#include "game/gameclass.h"
 #include "main/game_run.h"
 #include "media/audio/audio_system.h"
 #include "script/script_runtime.h"
@@ -45,7 +45,7 @@
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
-extern GameSetupStruct game;
+extern Game game;
 extern int gameHasBeenRestored, displayed_room;
 extern unsigned int load_new_game;
 extern RoomObject*objs;

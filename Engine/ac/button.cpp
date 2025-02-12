@@ -17,19 +17,19 @@
 #include "ac/common.h"
 #include "ac/gui.h"
 #include "ac/view.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/global_translation.h"
 #include "ac/object.h"
 #include "ac/string.h"
 #include "ac/viewframe.h"
 #include "debug/debug_log.h"
+#include "game/gameclass.h"
 #include "gui/animatingguibutton.h"
 #include "gui/guimain.h"
 #include "main/game_run.h"
 
 using namespace AGS::Common;
 
-extern GameSetupStruct game;
+extern Game game;
 extern std::vector<ViewStruct> views;
 
 // *** BUTTON FUNCTIONS

@@ -18,6 +18,7 @@
 #include <vector>
 #include <unordered_map>
 #include "ac/common_defines.h"
+#include "ac/gamedata.h"
 #include "ac/dynobj/cc_serializer.h"
 #include "game/roomstruct.h"
 #include "gfx/bitmap.h"

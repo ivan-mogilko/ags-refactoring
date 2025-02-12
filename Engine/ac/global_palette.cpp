@@ -13,12 +13,12 @@
 //=============================================================================
 #include "ac/common.h"
 #include "ac/draw.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_palette.h"
+#include "game/gameclass.h"
 #include "util/wgt2allg.h"
 
-extern GameSetupStruct game;
+extern Game game;
 extern RGB palette[256];
 
 void CyclePalette(int strt,int eend) {

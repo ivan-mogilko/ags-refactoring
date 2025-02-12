@@ -16,13 +16,13 @@
 #include "ac/common.h"
 #include "ac/game.h"
 #include "ac/gamesetup.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_audio.h"
 #include "ac/lipsync.h"
 #include "ac/path_helper.h"
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
+#include "game/gameclass.h"
 #include "game/roomstruct.h"
 #include "main/engine.h"
 #include "media/audio/audio_core.h"
@@ -32,7 +32,7 @@
 
 using namespace AGS::Common;
 
-extern GameSetupStruct game;
+extern Game game;
 extern RoomStruct thisroom;
 extern std::vector<SpeechLipSyncLine> splipsync;
 extern int numLipLines, curLipLine, curLipLinePhoneme;

@@ -24,7 +24,6 @@
 #include "ac/event.h"
 #include "ac/game.h"
 #include "ac/gamesetup.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_display.h"
 #include "ac/global_gui.h"
@@ -53,6 +52,7 @@
 #include "script/script.h"
 #include "script/script_runtime.h"
 #include "ac/spritecache.h"
+#include "game/gameclass.h"
 #include "gfx/bitmap.h"
 #include "gfx/graphicsdriver.h"
 #include "core/assetmanager.h"
@@ -74,7 +74,7 @@ extern int game_paused;
 extern SpriteCache spriteset;
 extern unsigned int load_new_game;
 extern int load_new_game_restore;
-extern GameSetupStruct game;
+extern Game game;
 extern std::vector<ViewStruct> views;
 extern RoomStatus*croom;
 extern RoomStruct thisroom;
@@ -400,7 +400,7 @@ int SetGameOption (int opt, int newval) {
     }
 
     // Handle forbidden options
-    const auto restricted_opts = GameSetupStruct::GetRestrictedOptions();
+    const auto restricted_opts = Game::GetRestrictedOptions();
     for (auto r_opt : restricted_opts)
     {
         if (r_opt == opt)

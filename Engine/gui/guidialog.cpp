@@ -18,9 +18,9 @@
 #include "ac/common.h"
 #include "ac/draw.h"
 #include "ac/game.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_game.h"
+#include "game/gameclass.h"
 #include "gui/cscidialog.h"
 #include <cctype> //isdigit()
 #include "gfx/bitmap.h"
@@ -33,7 +33,7 @@ using namespace AGS::Common;
 using namespace AGS::Engine;
 
 extern IGraphicsDriver *gfxDriver;
-extern GameSetupStruct game;
+extern Game game;
 extern GamePlayState play;
 
 namespace {

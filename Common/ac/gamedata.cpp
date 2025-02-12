@@ -11,7 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include "ac/gamesetupstruct.h"
+#include "ac/gamedata.h"
 #include "ac/audiocliptype.h"
 #include "ac/dialogtopic.h"
 #include "ac/spritecache.h"
@@ -152,60 +152,6 @@ void GameBasicProperties::WriteToFile(Stream *out, const SerializeInfo &info) co
     out->WriteInt32(0); // globalscript (dummy 32-bit pointer value)
     out->WriteInt32(0); // chars (dummy 32-bit pointer value)
     out->WriteInt32(info.HasCCScript ? 1 : 0);
-}
-
-//-----------------------------------------------------------------------------
-
-GameSetupStruct::GameSetupStruct(LoadedGame &&loadedgame)
-{
-    static_cast<GameBasicProperties &>(*this) = std::move(static_cast<GameBasicProperties &&>(loadedgame));
-    static_cast<GameObjectData &>(*this) = std::move(static_cast<GameObjectData &&>(loadedgame));
-    static_cast<GameExtendedProperties &>(*this) = std::move(static_cast<GameExtendedProperties &&>(loadedgame));
-
-    ApplySpriteFlags(loadedgame.SpriteFlags);
-    OnResolutionSet();
-}
-
-void GameSetupStruct::ApplySpriteFlags(const std::vector<uint8_t> &sprflags)
-{
-    SpriteInfos.resize(sprflags.size());
-    for (size_t i = 0; i < sprflags.size(); ++i)
-    {
-        SpriteInfos[i].Flags = sprflags[i];
-    }
-}
-
-void GameSetupStruct::OnResolutionSet()
-{
-    _relativeUIMult = 1; // NOTE: this is remains of old logic, currently unused.
-}
-
-void GameSetupStruct::ReadFromSavegame(Stream *in)
-{
-    // of GameSetupStruct
-    in->ReadArrayOfInt32(options, OPT_HIGHESTOPTION_321 + 1);
-    options[OPT_LIPSYNCTEXT] = in->ReadInt32();
-    // of GameSetupStructBase
-    playercharacter = in->ReadInt32();
-    dialog_bullet = in->ReadInt32();
-    in->ReadInt16(); // [DEPRECATED] uint16 value of a inv cursor hotdot color
-    in->ReadInt16(); // [DEPRECATED] uint16 value of a inv cursor hot cross color
-    invhotdotsprite = in->ReadInt32();
-    default_lipsync_frame = in->ReadInt32();
-}
-
-void GameSetupStruct::WriteForSavegame(Stream *out)
-{
-    // of GameSetupStruct
-    out->WriteArrayOfInt32(options, OPT_HIGHESTOPTION_321 + 1);
-    out->WriteInt32(options[OPT_LIPSYNCTEXT]);
-    // of GameSetupStructBase
-    out->WriteInt32(playercharacter);
-    out->WriteInt32(dialog_bullet);
-    out->WriteInt16(0); // [DEPRECATED] uint16 value of a inv cursor hotdot color
-    out->WriteInt16(0); // [DEPRECATED] uint16 value of a inv cursor hot cross color
-    out->WriteInt32(invhotdotsprite);
-    out->WriteInt32(default_lipsync_frame);
 }
 
 //-----------------------------------------------------------------------------

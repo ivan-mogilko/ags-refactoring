@@ -21,7 +21,6 @@
 #include "ac/characterinfo.h"
 #include "ac/game.h"
 #include "ac/gamesetup.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_game.h"
 #include "ac/mouse.h"
@@ -32,6 +31,7 @@
 #include "debug/debugger.h"
 #include "debug/out.h"
 #include "device/mousew32.h"
+#include "game/gameclass.h"
 #include "gfx/ali3dexception.h"
 #include "main/game_run.h"
 #include "main/game_start.h"
@@ -42,7 +42,7 @@ using namespace AGS::Common;
 using namespace AGS::Engine;
 
 extern int displayed_room;
-extern GameSetupStruct game;
+extern Game game;
 extern CharacterInfo*playerchar;
 
 void start_game_load_savegame_on_startup(const String &load_save)

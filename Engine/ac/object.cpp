@@ -13,7 +13,6 @@
 //=============================================================================
 #include "ac/object.h"
 #include "ac/common.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/draw.h"
 #include "ac/character.h"
 #include "ac/game.h"
@@ -34,6 +33,7 @@
 #include "ac/dynobj/cc_dynamicarray.h"
 #include "ac/dynobj/scriptuserobject.h"
 #include "debug/debug_log.h"
+#include "game/gameclass.h"
 #include "main/game_run.h"
 #include "ac/route_finder.h"
 #include "gfx/graphicsdriver.h"
@@ -51,7 +51,7 @@ extern RoomStatus*croom;
 extern RoomObject*objs;
 extern std::vector<ViewStruct> views;
 extern RoomStruct thisroom;
-extern GameSetupStruct game;
+extern Game game;
 extern Bitmap *walkable_areas_temp;
 extern CCObject ccDynamicObject;
 extern SpriteCache spriteset;

@@ -12,12 +12,12 @@
 //
 //=============================================================================
 #include "ac/draw.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/game_version.h"
 #include "ac/viewframe.h"
 #include "ac/spritecache.h"
 #include "ac/dynobj/cc_audioclip.h"
 #include "debug/debug_log.h"
+#include "game/gameclass.h"
 #include "gfx/bitmap.h"
 #include "script/runtimescriptvalue.h"
 #include "media/audio/audio_system.h"
@@ -25,7 +25,7 @@
 
 using namespace AGS::Common;
 
-extern GameSetupStruct game;
+extern Game game;
 extern SpriteCache spriteset;
 extern std::vector<ViewStruct> views;
 extern CCAudioClip ccDynamicAudioClip;

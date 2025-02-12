@@ -14,7 +14,7 @@
 #include "ac/dynobj/cc_character.h"
 #include "ac/dynobj/dynobj_manager.h"
 #include "ac/characterinfo.h"
-#include "ac/gamesetupstruct.h"
+#include "game/gameclass.h"
 #include "script/cc_common.h" // cc_error
 #include "script/cc_common.h"
 #include "util/stream.h"
@@ -22,7 +22,7 @@
 using namespace AGS::Common;
 extern std::vector<int> StaticCharacterArray;
 
-extern GameSetupStruct game;
+extern Game game;
 
 // return the type name of the object
 const char *CCCharacter::GetType()

@@ -23,7 +23,6 @@
 #include "ac/draw.h"
 #include "ac/game.h"
 #include "ac/gamesetup.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/gamestructdefines.h"
 #include "ac/gui.h"
 #include "ac/viewframe.h"
@@ -31,6 +30,7 @@
 #include "debug/debug_log.h"
 #include "debug/out.h"
 #include "game/game_init.h"
+#include "game/gameclass.h"
 #include "game/main_game_file.h"
 #include "gfx/bitmap.h"
 #include "gfx/blender.h"
@@ -47,7 +47,7 @@ using namespace AGS::Engine;
 
 extern int ifacepopped;
 
-extern GameSetupStruct game;
+extern Game game;
 
 extern AGSPlatformDriver *platform;
 

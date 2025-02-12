@@ -20,11 +20,11 @@
 #include "ac/common.h"
 #include "ac/gamesetup.h"
 #include "ac/joystick.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/keycode.h"
 #include "ac/mouse.h"
 #include "ac/timer.h"
 #include "device/mousew32.h"
+#include "game/gameclass.h"
 #include "gfx/graphicsdriver.h"
 #include "platform/base/agsplatformdriver.h"
 #include "platform/base/sys_main.h"
@@ -36,7 +36,7 @@
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
-extern GameSetupStruct game;
+extern Game game;
 extern IGraphicsDriver *gfxDriver;
 
 eAGSKeyCode sdl_key_to_ags_key(const SDL_KeyboardEvent &kbevt, bool old_keyhandle);

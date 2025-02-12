@@ -22,7 +22,6 @@
 #include "ac/draw.h"
 #include "ac/event.h"
 #include "ac/gamestate.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/global_display.h"
 #include "ac/global_game.h"
 #include "ac/global_gui.h"
@@ -34,29 +33,30 @@
 #include "ac/mouse.h"
 #include "ac/parser.h"
 #include "ac/properties.h"
-#include "ac/sys_events.h"
+#include "ac/spritecache.h"
 #include "ac/string.h"
+#include "ac/sys_events.h"
 #include "ac/dynobj/scriptdialogoptionsrendering.h"
 #include "ac/dynobj/scriptdrawingsurface.h"
 #include "ac/system.h"
 #include "debug/debug_log.h"
 #include "font/fonts.h"
-#include "main/game_run.h"
-#include "platform/base/agsplatformdriver.h"
-#include "script/script.h"
-#include "script/scriptexecutor.h"
-#include "ac/spritecache.h"
+#include "game/gameclass.h"
 #include "gfx/ddb.h"
 #include "gfx/gfx_util.h"
 #include "gfx/graphicsdriver.h"
+#include "main/game_run.h"
 #include "media/audio/audio_system.h"
+#include "platform/base/agsplatformdriver.h"
+#include "script/script.h"
+#include "script/scriptexecutor.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
 class DialogExec;
 class DialogOptions;
 
-extern GameSetupStruct game;
+extern Game game;
 extern int in_new_room;
 extern CharacterInfo*playerchar;
 extern SpriteCache spriteset;

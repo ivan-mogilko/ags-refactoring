@@ -14,12 +14,12 @@
 #include "ac/dynobj/cc_audioclip.h"
 #include "ac/dynobj/scriptaudioclip.h"
 #include "ac/dynobj/dynobj_manager.h"
-#include "ac/gamesetupstruct.h"
+#include "game/gameclass.h"
 #include "util/stream.h"
 
 using namespace AGS::Common;
 
-extern GameSetupStruct game;
+extern Game game;
 
 const char *CCAudioClip::GetType() {
     return "AudioClip";

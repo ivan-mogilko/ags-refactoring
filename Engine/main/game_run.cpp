@@ -28,7 +28,6 @@
 #include "ac/event.h"
 #include "ac/game.h"
 #include "ac/gamesetup.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_debug.h"
 #include "ac/global_display.h"
@@ -52,6 +51,7 @@
 #include "debug/debugger.h"
 #include "debug/debug_log.h"
 #include "device/mousew32.h"
+#include "game/gameclass.h"
 #include "gui/animatingguibutton.h"
 #include "gui/guiinv.h"
 #include "gui/guimain.h"
@@ -76,7 +76,7 @@ extern volatile bool want_exit, abort_engine;
 extern int proper_exit;
 extern int displayed_room, starting_room, in_new_room, new_room_was;
 extern ScriptSystem scsystem;
-extern GameSetupStruct game;
+extern Game game;
 extern RoomStruct thisroom;
 extern int game_paused;
 extern int getloctype_index;

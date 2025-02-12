@@ -21,7 +21,6 @@
 #include "ac/draw.h"
 #include "ac/event.h"
 #include "ac/gamesetup.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_game.h"
 #include "ac/global_gui.h"
@@ -39,6 +38,7 @@
 #include "ac/dynobj/dynobj_manager.h"
 #include "debug/debug_log.h"
 #include "device/mousew32.h"
+#include "game/gameclass.h"
 #include "gfx/gfxfilter.h"
 #include "gui/guibutton.h"
 #include "gui/guimain.h"
@@ -61,7 +61,7 @@ extern RoomStruct thisroom;
 extern int cur_mode,cur_cursor;
 extern std::vector<ScriptGUI> scrGui;
 std::vector<std::vector<int>> StaticGUIControlsHandles;
-extern GameSetupStruct game;
+extern Game game;
 extern CCGUIObject ccDynamicGUIObject;
 extern IGraphicsDriver *gfxDriver;
 

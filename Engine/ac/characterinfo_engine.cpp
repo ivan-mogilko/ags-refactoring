@@ -13,7 +13,6 @@
 //=============================================================================
 #include "ac/characterinfo.h"
 #include "ac/common.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/global_game.h" // GetGameSpeed
 #include "ac/character.h"
 #include "ac/characterextras.h"
@@ -22,6 +21,7 @@
 #include "ac/object.h"
 #include "ac/viewframe.h"
 #include "debug/debug_log.h"
+#include "game/gameclass.h"
 #include "game/roomstruct.h"
 #include "main/update.h"
 #include "media/audio/audio_system.h"
@@ -29,7 +29,7 @@
 using namespace AGS::Common;
 
 extern std::vector<ViewStruct> views;
-extern GameSetupStruct game;
+extern Game game;
 extern int displayed_room;
 extern RoomStruct thisroom;
 extern unsigned int loopcounter;

@@ -527,7 +527,7 @@
     <ClCompile Include="..\..\Common\ac\common.cpp" />
     <ClCompile Include="..\..\Common\ac\dialogtopic.cpp" />
     <ClCompile Include="..\..\Common\ac\dynobj\scriptaudioclip.cpp" />
-    <ClCompile Include="..\..\Common\ac\gamesetupstruct.cpp" />
+    <ClCompile Include="..\..\Common\ac\gamedata.cpp" />
     <ClCompile Include="..\..\Common\ac\inventoryiteminfo.cpp" />
     <ClCompile Include="..\..\Common\ac\keycode.cpp" />
     <ClCompile Include="..\..\Common\ac\mousecursor.cpp" />
@@ -694,7 +694,7 @@
     <ClInclude Include="..\..\Common\ac\common_defines.h" />
     <ClInclude Include="..\..\Common\ac\dialogtopic.h" />
     <ClInclude Include="..\..\Common\ac\dynobj\scriptaudioclip.h" />
-    <ClInclude Include="..\..\Common\ac\gamesetupstruct.h" />
+    <ClInclude Include="..\..\Common\ac\gamedata.h" />
     <ClInclude Include="..\..\Common\ac\gamestructdefines.h" />
     <ClInclude Include="..\..\Common\ac\game_version.h" />
     <ClInclude Include="..\..\Common\ac\inventoryiteminfo.h" />

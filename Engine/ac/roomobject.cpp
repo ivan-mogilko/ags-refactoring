@@ -14,13 +14,13 @@
 #include "ac/roomobject.h"
 #include "ac/common.h"
 #include "ac/common_defines.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/object.h"
 #include "ac/roomstatus.h"
 #include "ac/runtime_defines.h"
 #include "ac/viewframe.h"
 #include "debug/debug_log.h"
+#include "game/gameclass.h"
 #include "main/update.h"
 #include "util/stream.h"
 #include "util/string_utils.h"
@@ -28,7 +28,7 @@
 using namespace AGS::Common;
 
 extern std::vector<ViewStruct> views;
-extern GameSetupStruct game;
+extern Game game;
 
 RoomObject::RoomObject()
 {

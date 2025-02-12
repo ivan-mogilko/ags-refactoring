@@ -19,7 +19,6 @@
 #include "ac/file.h"
 #include "ac/game.h"
 #include "ac/gamesetup.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/gui.h"
 #include "ac/lipsync.h"
@@ -35,6 +34,7 @@
 #include "font/agsfontrenderer.h"
 #include "font/fonts.h"
 #include "game/game_init.h"
+#include "game/gameclass.h"
 #include "gfx/bitmap.h"
 #include "gfx/ddb.h"
 #include "gui/guilabel.h"
@@ -129,7 +129,7 @@ String GetGameInitErrorText(GameInitErrorType err)
 }
 
 // Initializes audio channels and clips and registers them in the script system
-void InitAndRegisterAudioObjects(GameSetupStruct &game)
+void InitAndRegisterAudioObjects(Game &game)
 {
     for (int i = 0; i < game.numCompatGameChannels; ++i)
     {
@@ -151,7 +151,7 @@ void InitAndRegisterAudioObjects(GameSetupStruct &game)
 }
 
 // Initializes characters and registers them in the script system
-void InitAndRegisterCharacters(GameSetupStruct &game, const LoadedGame &ents)
+void InitAndRegisterCharacters(Game &game, const LoadedGame &ents)
 {
     // ensure at least 1 element, we must register buffer
     StaticCharacterArray.resize(std::max(1, game.numcharacters));
@@ -190,7 +190,7 @@ void InitAndRegisterCharacters(GameSetupStruct &game, const LoadedGame &ents)
 }
 
 // Initializes dialog and registers them in the script system
-void InitAndRegisterDialogs(const GameSetupStruct &game)
+void InitAndRegisterDialogs(const Game &game)
 {
     scrDialog.resize(game.numdialog);
     // ensure at least 1 element, we must register buffer
@@ -219,7 +219,7 @@ void InitAndRegisterDialogOptions()
 }
 
 // Initializes gui and registers them in the script system
-HError InitAndRegisterGUI(const GameSetupStruct &game)
+HError InitAndRegisterGUI(const Game &game)
 {
     scrGui.resize(game.numgui);
     // ensure at least 1 element, we must register buffer
@@ -252,7 +252,7 @@ HError InitAndRegisterGUI(const GameSetupStruct &game)
 }
 
 // Initializes inventory items and registers them in the script system
-void InitAndRegisterInvItems(const GameSetupStruct &game)
+void InitAndRegisterInvItems(const Game &game)
 {
     StaticInventoryArray.resize(MAX_INV);
 
@@ -293,7 +293,7 @@ void InitAndRegisterRoomEntities()
 }
 
 // Registers static entity arrays in the script system
-void RegisterStaticArrays(GameSetupStruct &game)
+void RegisterStaticArrays(Game &game)
 {
     StaticHandlesArray.Create(sizeof(int32_t));
 
@@ -311,7 +311,7 @@ void RegisterStaticArrays(GameSetupStruct &game)
 }
 
 // Initializes various game entities and registers them in the script system
-HError InitAndRegisterGameEntities(GameSetupStruct &game, const LoadedGame &ents)
+HError InitAndRegisterGameEntities(Game &game, const LoadedGame &ents)
 {
     InitAndRegisterAudioObjects(game);
     InitAndRegisterCharacters(game, ents);
@@ -331,7 +331,7 @@ HError InitAndRegisterGameEntities(GameSetupStruct &game, const LoadedGame &ents
     return HError::None();
 }
 
-void LoadFonts(const GameSetupStruct &game, GameDataVersion data_ver)
+void LoadFonts(const Game &game, GameDataVersion data_ver)
 {
     for (int i = 0; i < game.numfonts; ++i)
     {
@@ -391,7 +391,7 @@ void LoadLipsyncData()
     Debug::Printf(kDbgMsg_Info, "Lipsync data found and loaded");
 }
 
-void InitGameResolution(GameSetupStruct &game, GameDataVersion data_ver)
+void InitGameResolution(Game &game, GameDataVersion data_ver)
 {
     const Size game_size = game.GetGameRes();
     Debug::Printf(kDbgMsg_Info, "Game native resolution: %d x %d (%d bit)", game_size.Width, game_size.Height, game.color_depth * 8);
@@ -409,10 +409,10 @@ void InitGameResolution(GameSetupStruct &game, GameDataVersion data_ver)
     scsystem.viewport_height = play.GetMainViewport().GetHeight();
 }
 
-HGameInitError InitGameState(GameSetupStruct &game, LoadedGame &&ents, GameDataVersion data_ver)
+HGameInitError InitGameState(Game &game, LoadedGame &&ents, GameDataVersion data_ver)
 {
     // FIXME: this is ugly, but we secretly know that this only moves part of the ents
-    game = GameSetupStruct(std::move(ents));
+    game = Game(std::move(ents));
     const ScriptAPIVersion base_api = (ScriptAPIVersion)game.options[OPT_BASESCRIPTAPI];
     const ScriptAPIVersion compat_api = (ScriptAPIVersion)game.options[OPT_SCRIPTCOMPATLEV];
     const char *base_api_name = GetScriptAPIName(base_api);

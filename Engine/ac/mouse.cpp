@@ -19,7 +19,6 @@
 #include "ac/dynobj/scriptsystem.h"
 #include "ac/game.h"
 #include "ac/gamesetup.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_game.h"
 #include "ac/global_screen.h"
@@ -28,6 +27,7 @@
 #include "ac/system.h"
 #include "ac/viewframe.h"
 #include "debug/debug_log.h"
+#include "game/gameclass.h"
 #include "gui/guibutton.h"
 #include "gui/guimain.h"
 #include "device/mousew32.h"
@@ -39,7 +39,7 @@
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
-extern GameSetupStruct game;
+extern Game game;
 extern ScriptSystem scsystem;
 extern SpriteCache spriteset;
 extern CharacterInfo*playerchar;

@@ -15,7 +15,6 @@
 #include "ac/character.h"
 #include "ac/common.h"
 #include "ac/hotspot.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_translation.h"
 #include "ac/gui.h"
@@ -25,6 +24,7 @@
 #include "ac/string.h"
 #include "debug/debug_log.h"
 #include "game/roomstruct.h"
+#include "game/gameclass.h"
 #include "gfx/bitmap.h"
 #include "script/runtimescriptvalue.h"
 #include "script/script.h"
@@ -32,7 +32,7 @@
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
-extern GameSetupStruct game;
+extern Game game;
 extern RoomStruct thisroom;
 extern RoomStatus*croom;
 extern ScriptHotspot scrHotspot[MAX_ROOM_HOTSPOTS];

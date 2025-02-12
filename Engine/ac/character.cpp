@@ -15,10 +15,10 @@
 // AGS Character functions
 //
 //=============================================================================
+#include <math.h>
 #include <cstdio>
 #include "ac/character.h"
 #include "ac/common.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/display.h"
 #include "ac/draw.h"
 #include "ac/event.h"
@@ -47,28 +47,29 @@
 #include "ac/view.h"
 #include "ac/viewframe.h"
 #include "ac/walkablearea.h"
-#include "debug/debug_log.h"
-#include "gui/guimain.h"
-#include "main/game_run.h"
-#include "main/update.h"
-#include "util/string_compat.h"
-#include <math.h>
-#include "gfx/graphicsdriver.h"
-#include "script/runtimescriptvalue.h"
-#include "script/script.h"
 #include "ac/dynobj/cc_character.h"
 #include "ac/dynobj/cc_inventory.h"
 #include "ac/dynobj/dynobj_manager.h"
 #include "ac/dynobj/cc_dynamicarray.h"
 #include "ac/dynobj/scriptuserobject.h"
-#include "script/script_runtime.h"
+#include "debug/debug_log.h"
+#include "game/gameclass.h"
 #include "gfx/gfx_def.h"
+#include "gfx/graphicsdriver.h"
+#include "gui/guimain.h"
+#include "gui/guimain.h"
+#include "main/game_run.h"
+#include "main/update.h"
 #include "media/audio/audio_system.h"
+#include "script/runtimescriptvalue.h"
+#include "script/script.h"
+#include "script/script_runtime.h"
+#include "util/string_compat.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
-extern GameSetupStruct game;
+extern Game game;
 extern int displayed_room,starting_room;
 extern RoomStruct thisroom;
 extern RoomStatus *croom;

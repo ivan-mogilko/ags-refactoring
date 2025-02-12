@@ -113,7 +113,7 @@
     <ClCompile Include="..\..\Common\ac\dialogtopic.cpp">
       <Filter>Source Files\ac</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Common\ac\gamesetupstruct.cpp">
+    <ClCompile Include="..\..\Common\ac\gamedata.cpp">
       <Filter>Source Files\ac</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Common\ac\inventoryiteminfo.cpp">
@@ -538,7 +538,7 @@
     <ClInclude Include="..\..\Common\ac\game_version.h">
       <Filter>Header Files\ac</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Common\ac\gamesetupstruct.h">
+    <ClInclude Include="..\..\Common\ac\gamedata.h">
       <Filter>Header Files\ac</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Common\ac\gamestructdefines.h">

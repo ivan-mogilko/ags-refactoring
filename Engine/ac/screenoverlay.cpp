@@ -13,14 +13,14 @@
 //=============================================================================
 #include "ac/screenoverlay.h"
 #include "ac/dynamicsprite.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/spritecache.h"
+#include "game/gameclass.h"
 #include "gfx/bitmap.h"
 #include "util/stream.h"
 
 using namespace AGS::Common;
 
-extern GameSetupStruct game;
+extern Game game;
 extern SpriteCache spriteset;
 
 ScreenOverlay::ScreenOverlay(ScreenOverlay &&over)

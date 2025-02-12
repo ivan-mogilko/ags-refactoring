@@ -16,7 +16,6 @@
 #include "ac/common.h"
 #include "ac/display.h"
 #include "ac/game.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_translation.h"
 #include "ac/roomobject.h"
@@ -26,6 +25,7 @@
 #include "ac/dynobj/dynobj_manager.h"
 #include "debug/debug_log.h"
 #include "font/fonts.h"
+#include "game/gameclass.h"
 #include "gui/guimain.h"
 #include "ac/spritecache.h"
 #include "script/runtimescriptvalue.h"
@@ -35,7 +35,7 @@
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
-extern GameSetupStruct game;
+extern Game game;
 extern RoomStatus*croom;
 extern RoomObject*objs;
 extern SpriteCache spriteset;

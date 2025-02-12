@@ -19,7 +19,6 @@
 #include "ac/dynamicsprite.h"
 #include "ac/game.h"
 #include "ac/game.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_audio.h"
 #include "ac/joystick.h"
@@ -28,6 +27,7 @@
 #include "ac/dynobj/dynobj_manager.h"
 #include "ac/dynobj/scriptvideoplayer.h"
 #include "debug/debug_log.h"
+#include "game/gameclass.h"
 #include "gfx/graphicsdriver.h"
 #include "main/game_run.h"
 #include "media/audio/audio.h"
@@ -39,7 +39,7 @@ using namespace AGS::Common;
 using namespace AGS::Engine;
 
 
-extern GameSetupStruct game;
+extern Game game;
 extern SpriteCache spriteset;
 extern IGraphicsDriver *gfxDriver;
 

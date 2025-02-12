@@ -23,7 +23,6 @@
 #include "ac/dynamicsprite.h"
 #include "ac/event.h"
 #include "ac/gamesetup.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_audio.h"
 #include "ac/global_display.h"
@@ -54,6 +53,7 @@
 #include "debug/out.h"
 #include "device/mousew32.h"
 #include "font/fonts.h"
+#include "game/gameclass.h"
 #include "game/savegame.h"
 #include "gfx/bitmap.h"
 #include "gfx/graphicsdriver.h"
@@ -94,7 +94,7 @@ extern IGraphicsDriver *gfxDriver;
 std::unique_ptr<AssetManager> AssetMgr;
 GamePlayState play;
 GameSetup usetup;
-GameSetupStruct game;
+Game game;
 RoomStatus troom;    // used for non-saveable rooms, eg. intro
 RoomObject*objs=nullptr;
 RoomStatus*croom=nullptr;
@@ -532,7 +532,7 @@ void unload_game()
 
     // Free game state and game struct
     play = GamePlayState();
-    game = GameSetupStruct();
+    game = Game();
 
     // Reset all resource caches
     // IMPORTANT: this is hard reset, including locked items
@@ -1153,11 +1153,11 @@ bool test_game_guid(const String &filepath, const String &guid, int legacy_id)
     MainGameSource src;
     if (!OpenMainGameFileFromDefaultAsset(src, amgr.get()))
         return false;
-    GameSetupStruct g;
-    PreReadGameData(g, std::move(src.InputStream), src.DataVersion);
+    GameBasicProperties gamebasic;
+    PreReadGameData(gamebasic, std::move(src.InputStream), src.DataVersion);
     if (!guid.IsEmpty())
-        return guid.CompareNoCase(g.guid) == 0;
-    return legacy_id == g.uniqueid;
+        return guid.CompareNoCase(gamebasic.guid) == 0;
+    return legacy_id == gamebasic.uniqueid;
 }
 
 HSaveError load_game(const String &path, int slotNumber, bool startup, bool &data_overwritten)

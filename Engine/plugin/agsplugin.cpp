@@ -24,7 +24,6 @@
 #include "ac/file.h"
 #include "ac/game.h"
 #include "ac/gamestate.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/global_audio.h"
 #include "ac/global_walkablearea.h"
 #include "ac/gui.h"
@@ -46,6 +45,7 @@
 #include "debug/debugmanager.h"
 #include "device/mousew32.h"
 #include "font/fonts.h"
+#include "game/gameclass.h"
 #include "game/roomstruct.h"
 #include "gfx/bitmap.h"
 #include "gfx/gfx_util.h"
@@ -89,7 +89,7 @@ using namespace AGS::Engine;
 extern IGraphicsDriver *gfxDriver;
 extern ScriptSystem scsystem;
 extern int mousex, mousey;
-extern GameSetupStruct game;
+extern Game game;
 extern SpriteCache spriteset;
 extern std::vector<ViewStruct> views;
 extern RGB palette[256];

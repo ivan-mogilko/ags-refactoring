@@ -18,7 +18,6 @@
 #include "ac/draw.h"
 #include "ac/event.h"
 #include "ac/gamestate.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/global_display.h"
 #include "ac/global_room.h"
 #include "ac/gui.h"
@@ -29,6 +28,7 @@
 #include "ac/dynobj/cc_character.h"
 #include "ac/dynobj/cc_inventory.h"
 #include "debug/debug_log.h"
+#include "game/gameclass.h"
 #include "gui/guidialog.h"
 #include "gui/guimain.h"
 #include "main/game_run.h"
@@ -40,7 +40,7 @@
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
-extern GameSetupStruct game;
+extern Game game;
 extern ScriptInvItem scrInv[MAX_INV];
 extern SpriteCache spriteset;
 extern CharacterInfo*playerchar;

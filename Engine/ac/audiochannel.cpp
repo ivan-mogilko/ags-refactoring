@@ -11,20 +11,19 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-
 #include "ac/audiochannel.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_audio.h"
 #include "ac/dynobj/cc_audioclip.h"
 #include "debug/debug_log.h"
+#include "game/gameclass.h"
 #include "game/roomstruct.h"
 #include "script/runtimescriptvalue.h"
 #include "media/audio/audio_system.h"
 
 using namespace AGS::Common;
 
-extern GameSetupStruct game;
+extern Game game;
 extern RoomStruct thisroom;
 extern CCAudioClip ccDynamicAudioClip;
 

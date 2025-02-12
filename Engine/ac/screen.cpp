@@ -14,7 +14,6 @@
 #include <algorithm>
 #include "ac/common.h"
 #include "ac/draw.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_game.h"
 #include "ac/global_screen.h"
@@ -23,6 +22,7 @@
 #include "ac/dynobj/scriptviewport.h"
 #include "ac/dynobj/scriptuserobject.h"
 #include "debug/debug_log.h"
+#include "game/gameclass.h"
 #include "main/game_run.h"
 #include "script/script_runtime.h"
 #include "platform/base/agsplatformdriver.h"
@@ -33,7 +33,7 @@
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
-extern GameSetupStruct game;
+extern Game game;
 extern IGraphicsDriver *gfxDriver;
 extern AGSPlatformDriver *platform;
 extern int displayed_room;

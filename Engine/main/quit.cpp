@@ -21,7 +21,6 @@
 #include "ac/common.h"
 #include "ac/game.h"
 #include "ac/gamesetup.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/roomstatus.h"
 #include "ac/route_finder.h"
@@ -32,6 +31,7 @@
 #include "debug/debugger.h"
 #include "debug/out.h"
 #include "font/fonts.h"
+#include "game/gameclass.h"
 #include "main/config.h"
 #include "main/engine.h"
 #include "main/main.h"
@@ -50,7 +50,7 @@
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
-extern GameSetupStruct game;
+extern Game game;
 extern SpriteCache spriteset;
 extern RoomStruct thisroom;
 extern RoomStatus troom;    // used for non-saveable rooms, eg. intro

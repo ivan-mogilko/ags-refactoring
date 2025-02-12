@@ -18,7 +18,6 @@
 #include "ac/dialog.h"
 #include "ac/draw.h"
 #include "ac/event.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_game.h"
 #include "ac/movelist.h"
@@ -27,11 +26,12 @@
 #include "ac/roomstatus.h"
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
+#include "game/gameclass.h"
 #include "script/script.h"
 
 using namespace Common;
 
-extern GameSetupStruct game;
+extern Game game;
 extern RoomStatus *croom;
 extern CharacterInfo*playerchar;
 extern int displayed_room;

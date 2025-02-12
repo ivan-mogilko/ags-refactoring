@@ -15,7 +15,7 @@
 #include "ac/audiocliptype.h"
 #include "ac/dialogtopic.h"
 #include "ac/game_version.h"
-#include "ac/gamesetupstruct.h"
+#include "ac/gamedata.h"
 #include "ac/spritecache.h"
 #include "ac/view.h"
 #include "ac/wordsdictionary.h"
@@ -712,7 +712,7 @@ HGameFileError UpdateGameData(LoadedGame &game, GameDataVersion data_ver)
 void PreReadGameData(GameBasicProperties &game, std::unique_ptr<Stream> &&s_in, GameDataVersion data_ver)
 {
     Stream *in = s_in.get(); // for convenience
-    GameSetupStruct::SerializeInfo sinfo;
+    GameBasicProperties::SerializeInfo sinfo;
     game.ReadFromFile(in, data_ver, sinfo);
 
     // Check for particular expansions that might have data necessary

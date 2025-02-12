@@ -13,7 +13,6 @@
 //=============================================================================
 #include <vector>
 #include "ac/common.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_gui.h"
 #include "ac/gui.h"
@@ -22,13 +21,14 @@
 #include "ac/properties.h"
 #include "ac/string.h"
 #include "debug/debug_log.h"
+#include "game/gameclass.h"
 #include "script/runtimescriptvalue.h"
 #include "ac/dynobj/cc_gui.h"
 #include "ac/dynobj/cc_guiobject.h"
 
 using namespace AGS::Common;
 
-extern GameSetupStruct game;
+extern Game game;
 extern std::vector<ScriptGUI> scrGui;
 extern CCGUI ccDynamicGUI;
 extern CCGUIObject ccDynamicGUIObject;

@@ -19,7 +19,6 @@
 #include "ac/file.h"
 #include "ac/game.h"
 #include "ac/gamesetup.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_game.h"
 #include "ac/gui.h"
@@ -28,12 +27,13 @@
 #include "ac/dynobj/cc_dynamicarray.h"
 #include "core/assetmanager.h"
 #include "debug/debug_log.h"
+#include "game/gameclass.h"
 #include "util/directory.h"
 #include "util/path.h"
 
 using namespace AGS::Common;
 
-extern GameSetupStruct game;
+extern Game game;
 
 // *** LIST BOX FUNCTIONS
 

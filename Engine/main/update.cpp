@@ -23,7 +23,6 @@
 #include "ac/draw.h"
 #include "ac/game.h"
 #include "ac/gamestate.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/lipsync.h"
 #include "ac/movelist.h"
 #include "ac/overlay.h"
@@ -35,6 +34,7 @@
 #include "ac/timer.h"
 #include "ac/viewframe.h"
 #include "ac/walkablearea.h"
+#include "game/gameclass.h"
 #include "gfx/bitmap.h"
 #include "gfx/graphicsdriver.h"
 #include "main/game_run.h"
@@ -45,7 +45,7 @@
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
-extern GameSetupStruct game;
+extern Game game;
 extern SpriteCache spriteset;
 extern RoomStatus*croom;
 extern RoomStruct thisroom;

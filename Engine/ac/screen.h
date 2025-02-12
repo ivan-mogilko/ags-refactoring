@@ -18,7 +18,8 @@
 #ifndef __AGS_EE_AC__SCREEN_H
 #define __AGS_EE_AC__SCREEN_H
 
-#include "gamestate.h"
+#include "ac/gamestate.h"
+#include "ac/gamestructdefines.h"
 
 namespace AGS { namespace Common { class Bitmap; } }
 namespace AGS { namespace Engine { class IDriverDependantBitmap; } }

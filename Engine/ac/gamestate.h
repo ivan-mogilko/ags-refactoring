@@ -91,6 +91,7 @@ public:
 
 
 // Runtime game state
+// TODO: merge with the Game class.
 struct GamePlayState
 {
     // TODO: this is left purely to load older save version, revise later

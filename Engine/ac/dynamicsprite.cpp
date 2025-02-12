@@ -16,7 +16,6 @@
 #include "ac/common.h"
 #include "ac/draw.h"
 #include "ac/game.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_game.h"
 #include "ac/math.h"    // M_PI
@@ -26,6 +25,7 @@
 #include "ac/system.h"
 #include "ac/dynobj/dynobj_manager.h"
 #include "debug/debug_log.h"
+#include "game/gameclass.h"
 #include "game/roomstruct.h"
 #include "gui/guibutton.h"
 #include "ac/spritecache.h"
@@ -35,7 +35,7 @@
 using namespace Common;
 using namespace Engine;
 
-extern GameSetupStruct game;
+extern Game game;
 extern SpriteCache spriteset;
 extern RoomStruct thisroom;
 extern RoomObject*objs;

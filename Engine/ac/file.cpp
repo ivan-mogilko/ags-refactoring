@@ -17,7 +17,6 @@
 #include "ac/common.h"
 #include "ac/game.h"
 #include "ac/gamesetup.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/path_helper.h"
 #include "ac/runtime_defines.h"
 #include "ac/string.h"
@@ -25,6 +24,7 @@
 #include "ac/dynobj/dynobj_manager.h"
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
+#include "game/gameclass.h"
 #include "platform/base/agsplatformdriver.h"
 #include "util/stream.h"
 #include "core/assetmanager.h"
@@ -39,7 +39,7 @@
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
-extern GameSetupStruct game;
+extern Game game;
 extern AGSPlatformDriver *platform;
 
 // object-based File routines

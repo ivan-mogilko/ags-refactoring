@@ -13,7 +13,6 @@
 //=============================================================================
 #include "ac/inventoryitem.h"
 #include "ac/characterinfo.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_translation.h"
 #include "ac/gui.h"
@@ -22,6 +21,7 @@
 #include "ac/runtime_defines.h"
 #include "ac/string.h"
 #include "ac/dynobj/cc_inventory.h"
+#include "game/gameclass.h"
 #include "gui/guidefines.h"
 #include "script/runtimescriptvalue.h"
 #include "script/script.h"
@@ -30,7 +30,7 @@ using namespace AGS::Common;
 using namespace AGS::Engine;
 
 
-extern GameSetupStruct game;
+extern Game game;
 extern ScriptInvItem scrInv[MAX_INV];
 extern int cur_cursor;
 extern CharacterInfo*playerchar;

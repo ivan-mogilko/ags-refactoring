@@ -15,7 +15,6 @@
 #include "event.h"
 #include "ac/common.h"
 #include "ac/draw.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_game.h"
 #include "ac/global_room.h"
@@ -26,6 +25,7 @@
 #include "ac/dynobj/scriptobjects.h"
 #include "ac/dynobj/cc_hotspot.h"
 #include "debug/debug_log.h"
+#include "game/gameclass.h"
 #include "main/game_run.h"
 #include "script/cc_common.h"
 #include "platform/base/agsplatformdriver.h"
@@ -40,7 +40,7 @@
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
-extern GameSetupStruct game;
+extern Game game;
 extern RoomStruct thisroom;
 extern RoomStatus*croom;
 extern int displayed_room;

@@ -34,7 +34,6 @@
 #include "ac/draw.h"
 #include "ac/game.h"
 #include "ac/gamesetup.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_game.h"
 #include "ac/gui.h"
@@ -57,6 +56,7 @@
 #include "font/agsfontrenderer.h"
 #include "font/fonts.h"
 #include "game/game_init.h"
+#include "game/gameclass.h"
 #include "gfx/graphicsdriver.h"
 #include "gfx/gfxdriverfactory.h"
 #include "gfx/ddb.h"
@@ -84,7 +84,7 @@ using namespace AGS::Engine;
 extern char check_dynamic_sprites_at_exit;
 extern volatile bool want_exit, abort_engine;
 extern bool justRunSetup;
-extern GameSetupStruct game;
+extern Game game;
 extern int proper_exit;
 extern SpriteCache spriteset;
 extern ScriptObject scrObj[MAX_ROOM_OBJECTS];

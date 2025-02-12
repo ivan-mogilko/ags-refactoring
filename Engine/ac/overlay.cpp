@@ -21,7 +21,6 @@
 #include "ac/display.h"
 #include "ac/draw.h"
 #include "ac/game.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_translation.h"
 #include "ac/runtime_defines.h"
@@ -30,6 +29,7 @@
 #include "ac/string.h"
 #include "ac/dynobj/dynobj_manager.h"
 #include "debug/debug_log.h"
+#include "game/gameclass.h"
 #include "gfx/graphicsdriver.h"
 #include "gfx/bitmap.h"
 #include "script/runtimescriptvalue.h"
@@ -37,7 +37,7 @@
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
-extern GameSetupStruct game;
+extern Game game;
 extern SpriteCache spriteset;
 extern int displayed_room;
 extern int face_talking;

@@ -17,14 +17,14 @@
 #include "ac/string.h"
 #include "ac/common.h"
 #include "ac/display.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_translation.h"
 #include "ac/runtime_defines.h"
 #include "ac/dynobj/scriptstring.h"
 #include "ac/dynobj/dynobj_manager.h"
-#include "font/fonts.h"
 #include "debug/debug_log.h"
+#include "font/fonts.h"
+#include "game/gameclass.h"
 #include "script/runtimescriptvalue.h"
 #include "util/string_compat.h"
 #include "util/string_utils.h"
@@ -33,7 +33,7 @@
 
 using namespace AGS::Common;
 
-extern GameSetupStruct game;
+extern Game game;
 extern int longestline;
 
 // Tests if a font number is valid, if not then prints a warning and returns a substitution

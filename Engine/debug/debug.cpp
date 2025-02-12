@@ -21,7 +21,6 @@
 #endif
 #include <SDL.h>
 #include "ac/common.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/runtime_defines.h"
 #include "debug/agseditordebugger.h"
@@ -32,6 +31,7 @@
 #include "debug/out.h"
 #include "debug/logfile.h"
 #include "debug/messagebuffer.h"
+#include "game/gameclass.h"
 #include "main/config.h"
 #include "main/game_run.h"
 #include "media/audio/audio_system.h"
@@ -52,7 +52,7 @@ extern char check_dynamic_sprites_at_exit;
 extern int displayed_room;
 extern RoomStruct thisroom;
 extern volatile bool want_exit, abort_engine;
-extern GameSetupStruct game;
+extern Game game;
 
 
 int editor_debugging_enabled = 0;

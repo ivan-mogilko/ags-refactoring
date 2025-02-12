@@ -19,7 +19,6 @@
 #include "ac/event.h"
 #include "ac/file.h"
 #include "ac/game.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/gamesetup.h"
 #include "ac/global_audio.h"
@@ -43,6 +42,7 @@
 #include "debug/out.h"
 #include "device/mousew32.h"
 #include "font/fonts.h"
+#include "game/gameclass.h"
 #include "gfx/bitmap.h"
 #include "gfx/ddb.h"
 #include "gfx/graphicsdriver.h"
@@ -68,7 +68,7 @@
 using namespace Common;
 using namespace Engine;
 
-extern GameSetupStruct game;
+extern Game game;
 extern SpriteCache spriteset;
 extern AGS::Engine::IGraphicsDriver *gfxDriver;
 extern RoomStatus troom;
@@ -306,7 +306,7 @@ void DoBeforeRestore(PreservedParams &pp, SaveCmpSelection select_cmp)
 {
     pp.SpeechVOX = play.voice_avail;
     pp.MusicVOX = play.separate_music_lib;
-    memcpy(pp.GameOptions, game.options, GameSetupStruct::MAX_OPTIONS * sizeof(int));
+    memcpy(pp.GameOptions, game.options, GameBasicProperties::MAX_OPTIONS * sizeof(int));
 
     unload_old_room();
     remove_all_overlays();
@@ -482,14 +482,14 @@ static void RestoreViewportsAndCameras(const RestoredData &r_data)
 }
 
 // Resets a number of options that are not supposed to be changed at runtime
-static void CopyPreservedGameOptions(GameSetupStruct &gs, const PreservedParams &pp)
+static void CopyPreservedGameOptions(Game &game, const PreservedParams &pp)
 {
-    const auto restricted_opts = GameSetupStruct::GetRestrictedOptions();
+    const auto restricted_opts = Game::GetRestrictedOptions();
     for (auto opt : restricted_opts)
-        gs.options[opt] = pp.GameOptions[opt];
-    const auto preserved_opts = GameSetupStruct::GetPreservedOptions();
+        game.options[opt] = pp.GameOptions[opt];
+    const auto preserved_opts = Game::GetPreservedOptions();
     for (auto opt : preserved_opts)
-        gs.options[opt] = pp.GameOptions[opt];
+        game.options[opt] = pp.GameOptions[opt];
 }
 
 // A callback that tests if DynamicSprite refers a valid sprite in cache.

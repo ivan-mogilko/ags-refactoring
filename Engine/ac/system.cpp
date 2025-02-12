@@ -17,7 +17,6 @@
 #include "ac/dynobj/cc_audiochannel.h"
 #include "ac/game.h"
 #include "ac/gamesetup.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_debug.h"
 #include "ac/global_translation.h"
@@ -29,6 +28,7 @@
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
 #include "debug/out.h"
+#include "game/gameclass.h"
 #include "gfx/graphicsdriver.h"
 #include "gfx/gfxfilter.h"
 #include "main/config.h"
@@ -44,7 +44,7 @@
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
-extern GameSetupStruct game;
+extern Game game;
 extern SpriteCache spriteset;
 extern ScriptAudioChannel scrAudioChannel[MAX_GAME_CHANNELS];
 extern ScriptSystem scsystem;

@@ -22,7 +22,6 @@
 #include "ac/character.h"
 #include "ac/draw.h"
 #include "ac/game.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_audio.h"
 #include "ac/global_game.h"
@@ -35,6 +34,7 @@
 #include "ac/string.h"
 #include "ac/system.h"
 #include "debug/debug_log.h"
+#include "game/gameclass.h"
 #include "gfx/blender.h"
 #include "gui/guibutton.h"
 #include "gui/guimain.h"
@@ -51,7 +51,7 @@
 using namespace AGS::Common;
 using namespace AGS::Common::BitmapHelper;
 
-extern GameSetupStruct game;
+extern Game game;
 extern int longestline;
 extern AGSPlatformDriver *platform;
 extern int loops_per_character;

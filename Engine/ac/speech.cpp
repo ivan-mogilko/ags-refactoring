@@ -166,7 +166,6 @@ String get_voice_assetpath()
 //
 //=============================================================================
 
-#include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/global_audio.h"
 #include "ac/global_display.h"
@@ -174,10 +173,11 @@ String get_voice_assetpath()
 #include "ac/dynobj/cc_scriptobject.h"
 #include "ac/dynobj/dynobj_manager.h"
 #include "debug/out.h"
+#include "game/gameclass.h"
 #include "script/script_api.h"
 #include "script/script_runtime.h"
 
-extern GameSetupStruct game;
+extern Game game;
 extern CCCharacter ccDynamicCharacter;
 extern int char_speaking;
 

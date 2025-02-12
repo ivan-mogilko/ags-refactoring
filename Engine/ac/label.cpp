@@ -13,15 +13,15 @@
 //=============================================================================
 #include <stdio.h>
 #include "ac/common.h" // quit
-#include "ac/gamesetupstruct.h"
 #include "ac/global_translation.h"
 #include "ac/label.h"
 #include "ac/runtime_defines.h"
 #include "ac/string.h"
+#include "game/gameclass.h"
 
 using namespace AGS::Common;
 
-extern GameSetupStruct game;
+extern Game game;
 
 // ** LABEL FUNCTIONS
 

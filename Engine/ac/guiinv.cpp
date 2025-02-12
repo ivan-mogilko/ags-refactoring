@@ -14,14 +14,14 @@
 #include "gui/guiinv.h"
 #include "gui/guimain.h"
 #include "ac/draw.h"
-#include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
 #include "ac/characterextras.h"
 #include "ac/spritecache.h"
+#include "game/gameclass.h"
 #include "gfx/bitmap.h"
 
 
-extern GameSetupStruct game;
+extern Game game;
 
 
 namespace AGS

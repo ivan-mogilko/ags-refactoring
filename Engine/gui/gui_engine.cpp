@@ -20,10 +20,10 @@
 #include "ac/system.h"
 #include "font/fonts.h"
 #include <ctype.h>
-#include "ac/gamesetupstruct.h"
 #include "ac/global_translation.h"
 #include "ac/string.h"
 #include "ac/spritecache.h"
+#include "game/gameclass.h"
 #include "gfx/bitmap.h"
 #include "gfx/blender.h"
 
@@ -33,7 +33,7 @@ extern int eip_guiobj;
 extern void replace_macro_tokens(const char*, String&);
 
 extern SpriteCache spriteset;
-extern GameSetupStruct game;
+extern Game game;
 
 //=============================================================================
 // Engine-specific implementation split out of acgui.cpp
