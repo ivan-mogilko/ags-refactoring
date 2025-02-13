@@ -1541,6 +1541,12 @@
     <ClInclude Include="..\..\Engine\game\gameclass.h">
       <Filter>Header Files\game</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Engine\game\characterclass.h">
+      <Filter>Header Files\game</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Engine\ac\dynobj\scriptaudioclip.h">
+      <Filter>Header Files\ac\dynobj</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\..\Engine\resource\game-1.ico">

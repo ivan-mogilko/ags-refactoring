@@ -11,12 +11,8 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-//
-//
-//
-//=============================================================================
-#ifndef __AGS_CN_DYNOBJ__SCRIPTAUDIOCLIP_H
-#define __AGS_CN_DYNOBJ__SCRIPTAUDIOCLIP_H
+#ifndef __AGS_CN_AC__AUDIOCLIPINFO_H
+#define __AGS_CN_AC__AUDIOCLIPINFO_H
 
 #include "util/string.h"
 
@@ -40,7 +36,7 @@ enum AudioFileType {
 #define LEGACY_AUDIOCLIP_SCRIPTNAMELENGTH    30
 #define LEGACY_AUDIOCLIP_FILENAMELENGTH      15
 
-struct ScriptAudioClip
+struct AudioClipInfo
 {
 public:
     int id = 0;
@@ -56,4 +52,4 @@ public:
     void ReadFromFile(Common::Stream *in);
 };
 
-#endif // __AGS_CN_DYNOBJ__SCRIPTAUDIOCLIP_H
+#endif // __AGS_CN_AC__AUDIOCLIPINFO_H

@@ -17,7 +17,6 @@
 #include "ac/spritecache.h"
 #include "ac/view.h"
 #include "ac/wordsdictionary.h"
-#include "ac/dynobj/scriptaudioclip.h"
 #include "script/cc_common.h"
 #include "util/string_utils.h"
 
@@ -182,6 +181,7 @@ HGameFileError LoadedGame::ReadFromFile(Common::Stream *in, GameDataVersion game
         return err;
 
     // Inventory items
+    invinfo.resize(numinvitems);
     for (int i = 0; i < numinvitems; ++i)
     {
         invinfo[i].ReadFromFile(in);
@@ -272,6 +272,7 @@ HGameFileError LoadedGame::ReadFromFile(Common::Stream *in, GameDataVersion game
     for (int i = 0; i < numviews; ++i)
         viewNames[i] = String::FromStream(in);
 
+    invScriptNames.resize(numinvitems);
     for (int i = 0; i < numinvitems; ++i)
         invScriptNames[i] = String::FromStream(in);
 
@@ -358,6 +359,7 @@ HGameFileError LoadedGame::ReadCustomProperties(Stream *in, GameDataVersion game
     {
         errors += Properties::ReadValues(charProps[i], in);
     }
+    invProps.resize(numinvitems);
     for (int i = 0; i < numinvitems; ++i)
     {
         errors += Properties::ReadValues(invProps[i], in);

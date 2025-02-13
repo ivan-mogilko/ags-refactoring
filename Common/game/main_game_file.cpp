@@ -19,7 +19,6 @@
 #include "ac/spritecache.h"
 #include "ac/view.h"
 #include "ac/wordsdictionary.h"
-#include "ac/dynobj/scriptaudioclip.h"
 #include "core/asset.h"
 #include "core/assetmanager.h"
 #include "debug/out.h"
@@ -515,7 +514,7 @@ HError GameDataExtReader::ReadBlock(Stream *in, int /*block_id*/, const String &
         size_t num_clips = in->ReadInt32();
         if (num_clips != game.audioClips.size())
             return new Error(String::FromFormat("Mismatching number of audio clips: read %zu expected %zu", num_clips, game.audioClips.size()));
-        for (ScriptAudioClip &clip : game.audioClips)
+        for (AudioClipInfo &clip : game.audioClips)
         {
             clip.scriptName = StrUtil::ReadString(in);
             clip.fileName = StrUtil::ReadString(in);

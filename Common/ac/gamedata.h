@@ -22,13 +22,13 @@
 #include <map>
 #include <vector>
 #include <allegro.h>
+#include "ac/audioclipinfo.h"
 #include "ac/audiocliptype.h"
 #include "ac/characterinfo.h" // TODO: constants to separate header
 #include "ac/gamestructdefines.h"
 #include "ac/inventoryiteminfo.h"
 #include "ac/mousecursor.h"
 #include "ac/wordsdictionary.h"
-#include "ac/dynobj/scriptaudioclip.h"
 #include "game/customproperties.h"
 #include "game/interactions.h"
 #include "game/main_game_file.h" // TODO: constants to separate header or split out reading functions
@@ -120,7 +120,7 @@ public:
     // font parameters are then put and queried in the fonts module
     // TODO: split into installation params (used only when reading) and runtime params
     std::vector<FontInfo> fonts;
-    InventoryItemInfo invinfo[MAX_INV]{};
+    std::vector<InventoryItemInfo> invinfo;
     std::vector<MouseCursor> mcurs;
     std::vector<UInteractionEvents> charScripts;
     std::vector<UInteractionEvents> invScripts;
@@ -130,7 +130,7 @@ public:
     // Custom properties (design-time state)
     AGS::Common::PropertySchema propSchema;
     std::vector<AGS::Common::StringIMap> charProps;
-    AGS::Common::StringIMap invProps[MAX_INV];
+    std::vector<AGS::Common::StringIMap> invProps;
     std::vector<AGS::Common::StringIMap> audioclipProps;
     std::vector<AGS::Common::StringIMap> dialogProps;
     std::vector<AGS::Common::StringIMap> guiProps;
@@ -140,7 +140,7 @@ public:
     // used, nor registered as script exports; numeric IDs are used to
     // reference views instead.
     std::vector<Common::String> viewNames;
-    Common::String invScriptNames[MAX_INV];
+    std::vector<Common::String> invScriptNames;
     std::vector<Common::String> dialogScriptNames;
 
     // Existing room numbers
@@ -149,7 +149,7 @@ public:
     // may be used to learn the total number of registered rooms
     std::map<int, Common::String> roomNames;
 
-    std::vector<ScriptAudioClip> audioClips;
+    std::vector<AudioClipInfo> audioClips;
     std::vector<AudioClipType> audioClipTypes;
 };
 

@@ -19,15 +19,53 @@
 #ifndef __AGS_EE_GAME__GAMECLASS_H
 #define __AGS_EE_GAME__GAMECLASS_H
 #include "ac/gamedata.h"
+#include "ac/dynobj/scriptaudioclip.h"
+#include "game/characterclass.h"
 
 struct LoadedGame;
 
 // TODO: split GameSetupStruct into struct used to hold loaded game data, and actual runtime object
-class Game : public GameBasicProperties, public GameExtendedProperties, public GameObjectData
+class Game : public GameBasicProperties, public GameExtendedProperties
 {
     using Stream = AGS::Common::Stream;
     using String = AGS::Common::String;
+    using UInteractionEvents = AGS::Common::UInteractionEvents;
+    using HGameFileError = AGS::Common::HGameFileError;
 public:
+    std::unique_ptr<WordsDictionary> dict;
+    std::vector<Character> chars;
+    std::vector<InventoryItemInfo> invinfo;
+    std::vector<MouseCursor> mcurs;
+    std::vector<UInteractionEvents> charScripts;
+    std::vector<UInteractionEvents> invScripts;
+    // Lip-sync data
+    char lipSyncFrameLetters[MAXLIPSYNCFRAMES][50] = { { 0 } };
+
+    // Custom properties (design-time state)
+    AGS::Common::PropertySchema propSchema;
+    std::vector<AGS::Common::StringIMap> charProps;
+    std::vector<AGS::Common::StringIMap> invProps;
+    std::vector<AGS::Common::StringIMap> audioclipProps;
+    std::vector<AGS::Common::StringIMap> dialogProps;
+    std::vector<AGS::Common::StringIMap> guiProps;
+    std::vector<AGS::Common::StringIMap> guicontrolProps[AGS::Common::kGUIControlTypeNum];
+
+    // NOTE: although the view names are stored in game data, they are never
+    // used, nor registered as script exports; numeric IDs are used to
+    // reference views instead.
+    std::vector<Common::String> viewNames;
+    std::vector<Common::String> invScriptNames;
+    std::vector<Common::String> dialogScriptNames;
+
+    // Existing room numbers
+    std::vector<int> roomNumbers;
+    // Saved room names, known during the game compilation;
+    // may be used to learn the total number of registered rooms
+    std::map<int, Common::String> roomNames;
+
+    std::vector<ScriptAudioClip> audioClips;
+    std::vector<AudioClipType> audioClipTypes;
+
     // TODO: why we do not use this in the engine instead of
     // loaded_game_file_version?
     GameDataVersion   filever = kGameVersion_Undefined;

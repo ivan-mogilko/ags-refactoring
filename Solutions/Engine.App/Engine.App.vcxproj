@@ -726,6 +726,7 @@
     <ClInclude Include="..\..\Engine\ac\dynobj\cc_walkbehind.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\dynobj_manager.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\managedobjectpool.h" />
+    <ClInclude Include="..\..\Engine\ac\dynobj\scriptaudioclip.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptcamera.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptcontainers.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptdatetime.h" />
@@ -812,6 +813,7 @@
     <ClInclude Include="..\..\Engine\debug\logfile.h" />
     <ClInclude Include="..\..\Engine\debug\memory_inspect.h" />
     <ClInclude Include="..\..\Engine\device\mousew32.h" />
+    <ClInclude Include="..\..\Engine\game\characterclass.h" />
     <ClInclude Include="..\..\Engine\game\gameclass.h" />
     <ClInclude Include="..\..\Engine\game\game_init.h" />
     <ClInclude Include="..\..\Engine\game\savegame.h" />

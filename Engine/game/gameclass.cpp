@@ -13,18 +13,49 @@
 //=============================================================================
 #include "game/gameclass.h"
 
+using namespace AGS::Common;
+
 Game::Game(LoadedGame &&loadedgame)
 {
     static_cast<GameBasicProperties &>(*this) = std::move(static_cast<GameBasicProperties &&>(loadedgame));
-    static_cast<GameObjectData &>(*this) = std::move(static_cast<GameObjectData &&>(loadedgame));
     static_cast<GameExtendedProperties &>(*this) = std::move(static_cast<GameExtendedProperties &&>(loadedgame));
 
-    // Apply sprite flags read from original format (sequential array)
-    SpriteInfos.resize(loadedgame.SpriteCount);
-    for (size_t i = 0; i < loadedgame.SpriteCount; ++i)
-    {
-        SpriteInfos[i].Flags = loadedgame.SpriteFlags[i];
-    }
+    GameObjectData &gameobj = static_cast<GameObjectData&>(loadedgame);
+
+    dict = std::move(gameobj.dict);
+    for (const auto &chinfo : gameobj.chars)
+        chars.emplace_back(chinfo);
+    invinfo = std::move(gameobj.invinfo);
+    mcurs = std::move(gameobj.mcurs);
+    charScripts = std::move(gameobj.charScripts);
+    invScripts = std::move(gameobj.invScripts);
+    memcpy(lipSyncFrameLetters, gameobj.lipSyncFrameLetters, sizeof(lipSyncFrameLetters));
+
+    propSchema = std::move(gameobj.propSchema);
+    charProps = std::move(gameobj.charProps);
+    invProps = std::move(gameobj.invProps);
+    audioclipProps = std::move(gameobj.audioclipProps);
+    dialogProps = std::move(gameobj.dialogProps);
+    guiProps = std::move(gameobj.guiProps);
+    for (int i =0; i < kGUIControlTypeNum; ++i)
+        guicontrolProps[i] = std::move(gameobj.guicontrolProps[i]);
+
+    viewNames = std::move(gameobj.viewNames);
+    invScriptNames = std::move(gameobj.invScriptNames);
+    dialogScriptNames = std::move(gameobj.dialogScriptNames);
+
+    roomNumbers = std::move(gameobj.roomNumbers);
+    roomNames = std::move(gameobj.roomNames);
+
+    for (const auto &clipinfo : gameobj.audioClips)
+        audioClips.emplace_back(clipinfo);
+    audioClipTypes = std::move(gameobj.audioClipTypes);
+
+    // Fixup inventory arrays, must be at least MAX_INV for compliance with engine logic
+    invinfo.resize(std::max(numinvitems, MAX_INV));
+    invScripts.resize(std::max(numinvitems, MAX_INV));
+    invProps.resize(std::max(numinvitems, MAX_INV));
+    invScriptNames.resize(std::max(numinvitems, MAX_INV));
 
     ApplySpriteFlags(loadedgame.SpriteFlags);
     OnResolutionSet();

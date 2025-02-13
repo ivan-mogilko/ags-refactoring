@@ -331,7 +331,7 @@ HError InitAndRegisterGameEntities(Game &game, const LoadedGame &ents)
     return HError::None();
 }
 
-void LoadFonts(const Game &game, GameDataVersion data_ver)
+void LoadFonts(const LoadedGame &game, GameDataVersion data_ver)
 {
     for (int i = 0; i < game.numfonts; ++i)
     {
@@ -470,7 +470,7 @@ HGameInitError InitGameState(Game &game, LoadedGame &&ents, GameDataVersion data
     HError err = InitAndRegisterGameEntities(game, ents);
     if (!err)
         return new GameInitError(kGameInitErr_EntityInitFail, err);
-    LoadFonts(game, data_ver);
+    LoadFonts(ents, data_ver);
     LoadLipsyncData();
 
     //

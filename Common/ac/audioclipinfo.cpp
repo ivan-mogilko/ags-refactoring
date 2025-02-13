@@ -11,13 +11,12 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-
-#include "ac/dynobj/scriptaudioclip.h"
+#include "ac/audioclipinfo.h"
 #include "util/stream.h"
 
 using namespace AGS::Common;
 
-void ScriptAudioClip::ReadFromFile(Stream *in)
+void AudioClipInfo::ReadFromFile(Stream *in)
 {
     id = in->ReadInt32();
     scriptName.ReadCount(in, LEGACY_AUDIOCLIP_SCRIPTNAMELENGTH);
