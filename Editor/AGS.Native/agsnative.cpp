@@ -27,7 +27,7 @@ extern "C" bool Scintilla_RegisterClasses(void *hInstance);
 #include "util/wgt2allg.h"
 #include "ac/common.h" // quit
 #include "ac/dialogtopic.h"
-#include "ac/gamesetupstruct.h"
+#include "ac/gamedata.h"
 #include "ac/spritecache.h"
 #include "ac/view.h"
 #include "font/agsfontrenderer.h"
@@ -87,10 +87,36 @@ AGSBitmap *initialize_sprite(AGS::Common::sprkey_t, AGSBitmap*, uint32_t &sprite
 
 
 std::unique_ptr<AssetManager> AssetMgr;
-int mousex = 0, mousey = 0;
 int antiAliasFonts = 0;
 RGB*palette = NULL;
-GameSetupStruct thisgame;
+
+class NativeGame : public GameBasicProperties, public GameExtendedProperties, public GameObjectData
+{
+public:
+    NativeGame() = default;
+    NativeGame(NativeGame &&game) = default;
+    // FIXME: ugly, we only move few members out of LoadedGame
+    NativeGame(LoadedGame &&loadedgame)
+    {
+        static_cast<GameBasicProperties &>(*this) = std::move(static_cast<GameBasicProperties &&>(loadedgame));
+        static_cast<GameObjectData &>(*this) = std::move(static_cast<GameObjectData &&>(loadedgame));
+        static_cast<GameExtendedProperties &>(*this) = std::move(static_cast<GameExtendedProperties &&>(loadedgame));
+
+        SpriteInfos.resize(loadedgame.SpriteFlags.size());
+        for (size_t i = 0; i < loadedgame.SpriteFlags.size(); ++i)
+        {
+            SpriteInfos[i].Flags = loadedgame.SpriteFlags[i];
+        }
+    }
+
+    NativeGame &operator =(NativeGame &&game) = default;
+
+    GameDataVersion filever = kGameVersion_Undefined;
+    std::vector<::SpriteInfo> SpriteInfos;
+};
+NativeGame thisgame;
+
+
 AGS::Common::SpriteCache::Callbacks spritecallbacks = {
     nullptr,
     initialize_sprite,
@@ -1123,12 +1149,14 @@ HAGSError reset_sprite_file(const AGSString &spritefile, const AGSString &indexf
 
 std::vector<Common::PluginInfo> thisgamePlugins;
 
-HAGSError init_game_after_import(const AGS::Common::LoadedGameEntities &ents, GameDataVersion data_ver)
+HAGSError init_game_after_import(LoadedGame &&game, GameDataVersion data_ver)
 {
-    newViews = std::move(ents.Views);
-    dialog = std::move(ents.Dialogs);
+    thisgame = NativeGame(std::move(game));
 
-    thisgamePlugins = ents.PluginInfos;
+    newViews = std::move(game.Views);
+    dialog = std::move(game.Dialogs);
+
+    thisgamePlugins = game.PluginInfos;
     for (size_t i = 0; i < thisgamePlugins.size(); ++i)
     {
         // we don't care if it's an editor-only plugin or not
@@ -1167,17 +1195,17 @@ HAGSError init_game_after_import(const AGS::Common::LoadedGameEntities &ents, Ga
 HAGSError load_dta_file_into_thisgame(const AGSString &filename)
 {
     AGS::Common::MainGameSource src;
-    AGS::Common::LoadedGameEntities ents(thisgame);
-    HGameFileError load_err = AGS::Common::OpenMainGameFile(filename, src);
+    LoadedGame game;
+    AGS::Common::HGameFileError load_err = AGS::Common::OpenMainGameFile(filename, src);
     if (load_err)
     {
-        load_err = AGS::Common::ReadGameData(ents, std::move(src.InputStream), src.DataVersion);
+        load_err = AGS::Common::ReadGameData(game, std::move(src.InputStream), src.DataVersion);
         if (load_err)
-            load_err = AGS::Common::UpdateGameData(ents, src.DataVersion);
+            load_err = AGS::Common::UpdateGameData(game, src.DataVersion);
     }
     if (!load_err)
         return HAGSError(load_err);
-    return init_game_after_import(ents, src.DataVersion);
+    return init_game_after_import(std::move(game), src.DataVersion);
 }
 
 void free_old_game_data()
@@ -1540,7 +1568,7 @@ void SaveNativeSprites(Settings^ gameSettings)
 
 void SetGameResolution(Game ^game)
 {
-    thisgame.SetGameResolution(::Size(game->Settings->CustomResolution.Width, game->Settings->CustomResolution.Height));
+    thisgame.game_resolution = ::Size(game->Settings->CustomResolution.Width, game->Settings->CustomResolution.Height);
 }
 
 void GameDirChanged(String ^workingDir)

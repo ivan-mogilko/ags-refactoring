@@ -18,7 +18,6 @@
 
 #pragma unmanaged
 
-#include "ac/gamesetupstruct.h"
 #include "font/fonts.h"
 #include "gfx/gfx_def.h"
 #include "gui/guimain.h"
@@ -30,8 +29,6 @@
 #include "util/string_utils.h"
 
 using namespace AGS::Common;
-
-extern GameSetupStruct thisgame;
 
 //=============================================================================
 // AGS.Native-specific implementation split out of acgui.h
