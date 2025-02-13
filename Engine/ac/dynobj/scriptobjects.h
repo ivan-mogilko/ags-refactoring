@@ -23,22 +23,82 @@
 #ifndef __AGS_EE_DYNOBJ__SCRIPTOBJECTS_H
 #define __AGS_EE_DYNOBJ__SCRIPTOBJECTS_H
 
-struct ScriptSimpleRef
+#include "util/string.h"
+
+class ScriptGameEntity
 {
+public:
+    virtual AGS::Common::String GetTypeName() const = 0;
+    virtual AGS::Common::String GetScriptName() const = 0;
+};
+
+class ScriptSimpleRef
+{
+public:
     int id = -1;
     int reserved = 0;
 };
 
-struct ScriptAudioChannel : public ScriptSimpleRef {};
-// NOTE: ScriptCharacter is a dummy placeholder
-struct ScriptCharacter : public ScriptSimpleRef {};
-struct ScriptDialog : public ScriptSimpleRef {};
-struct ScriptGUI : public ScriptSimpleRef {};
-struct ScriptHotspot : public ScriptSimpleRef {};
-struct ScriptInvItem : public ScriptSimpleRef {};
-struct ScriptObject : public ScriptSimpleRef {};
-struct ScriptRegion : public ScriptSimpleRef {};
-struct ScriptWalkableArea : public ScriptSimpleRef {};
-struct ScriptWalkbehind : public ScriptSimpleRef {};
+class ScriptSimpleEntity : public ScriptGameEntity, public ScriptSimpleRef
+{
+};
+
+class ScriptAudioChannel : public ScriptSimpleRef {};
+
+class ScriptDialog : public ScriptSimpleEntity
+{
+public:
+    AGS::Common::String GetTypeName() const override;
+    AGS::Common::String GetScriptName() const override;
+};
+
+class ScriptGUI : public ScriptSimpleEntity
+{
+public:
+    AGS::Common::String GetTypeName() const override;
+    AGS::Common::String GetScriptName() const override;
+};
+
+class ScriptHotspot : public ScriptSimpleEntity
+{
+public:
+    AGS::Common::String GetTypeName() const override;
+    AGS::Common::String GetScriptName() const override;
+};
+
+class ScriptInvItem : public ScriptSimpleEntity
+{
+public:
+    AGS::Common::String GetTypeName() const override;
+    AGS::Common::String GetScriptName() const override;
+};
+
+class ScriptObject : public ScriptSimpleEntity
+{
+public:
+    AGS::Common::String GetTypeName() const override;
+    AGS::Common::String GetScriptName() const override;
+};
+
+class ScriptRegion : public ScriptSimpleEntity
+{
+public:
+    AGS::Common::String GetTypeName() const override;
+    AGS::Common::String GetScriptName() const override;
+};
+
+class ScriptWalkableArea : public ScriptSimpleEntity
+{
+public:
+    AGS::Common::String GetTypeName() const override;
+    AGS::Common::String GetScriptName() const override;
+};
+
+class ScriptWalkbehind : public ScriptSimpleEntity
+{
+public:
+    AGS::Common::String GetTypeName() const override;
+    AGS::Common::String GetScriptName() const override;
+};
 
 #endif // __AGS_EE_DYNOBJ__SCRIPTOBJECTS_H

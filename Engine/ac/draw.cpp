@@ -19,8 +19,8 @@
 #include "ac/common.h"
 #include "util/compress.h"
 #include "ac/view.h"
+#include "ac/character.h"
 #include "ac/characterextras.h"
-#include "ac/characterinfo.h"
 #include "ac/display.h"
 #include "ac/draw.h"
 #include "ac/draw_software.h"
@@ -76,7 +76,6 @@ extern int in_new_room;
 extern RoomObject*objs;
 extern std::vector<ViewStruct> views;
 extern int displayed_room;
-extern CharacterInfo*playerchar;
 extern int eip_guinum;
 extern int cur_mode,cur_cursor;
 extern int mouse_hotx, mouse_hoty;

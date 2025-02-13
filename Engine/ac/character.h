@@ -24,6 +24,7 @@
 #include "ac/runtime_defines.h"
 #include "ac/dynobj/scriptobjects.h"
 #include "ac/dynobj/scriptoverlay.h"
+#include "game/characterclass.h"
 #include "game/viewport.h"
 #include "util/geometry.h"
 
@@ -249,7 +250,7 @@ void UpdateCharacterIdle(CharacterInfo *chi, CharacterExtras *chex, int &doing_n
 void UpdateCharacterFollower(CharacterInfo *chi, std::vector<int> &followingAsSheep, int &doing_nothing);
 void UpdateInventory();
 
-extern CharacterInfo*playerchar;
+extern Character *playerchar;
 extern int32_t _sc_PlayerCharPtr;
 
 // order of loops to turn character in circle from down to down

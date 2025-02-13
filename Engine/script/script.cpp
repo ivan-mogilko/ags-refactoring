@@ -49,7 +49,6 @@ extern Game game;
 extern int gameHasBeenRestored, displayed_room;
 extern unsigned int load_new_game;
 extern RoomObject*objs;
-extern CharacterInfo*playerchar;
 extern bool logScriptTOC;
 
 ExecutingScript scripts[MAX_SCRIPT_AT_ONCE];

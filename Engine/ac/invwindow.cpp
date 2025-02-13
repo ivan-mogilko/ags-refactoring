@@ -43,7 +43,6 @@ using namespace AGS::Engine;
 extern Game game;
 extern ScriptInvItem scrInv[MAX_INV];
 extern SpriteCache spriteset;
-extern CharacterInfo*playerchar;
 extern AGSPlatformDriver *platform;
 extern CCCharacter ccDynamicCharacter;
 extern CCInventory ccDynamicInv;

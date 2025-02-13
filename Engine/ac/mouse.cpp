@@ -13,7 +13,7 @@
 //=============================================================================
 #include "ac/mouse.h"
 #include "ac/common.h"
-#include "ac/characterinfo.h"
+#include "ac/character.h"
 #include "ac/draw.h"
 #include "ac/dynobj/scriptmouse.h"
 #include "ac/dynobj/scriptsystem.h"
@@ -42,7 +42,6 @@ using namespace AGS::Engine;
 extern Game game;
 extern ScriptSystem scsystem;
 extern SpriteCache spriteset;
-extern CharacterInfo*playerchar;
 extern IGraphicsDriver *gfxDriver;
 
 ScriptMouse scmouse;

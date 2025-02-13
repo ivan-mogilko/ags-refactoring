@@ -58,7 +58,6 @@ class DialogOptions;
 
 extern Game game;
 extern int in_new_room;
-extern CharacterInfo*playerchar;
 extern SpriteCache spriteset;
 extern AGSPlatformDriver *platform;
 extern int cur_mode,cur_cursor;

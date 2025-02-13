@@ -15,9 +15,10 @@
 #define __AC_SCRIPTCAMERA_H
 
 #include "ac/dynobj/cc_agsdynamicobject.h"
+#include "ac/dynobj/scriptobjects.h"
 
 // ScriptCamera keeps a reference to actual room Camera in script.
-struct ScriptCamera final : AGSCCDynamicObject
+class ScriptCamera final : public ScriptGameEntity, public AGSCCDynamicObject
 {
 public:
     ScriptCamera(int id);
@@ -28,9 +29,14 @@ public:
     // Reset camera index to indicate that this reference is no longer valid
     void Invalidate() { _id = -1; }
 
+    // AGSCCDynamicObject implementation
     const char *GetType() override;
     int Dispose(void *address, bool force) override;
     void Unserialize(int index, AGS::Common::Stream *in, size_t data_sz) override;
+
+    // ScriptGameEntity implementation
+    AGS::Common::String GetTypeName() const override;
+    AGS::Common::String GetScriptName() const override;
 
 protected:
     // Calculate and return required space for serialization, in bytes

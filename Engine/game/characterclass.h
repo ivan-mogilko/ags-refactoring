@@ -19,13 +19,24 @@
 #ifndef __AGS_EE_GAME__CHARACTERCLASS_H
 #define __AGS_EE_GAME__CHARACTERCLASS_H
 #include "ac/characterinfo.h"
+#include "ac/dynobj/scriptobjects.h"
 
-class Character : public CharacterInfo
+class Character : public ScriptGameEntity, public CharacterInfo
 {
 public:
     Character(const CharacterInfo &chinfo)
         : CharacterInfo(chinfo)
     {}
+
+    AGS::Common::String GetTypeName() const override
+    {
+        return "Character";
+    }
+
+    AGS::Common::String GetScriptName() const override
+    {
+        return scrname;
+    }
 };
 
 #endif // __AGS_EE_GAME__CHARACTERCLASS_H

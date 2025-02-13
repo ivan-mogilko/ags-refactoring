@@ -87,7 +87,7 @@ extern CCInventory ccDynamicInv;
 //--------------------------------
 
 
-CharacterInfo*playerchar;
+Character *playerchar;
 int32_t _sc_PlayerCharPtr = 0;
 int char_lowest_yp;
 

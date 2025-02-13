@@ -49,6 +49,16 @@ void ScriptViewport::Unserialize(int index, Stream *in, size_t /*data_sz*/)
     ccRegisterUnserializedObject(index, this, this);
 }
 
+String ScriptViewport::GetTypeName() const
+{
+    return "Viewport";
+}
+
+String ScriptViewport::GetScriptName() const
+{
+    return {};
+}
+
 ScriptViewport *Viewport_Unserialize(int handle, Stream *in, size_t /*data_sz*/)
 {
     // The way it works now, we must not create a new script object,

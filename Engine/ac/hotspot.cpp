@@ -37,7 +37,6 @@ extern RoomStruct thisroom;
 extern RoomStatus*croom;
 extern ScriptHotspot scrHotspot[MAX_ROOM_HOTSPOTS];
 extern CCHotspot ccDynamicHotspot;
-extern CharacterInfo *playerchar;
 
 bool AssertHotspot(const char *apiname, int hot_id)
 {

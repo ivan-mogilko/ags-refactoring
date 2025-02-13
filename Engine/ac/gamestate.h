@@ -44,9 +44,9 @@ namespace AGS
     namespace Engine { struct RestoredData; }
 }
 using namespace AGS; // FIXME later
-struct ScriptViewport;
-struct ScriptCamera;
-struct ScriptOverlay;
+class ScriptViewport;
+class ScriptCamera;
+class ScriptOverlay;
 
 // GameState struct's runtime save format
 // This is a length limit for serialized field,

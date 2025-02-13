@@ -18,7 +18,7 @@
 
 #include <stdio.h>
 #include "ac/common.h"
-#include "ac/characterinfo.h"
+#include "ac/character.h"
 #include "ac/game.h"
 #include "ac/gamesetup.h"
 #include "ac/gamestate.h"
@@ -43,7 +43,6 @@ using namespace AGS::Engine;
 
 extern int displayed_room;
 extern Game game;
-extern CharacterInfo*playerchar;
 
 void start_game_load_savegame_on_startup(const String &load_save)
 {

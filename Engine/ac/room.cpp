@@ -84,7 +84,6 @@ extern ScriptObject scrObj[MAX_ROOM_OBJECTS];
 extern SpriteCache spriteset;
 extern int in_new_room, new_room_was;  // 1 in new room, 2 first time in new room, 3 loading saved game
 extern int in_leaves_screen;
-extern CharacterInfo*playerchar;
 extern std::vector<CharacterExtras> charextra;
 extern int starting_room;
 extern unsigned int loopcounter;

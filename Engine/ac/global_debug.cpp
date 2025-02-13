@@ -43,7 +43,6 @@ using namespace AGS::Engine;
 
 extern Game game;
 extern RoomStruct thisroom;
-extern CharacterInfo*playerchar;
 
 extern IGraphicsDriver *gfxDriver;
 extern SpriteCache spriteset;

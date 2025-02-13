@@ -22,6 +22,17 @@
 
 using namespace AGS::Common;
 
+void ScriptOverlay::Remove()
+{
+    if (overlayId < 0)
+    {
+        debug_script_warn("Overlay.Remove: overlay is invalid, could have been removed earlier.");
+        return;
+    }
+    remove_screen_overlay(overlayId);
+    overlayId = -1;
+}
+
 int ScriptOverlay::Dispose(void* /*address*/, bool force)
 {
     // since the managed object is being deleted, remove the
@@ -48,7 +59,8 @@ int ScriptOverlay::Dispose(void* /*address*/, bool force)
     return 1;
 }
 
-const char *ScriptOverlay::GetType() {
+const char *ScriptOverlay::GetType()
+{
     return "Overlay";
 }
 
@@ -72,13 +84,12 @@ void ScriptOverlay::Unserialize(int index, Stream *in, size_t /*data_sz*/) {
     ccRegisterUnserializedObject(index, this, this);
 }
 
-void ScriptOverlay::Remove() 
+String ScriptOverlay::GetTypeName() const
 {
-    if (overlayId < 0)
-    {
-        debug_script_warn("Overlay.Remove: overlay is invalid, could have been removed earlier.");
-        return;
-    }
-    remove_screen_overlay(overlayId);
-    overlayId = -1;
+    return "Overlay";
+}
+
+String ScriptOverlay::GetScriptName() const
+{
+    return {};
 }

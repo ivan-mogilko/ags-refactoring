@@ -49,6 +49,16 @@ void ScriptCamera::Unserialize(int index, Stream *in, size_t /*data_sz*/)
     ccRegisterUnserializedObject(index, this, this);
 }
 
+String ScriptCamera::GetTypeName() const
+{
+    return "Camera";
+}
+
+String ScriptCamera::GetScriptName() const
+{
+    return {};
+}
+
 ScriptCamera *Camera_Unserialize(int handle, Stream *in, size_t /*data_sz*/)
 {
     // The way it works now, we must not create a new script object,

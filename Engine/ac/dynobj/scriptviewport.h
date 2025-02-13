@@ -11,14 +11,14 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-
 #ifndef __AC_SCRIPTVIEWPORT_H
 #define __AC_SCRIPTVIEWPORT_H
 
 #include "ac/dynobj/cc_agsdynamicobject.h"
+#include "ac/dynobj/scriptobjects.h"
 
 // ScriptViewport keeps a reference to actual room Viewport in script.
-struct ScriptViewport final : AGSCCDynamicObject
+class ScriptViewport final : public ScriptGameEntity, public AGSCCDynamicObject
 {
 public:
     ScriptViewport(int id);
@@ -28,9 +28,14 @@ public:
     // Reset viewport index to indicate that this reference is no longer valid
     void Invalidate() { _id = -1; }
 
+    // AGSCCDynamicObject implementation
     const char *GetType() override;
     int Dispose(void *address, bool force) override;
     void Unserialize(int index, AGS::Common::Stream *in, size_t data_sz) override;
+
+    // ScriptGameEntity implementation
+    AGS::Common::String GetTypeName() const override;
+    AGS::Common::String GetScriptName() const override;
 
 protected:
     // Calculate and return required space for serialization, in bytes

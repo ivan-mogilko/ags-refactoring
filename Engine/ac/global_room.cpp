@@ -33,7 +33,6 @@ using namespace Common;
 
 extern Game game;
 extern RoomStatus *croom;
-extern CharacterInfo*playerchar;
 extern int displayed_room;
 extern int in_enters_screen;
 extern int in_leaves_screen;

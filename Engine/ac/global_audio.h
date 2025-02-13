@@ -21,7 +21,7 @@ int     IsSpeechVoxAvailable();
 int     IsMusicVoxAvailable ();
 
 struct CharacterInfo;
-struct ScriptAudioChannel;
+class ScriptAudioChannel;
 // Starts voice-over playback and returns audio channel it is played on;
 // as_speech flag determines whether engine should apply speech-related logic
 // as well, such as temporary volume reduction.

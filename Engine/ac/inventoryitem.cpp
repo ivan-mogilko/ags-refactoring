@@ -12,7 +12,7 @@
 //
 //=============================================================================
 #include "ac/inventoryitem.h"
-#include "ac/characterinfo.h"
+#include "ac/character.h"
 #include "ac/gamestate.h"
 #include "ac/global_translation.h"
 #include "ac/gui.h"
@@ -33,7 +33,6 @@ using namespace AGS::Engine;
 extern Game game;
 extern ScriptInvItem scrInv[MAX_INV];
 extern int cur_cursor;
-extern CharacterInfo*playerchar;
 extern CCInventory ccDynamicInv;
 
 

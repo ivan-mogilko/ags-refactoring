@@ -22,6 +22,7 @@
 #include "script/script_runtime.h"
 #include "ac/audiochannel.h"
 #include "ac/audioclip.h"
+#include "ac/character.h"
 #include "ac/game.h"
 #include "ac/gamesetup.h"
 #include "ac/path_helper.h"
@@ -81,7 +82,6 @@ void AudioChans::DeleteClipOnChannel(int index)
 
 extern Game game;
 extern RoomStruct thisroom;
-extern CharacterInfo*playerchar;
 extern CCAudioChannel ccDynamicAudio;
 
 extern volatile int switching_away_from_game;

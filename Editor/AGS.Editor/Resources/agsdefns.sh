@@ -816,6 +816,11 @@ builtin managed struct Walkbehind;
 builtin managed struct Pathfinder;
 #endif // SCRIPT_API_v400
 
+builtin managed struct GameEntity {
+  import readonly attribute String TypeName;
+  import readonly attribute String ScriptName;
+};
+
 builtin struct Room {
   /// Gets a custom text property associated with this room.
   import static String GetTextProperty(const string property);
@@ -1145,7 +1150,7 @@ builtin managed struct File {
   int reserved[2];   // $AUTOCOMPLETEIGNORE$
 };
 
-builtin managed struct InventoryItem {
+builtin managed struct InventoryItem extends GameEntity {
   /// Returns the inventory item at the specified location.
   import static InventoryItem* GetAtScreenXY(int x, int y);    // $AUTOCOMPLETESTATICONLY$
 #ifdef SCRIPT_API_v361
@@ -1173,13 +1178,13 @@ builtin managed struct InventoryItem {
   import bool SetTextProperty(const string property, const string value);
 #ifdef SCRIPT_API_v361
   /// Gets the script name of the inventory item.
-  import readonly attribute String ScriptName;
+  //import readonly attribute String ScriptName;
 #endif // SCRIPT_API_v361
 
   readonly int reserved[2];   // $AUTOCOMPLETEIGNORE$
 };
 
-builtin managed struct Overlay {
+builtin managed struct Overlay extends GameEntity {
 #ifdef SCRIPT_API_v360
   /// Creates an overlay that displays a sprite.
   import static Overlay* CreateGraphical(int x, int y, int slot, bool clone = false);  // $AUTOCOMPLETESTATICONLY$
@@ -1458,7 +1463,7 @@ builtin managed struct Character;
 builtin managed struct TextWindowGUI;
 #endif // SCRIPT_API_v350
 
-builtin managed struct GUIControl {
+builtin managed struct GUIControl extends GameEntity {
   /// Brings this control to the front of the z-order, in front of all other controls.
   import void BringToFront();
   /// Gets the GUI Control that is visible at the specified location on the screen, or null.
@@ -1510,7 +1515,7 @@ builtin managed struct GUIControl {
 #endif // SCRIPT_API_v360
 #ifdef SCRIPT_API_v361
   /// Gets the script name of this control.
-  import readonly attribute String ScriptName;
+  //import readonly attribute String ScriptName;
 #endif // SCRIPT_API_v361
 #ifdef SCRIPT_API_v400
   /// Gets an integer custom property for this GUI.
@@ -1691,7 +1696,7 @@ builtin managed struct ListBox extends GUIControl {
 #endif // SCRIPT_API_v350
 };
 
-builtin managed struct GUI {
+builtin managed struct GUI extends GameEntity {
   /// Moves the GUI to be centred on the screen.
   import void Centre();
   /// Gets the topmost GUI visible on the screen at the specified co-ordinates.
@@ -1749,7 +1754,7 @@ builtin managed struct GUI {
 #endif // SCRIPT_API_v351
 #ifdef SCRIPT_API_v361
   /// Gets the script name of this GUI.
-  import readonly attribute String ScriptName;
+  //import readonly attribute String ScriptName;
 #endif // SCRIPT_API_v361
 #ifdef SCRIPT_API_v399
   /// Gets/sets the blending mode for this GUI.
@@ -1789,7 +1794,7 @@ builtin managed struct TextWindowGUI extends GUI {
 };
 #endif // SCRIPT_API_v350
 
-builtin managed struct Hotspot {
+builtin managed struct Hotspot extends GameEntity {
   /// Gets the hotspot that is at the specified position on the screen.
   import static Hotspot* GetAtScreenXY(int x, int y);    // $AUTOCOMPLETESTATICONLY$
 #ifdef SCRIPT_API_v361
@@ -1827,13 +1832,13 @@ builtin managed struct Hotspot {
 #endif // SCRIPT_API_v360
 #ifdef SCRIPT_API_v361
   /// Gets the script name of this hotspot.
-  import readonly attribute String ScriptName;
+  //import readonly attribute String ScriptName;
 #endif // SCRIPT_API_v361
 
   int reserved[2];   // $AUTOCOMPLETEIGNORE$
 };
 
-builtin managed struct Region {
+builtin managed struct Region extends GameEntity {
   /// Returns the region at the specified position within this room.
   import static Region* GetAtRoomXY(int x, int y);    // $AUTOCOMPLETESTATICONLY$
   /// Runs the event handler for the specified event for this region.
@@ -1880,7 +1885,7 @@ builtin managed struct Region {
 };
 
 #ifdef SCRIPT_API_v400
-builtin managed struct WalkableArea {
+builtin managed struct WalkableArea extends GameEntity {
   /// Gets the walkable area at the specified position on the screen.
   import static WalkableArea* GetAtScreenXY(int x, int y);    // $AUTOCOMPLETESTATICONLY$
   /// Returns the walkable area at the specified position within this room.
@@ -1912,7 +1917,7 @@ builtin managed struct WalkableArea {
 #endif // SCRIPT_API_v400
 
 #ifdef SCRIPT_API_v400
-builtin managed struct Walkbehind {
+builtin managed struct Walkbehind extends GameEntity {
   /// Gets the walk-behind at the specified position on the screen.
   import static Walkbehind* GetAtScreenXY(int x, int y);    // $AUTOCOMPLETESTATICONLY$
   /// Returns the walk-behind at the specified position within this room.
@@ -1926,7 +1931,7 @@ builtin managed struct Walkbehind {
 };
 #endif // SCRIPT_API_v400
 
-builtin managed struct Dialog {
+builtin managed struct Dialog extends GameEntity {
 #ifdef SCRIPT_API_v361
   import static Dialog* GetByName(const string scriptName); // $AUTOCOMPLETESTATICONLY$
 #endif // SCRIPT_API_v361
@@ -1952,7 +1957,7 @@ builtin managed struct Dialog {
   import void SetHasOptionBeenChosen(int option, bool chosen);
 #ifdef SCRIPT_API_v361
   /// Gets the script name of this dialog.
-  import readonly attribute String ScriptName;
+  //import readonly attribute String ScriptName;
 #endif // SCRIPT_API_v361
 #ifdef SCRIPT_API_v362
   /// Gets the currently running dialog, returns null if no dialog is run
@@ -2106,7 +2111,7 @@ builtin managed struct AudioChannel {
 #endif // SCRIPT_API_v36026
 };
 
-builtin managed struct AudioClip {
+builtin managed struct AudioClip extends GameEntity {
 #ifdef SCRIPT_API_v361
   import static AudioClip* GetByName(const string scriptName); // $AUTOCOMPLETESTATICONLY$
 #endif // SCRIPT_API_v361
@@ -2134,7 +2139,7 @@ builtin managed struct AudioClip {
 #endif // SCRIPT_API_v350
 #ifdef SCRIPT_API_v361
   /// Gets the script name of this clip.
-  import readonly attribute String ScriptName;
+  //import readonly attribute String ScriptName;
 #endif // SCRIPT_API_v361
 #ifdef SCRIPT_API_v400
   /// Gets an integer custom property for this item.
@@ -2231,7 +2236,7 @@ builtin struct System {
 #endif // SCRIPT_API_v362
 };
 
-builtin managed struct Object {
+builtin managed struct Object extends GameEntity {
   /// Animates the object using its current view.
   import void Animate(int loop, int delay, RepeatStyle=eOnce, BlockingStyle=eBlock, Direction=eForwards
 #ifdef SCRIPT_API_v3507
@@ -2342,7 +2347,7 @@ builtin managed struct Object {
   /// Gets/sets the volume modifier (0-100) of frame-linked sounds for this object.
   import attribute int  AnimationVolume;
   /// Gets the script name of this object.
-  import readonly attribute String ScriptName;
+  //import readonly attribute String ScriptName;
 #endif // SCRIPT_API_v361
 #ifdef SCRIPT_API_v362
   /// Gets the X coordinate of the object's final moving destination; or current position if object is not moving.
@@ -2375,7 +2380,7 @@ enum StopMovementStyle
   eStopMoving = 1
 };
 
-builtin managed struct Character {
+builtin managed struct Character extends GameEntity {
   /// Adds the specified item to the character's inventory.
   import void AddInventory(InventoryItem *item, int addAtIndex=SCR_NO_VALUE);
   /// Manually adds a waypoint to the character's movement path.
@@ -2593,7 +2598,7 @@ builtin managed struct Character {
 #endif // SCRIPT_API_v360
 #ifdef SCRIPT_API_v361
   /// Gets the script name of this character.
-  import readonly attribute String ScriptName;
+  //import readonly attribute String ScriptName;
 #endif // SCRIPT_API_v361
 #ifdef SCRIPT_API_v362
   /// Moves the character in a straight line as far as possible towards the co-ordinates, without walking animation. Useful for keyboard movement.
@@ -2902,7 +2907,7 @@ builtin struct Speech {
 };
 
 #ifdef SCRIPT_API_v3507
-builtin managed struct Camera {
+builtin managed struct Camera extends GameEntity {
   /// Gets/sets the X position of this camera in the room.
   import attribute int X;
   /// Gets/sets the Y position of this camera in the room.
@@ -2929,7 +2934,7 @@ builtin managed struct Camera {
   import void SetSize(int width, int height);
 };
 
-builtin managed struct Viewport {
+builtin managed struct Viewport extends GameEntity {
   /// Gets/sets the X position on the screen where this viewport is located.
   import attribute int X;
   /// Gets/sets the Y position on the screen where this viewport is located.

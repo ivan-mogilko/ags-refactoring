@@ -13,15 +13,25 @@
 //=============================================================================
 #ifndef __AGS_EE_AC_DYNOBJ__SCRIPTAUDIOCLIP_H
 #define __AGS_EE_AC_DYNOBJ__SCRIPTAUDIOCLIP_H
-
 #include "ac/audioclipinfo.h"
+#include "ac/dynobj/scriptobjects.h"
 
-class ScriptAudioClip : public AudioClipInfo
+class ScriptAudioClip : public ScriptGameEntity, public AudioClipInfo
 {
 public:
     ScriptAudioClip(const AudioClipInfo &info)
         : AudioClipInfo(info)
     {}
+
+    AGS::Common::String GetTypeName() const override
+    {
+        return "AudioClip";
+    }
+
+    AGS::Common::String GetScriptName() const override
+    {
+        return scriptName;
+    }
 };
 
 #endif // __AGS_EE_AC_DYNOBJ__SCRIPTAUDIOCLIP_H

@@ -62,7 +62,6 @@ extern int cur_mode,cur_cursor;
 extern std::vector<ScriptGUI> scrGui;
 std::vector<std::vector<int>> StaticGUIControlsHandles;
 extern Game game;
-extern CCGUIObject ccDynamicGUIObject;
 extern IGraphicsDriver *gfxDriver;
 
 extern CCGUI ccDynamicGUI;

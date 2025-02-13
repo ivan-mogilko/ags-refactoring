@@ -15,17 +15,24 @@
 #define __AC_SCRIPTOVERLAY_H
 
 #include "ac/dynobj/cc_agsdynamicobject.h"
+#include "ac/dynobj/scriptobjects.h"
 
-struct ScriptOverlay final : AGSCCDynamicObject
+class ScriptOverlay final : public ScriptGameEntity, public AGSCCDynamicObject
 {
 public:
     int overlayId = -1;
 
+    ScriptOverlay() = default;
+    void Remove();
+
+    // AGSCCDynamicObject implementation
     int Dispose(void *address, bool force) override;
     const char *GetType() override;
     void Unserialize(int index, AGS::Common::Stream *in, size_t data_sz) override;
-    void Remove();
-    ScriptOverlay() = default;
+
+    // ScriptGameEntity implementation
+    AGS::Common::String GetTypeName() const override;
+    AGS::Common::String GetScriptName() const override;
 
 protected:
     // Calculate and return required space for serialization, in bytes

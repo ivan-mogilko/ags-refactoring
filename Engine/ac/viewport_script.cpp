@@ -15,7 +15,6 @@
 // Viewport and Camera script API.
 //
 //=============================================================================
-
 #include "ac/dynobj/scriptcamera.h"
 #include "ac/dynobj/scriptviewport.h"
 #include "ac/dynobj/scriptuserobject.h"

@@ -495,6 +495,7 @@
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptgame.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptmouse.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptjoystick.cpp" />
+    <ClCompile Include="..\..\Engine\ac\dynobj\scriptobjects.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptoverlay.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptpathfinder.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\scriptstring.cpp" />
@@ -507,6 +508,7 @@
     <ClCompile Include="..\..\Engine\ac\event.cpp" />
     <ClCompile Include="..\..\Engine\ac\file.cpp" />
     <ClCompile Include="..\..\Engine\ac\game.cpp" />
+    <ClCompile Include="..\..\Engine\ac\gameentity_script.cpp" />
     <ClCompile Include="..\..\Engine\ac\joystick.cpp" />
     <ClCompile Include="..\..\Engine\ac\gamestate.cpp" />
     <ClCompile Include="..\..\Engine\ac\global_api.cpp" />

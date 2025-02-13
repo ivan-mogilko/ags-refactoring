@@ -12,6 +12,7 @@
 //
 //=============================================================================
 #include <algorithm>
+#include "ac/character.h"
 #include "ac/draw.h"
 #include "ac/game_version.h"
 #include "ac/gamestate.h"
@@ -35,7 +36,6 @@ using namespace AGS::Engine;
 
 extern Game game;
 extern RoomStruct thisroom;
-extern CharacterInfo *playerchar;
 extern ScriptSystem scsystem;
 
 GamePlayState::GamePlayState()
