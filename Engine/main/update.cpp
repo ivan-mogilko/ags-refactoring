@@ -51,7 +51,7 @@ extern RoomStatus*croom;
 extern RoomStruct thisroom;
 extern RoomObject*objs;
 extern std::vector<ViewStruct> views;
-extern CharacterInfo *facetalkchar;
+extern Character *facetalkchar;
 extern int face_talking,facetalkview,facetalkwait,facetalkframe;
 extern int facetalkloop, facetalkrepeat, facetalkAllowBlink;
 extern int facetalkBlinkLoop;
@@ -161,24 +161,23 @@ void update_player_view()
 
 void update_character_move_and_anim(std::vector<int> &followingAsSheep)
 {
-	// move & animate characters
+  // move & animate characters
   for (int aa=0;aa<game.numcharacters;aa++) {
     if (!game.chars[aa].is_enabled()) continue;
 
-    CharacterInfo*chi    = &game.chars[aa];
-	CharacterExtras*chex = &charextra[aa];
+    Character *chi = &game.chars[aa];
+    CharacterExtras *chex = &charextra[aa];
 
-	UpdateCharacterMoveAndAnim(chi, chex, followingAsSheep);
+    UpdateCharacterMoveAndAnim(chi, chex, followingAsSheep);
   }
 }
 
 void update_following_exactly_characters(const std::vector<int> &followingAsSheep)
 {
-	// update location of all following_exactly characters
+  // update location of all following_exactly characters
   for (size_t i = 0; i < followingAsSheep.size(); ++i) {
-    CharacterInfo *chi = &game.chars[followingAsSheep[i]];
-
-	UpdateFollowingExactlyCharacter(chi);
+    Character *chi = &game.chars[followingAsSheep[i]];
+    UpdateFollowingExactlyCharacter(chi);
   }
 }
 

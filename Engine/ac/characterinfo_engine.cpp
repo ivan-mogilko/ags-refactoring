@@ -60,7 +60,7 @@ int CharacterInfo::get_blocking_bottom() const {
 // Tests if frame reached or exceeded the loop, and resets frame back
 // to either 1st walking frame if character is walking, or frame 0 otherwise
 // (or if there's less than 2 frames in the current loop).
-static void ResetFrameIfAtEnd(CharacterInfo *chi)
+static void ResetFrameIfAtEnd(Character *chi)
 {
     const int frames_in_loop = views[chi->view].loops[chi->loop].numFrames;
     if (chi->frame >= frames_in_loop)
@@ -70,7 +70,7 @@ static void ResetFrameIfAtEnd(CharacterInfo *chi)
 }
 
 // Fixups loop and frame values, in case any of them are set to a value out of the valid range
-static void FixupCharacterLoopAndFrame(CharacterInfo *chi)
+static void FixupCharacterLoopAndFrame(Character *chi)
 {
     // If current loop property exceeds number of loops,
     // or if selected loop has no frames, then try select any first loop that has frames.
@@ -95,7 +95,7 @@ static void FixupCharacterLoopAndFrame(CharacterInfo *chi)
     ResetFrameIfAtEnd(chi); // test, in case new loop has less frames
 }
 
-void UpdateCharacterMoveAndAnim(CharacterInfo *chi, CharacterExtras *chex, std::vector<int> &followingAsSheep)
+void UpdateCharacterMoveAndAnim(Character *chi, CharacterExtras *chex, std::vector<int> &followingAsSheep)
 {
 	if (!chi->is_enabled())
         return;
@@ -121,7 +121,7 @@ void UpdateCharacterMoveAndAnim(CharacterInfo *chi, CharacterExtras *chex, std::
     chex->process_idle_this_time = 0;
 }
 
-void UpdateFollowingExactlyCharacter(CharacterInfo *chi)
+void UpdateFollowingExactlyCharacter(Character *chi)
 {
     const auto &following = game.chars[charextra[chi->index_id].following];
     chi->x = following.x;
@@ -137,7 +137,7 @@ void UpdateFollowingExactlyCharacter(CharacterInfo *chi)
       chi->baseline = usebase + 1;
 }
 
-bool UpdateCharacterTurning(CharacterInfo *chi, CharacterExtras *chex)
+bool UpdateCharacterTurning(Character *chi, CharacterExtras *chex)
 {
     if (chi->walking >= TURNING_AROUND) {
       const int view = chi->view;
@@ -185,7 +185,7 @@ bool UpdateCharacterTurning(CharacterInfo *chi, CharacterExtras *chex)
 	return false;
 }
 
-void UpdateCharacterMoving(CharacterInfo *chi, CharacterExtras *chex, int &doing_nothing)
+void UpdateCharacterMoving(Character *chi, CharacterExtras *chex, int &doing_nothing)
 {
 	if (chi->is_moving() && (chi->room == displayed_room))
     {
@@ -278,7 +278,7 @@ void UpdateCharacterMoving(CharacterInfo *chi, CharacterExtras *chex, int &doing
     }
 }
 
-bool UpdateCharacterAnimating(CharacterInfo *chi, CharacterExtras *chex, int &doing_nothing)
+bool UpdateCharacterAnimating(Character *chi, CharacterExtras *chex, int &doing_nothing)
 {
 	// not moving, but animating
     // idleleft is <0 while idle view is playing (.animating is 0)
@@ -367,7 +367,7 @@ bool UpdateCharacterAnimating(CharacterInfo *chi, CharacterExtras *chex, int &do
 	return false;
 }
 
-void UpdateCharacterFollower(CharacterInfo *chi, std::vector<int> &followingAsSheep, int &doing_nothing)
+void UpdateCharacterFollower(Character *chi, std::vector<int> &followingAsSheep, int &doing_nothing)
 {
     const CharacterExtras *chex = &charextra[chi->index_id];
     const int following = chex->following;
@@ -451,7 +451,7 @@ void UpdateCharacterFollower(CharacterInfo *chi, std::vector<int> &followingAsSh
     }
 }
 
-void UpdateCharacterIdle(CharacterInfo *chi, CharacterExtras *chex, int &doing_nothing)
+void UpdateCharacterIdle(Character *chi, CharacterExtras *chex, int &doing_nothing)
 {
 	// no idle animation, so skip this bit
     if (chi->idleview < 1) ;

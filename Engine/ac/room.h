@@ -15,7 +15,7 @@
 #define __AGS_EE_AC__ROOM_H
 
 #include "ac/dynobj/scriptdrawingsurface.h"
-#include "ac/characterinfo.h"
+#include "ac/character.h"
 #include "ac/route_finder.h"
 #include "script/runtimescriptvalue.h"
 #include "game/roomstruct.h"
@@ -42,8 +42,8 @@ ScriptDrawingSurface *Region_GetDrawingSurface();
 
 void  save_room_data_segment ();
 void  unload_old_room();
-void  load_new_room(int newnum,CharacterInfo*forchar);
-void  new_room(int newnum,CharacterInfo*forchar);
+void  load_new_room(int newnum, Character *forchar);
+void  new_room(int newnum, Character *forchar);
 // Sets up a placeholder room object; this is used to avoid occasional crashes
 // in case an API function was called that needs to access a room, while no real room is loaded
 void  set_room_placeholder();

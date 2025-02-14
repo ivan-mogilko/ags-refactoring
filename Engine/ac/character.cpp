@@ -98,7 +98,7 @@ int char_speaking = -1, char_speaking_anim = -1, char_thinking = -1;
 int face_talking=-1,facetalkview=0,facetalkwait=0,facetalkframe=0;
 int facetalkloop=0, facetalkrepeat = 0, facetalkAllowBlink = 1;
 int facetalkBlinkLoop = 0;
-CharacterInfo *facetalkchar = nullptr;
+Character *facetalkchar = nullptr;
 // Do override default portrait position during QFG4-style speech overlay update
 bool facetalk_qfg4_override_placement_x = false;
 bool facetalk_qfg4_override_placement_y = false;
@@ -117,7 +117,7 @@ bool is_valid_character(int char_id)
 }
 
 // Checks if character is currently playing idle anim, and reset it
-static void stop_character_idling(CharacterInfo *chi)
+static void stop_character_idling(Character *chi)
 {
     if (chi->idleleft < 0)
     {
@@ -134,7 +134,7 @@ bool AssertCharacter(const char *apiname, int char_id)
     return false;
 }
 
-void Character_AddInventory(CharacterInfo *chaa, ScriptInvItem *invi, int addIndex) {
+void Character_AddInventory(Character *chaa, ScriptInvItem *invi, int addIndex) {
     int ee;
 
     if (invi == nullptr)
@@ -182,7 +182,7 @@ void Character_AddInventory(CharacterInfo *chaa, ScriptInvItem *invi, int addInd
         run_on_event(kScriptEvent_InventoryAdd, inum);
 }
 
-void Character_AddWaypoint(CharacterInfo *chaa, int x, int y) {
+void Character_AddWaypoint(Character *chaa, int x, int y) {
 
     if (chaa->room != displayed_room)
         quitprintf("!MoveCharacterPath: character %s is not in current room %d (it is in room %d)",
@@ -211,7 +211,7 @@ void Character_AddWaypoint(CharacterInfo *chaa, int x, int y) {
     Pathfinding::AddWaypointDirect(cmls, x, y, move_speed_x, move_speed_y);
 }
 
-void Character_Animate(CharacterInfo *chaa, int loop, int delay, int repeat,
+void Character_Animate(Character *chaa, int loop, int delay, int repeat,
     int blocking, int direction, int sframe, int volume)
 {
     // If idle view in progress for the character, stop the idle anim;
@@ -227,15 +227,15 @@ void Character_Animate(CharacterInfo *chaa, int loop, int delay, int repeat,
         GameLoopUntilValueIsZero(&chaa->animating);
 }
 
-void Character_Animate5(CharacterInfo *chaa, int loop, int delay, int repeat, int blocking, int direction) {
+void Character_Animate5(Character *chaa, int loop, int delay, int repeat, int blocking, int direction) {
     Character_Animate(chaa, loop, delay, repeat, blocking, direction, 0 /* first frame */, 100 /* full volume */);
 }
 
-void Character_Animate6(CharacterInfo *chaa, int loop, int delay, int repeat, int blocking, int direction, int sframe) {
+void Character_Animate6(Character *chaa, int loop, int delay, int repeat, int blocking, int direction, int sframe) {
     Character_Animate(chaa, loop, delay, repeat, blocking, direction, sframe, 100 /* full volume */);
 }
 
-void Character_ChangeRoomAutoPosition(CharacterInfo *chaa, int room, int newPos) 
+void Character_ChangeRoomAutoPosition(Character *chaa, int room, int newPos) 
 {
     if (chaa->index_id != game.playercharacter) 
     {
@@ -263,11 +263,11 @@ void Character_ChangeRoomAutoPosition(CharacterInfo *chaa, int room, int newPos)
     NewRoom(room);
 }
 
-void Character_ChangeRoom(CharacterInfo *chaa, int room, int x, int y) {
+void Character_ChangeRoom(Character *chaa, int room, int x, int y) {
     Character_ChangeRoomSetLoop(chaa, room, x, y, SCR_NO_VALUE);
 }
 
-void Character_ChangeRoomSetLoop(CharacterInfo *chaa, int room, int x, int y, int direction) {
+void Character_ChangeRoomSetLoop(Character *chaa, int room, int x, int y, int direction) {
 
     if (chaa->index_id != game.playercharacter) {
         // NewRoomNPC
@@ -301,7 +301,7 @@ void Character_ChangeRoomSetLoop(CharacterInfo *chaa, int room, int x, int y, in
 }
 
 
-void Character_ChangeView(CharacterInfo *chap, int vii) {
+void Character_ChangeView(Character *chap, int vii) {
     vii--;
 
     if ((vii < 0) || (vii >= game.numviews))
@@ -343,7 +343,7 @@ enum DirectionalLoop
 
 // Internal direction-facing functions
 
-float GetFaceDirRatio(CharacterInfo *chinfo)
+float GetFaceDirRatio(Character *chinfo)
 {
     CharacterExtras &chex = charextra[chinfo->index_id];
     if (chex.face_dir_ratio != 0.f)
@@ -359,7 +359,7 @@ float GetFaceDirRatio(CharacterInfo *chinfo)
     return 1.f;
 }
 
-DirectionalLoop GetDirectionalLoop(CharacterInfo *chinfo, float x_diff, float y_diff, bool move_dir_fw = true)
+DirectionalLoop GetDirectionalLoop(Character *chinfo, float x_diff, float y_diff, bool move_dir_fw = true)
 {
     DirectionalLoop next_loop = kDirLoop_Left; // NOTE: default loop was Left for some reason
 
@@ -419,7 +419,7 @@ DirectionalLoop GetDirectionalLoop(CharacterInfo *chinfo, float x_diff, float y_
     return next_loop;
 }
 
-void FaceDirectionalLoop(CharacterInfo *char1, int direction, int blockingStyle)
+void FaceDirectionalLoop(Character *char1, int direction, int blockingStyle)
 {
     // Change facing only if the desired direction is different
     if (direction != char1->loop)
@@ -455,7 +455,7 @@ void FaceDirectionalLoop(CharacterInfo *char1, int direction, int blockingStyle)
     char1->frame = 0;
 }
 
-void FaceLocationXY(CharacterInfo *char1, int xx, int yy, int blockingStyle)
+void FaceLocationXY(Character *char1, int xx, int yy, int blockingStyle)
 {
     debug_script_log("%s: Face location %d,%d", char1->scrname.GetCStr(), xx, yy);
 
@@ -472,7 +472,7 @@ void FaceLocationXY(CharacterInfo *char1, int xx, int yy, int blockingStyle)
 
 // External direction-facing functions with validation
 
-void Character_FaceDirection(CharacterInfo *char1, int direction, int blockingStyle)
+void Character_FaceDirection(Character *char1, int direction, int blockingStyle)
 {
     if (char1 == nullptr)
         quit("!FaceDirection: invalid character specified");
@@ -486,7 +486,7 @@ void Character_FaceDirection(CharacterInfo *char1, int direction, int blockingSt
     }
 }
 
-void Character_FaceLocation(CharacterInfo *char1, int xx, int yy, int blockingStyle)
+void Character_FaceLocation(Character *char1, int xx, int yy, int blockingStyle)
 {
     if (char1 == nullptr)
         quit("!FaceLocation: invalid character specified");
@@ -494,14 +494,14 @@ void Character_FaceLocation(CharacterInfo *char1, int xx, int yy, int blockingSt
     FaceLocationXY(char1, xx, yy, blockingStyle);
 }
 
-void Character_FaceObject(CharacterInfo *char1, ScriptObject *obj, int blockingStyle) {
+void Character_FaceObject(Character *char1, ScriptObject *obj, int blockingStyle) {
     if (obj == nullptr) 
         quit("!FaceObject: invalid object specified");
 
     FaceLocationXY(char1, objs[obj->id].x, objs[obj->id].y, blockingStyle);
 }
 
-void Character_FaceCharacter(CharacterInfo *char1, CharacterInfo *char2, int blockingStyle) {
+void Character_FaceCharacter(Character *char1, Character *char2, int blockingStyle) {
     if (char2 == nullptr) 
         quit("!FaceCharacter: invalid character specified");
 
@@ -512,7 +512,7 @@ void Character_FaceCharacter(CharacterInfo *char1, CharacterInfo *char2, int blo
     FaceLocationXY(char1, char2->x, char2->y, blockingStyle);
 }
 
-void Character_FollowCharacter(CharacterInfo *chaa, CharacterInfo *tofollow, int distaway, int eagerness) {
+void Character_FollowCharacter(Character *chaa, Character *tofollow, int distaway, int eagerness) {
 
     // FOLLOW_ALWAYSONTOP constant limits distaway to 32766
     if ((distaway < 0) || (distaway > FOLLOW_ALWAYSONTOP))
@@ -558,7 +558,7 @@ CharacterInfo* Character_GetFollowing(CharacterInfo* chaa)
 }
 
 int GetCharacterWidth(int charid) {
-    CharacterInfo *char1 = &game.chars[charid];
+    Character *char1 = &game.chars[charid];
 
     if (charextra[charid].width < 1)
     {
@@ -578,7 +578,7 @@ int GetCharacterWidth(int charid) {
 }
 
 int GetCharacterHeight(int charid) {
-    CharacterInfo *char1 = &game.chars[charid];
+    Character *char1 = &game.chars[charid];
 
     if (charextra[charid].height < 1)
     {
@@ -597,7 +597,7 @@ int GetCharacterHeight(int charid) {
         return charextra[charid].height;
 }
 
-int Character_IsCollidingWithChar(CharacterInfo *char1, CharacterInfo *char2) {
+int Character_IsCollidingWithChar(Character *char1, Character *char2) {
     if (char2 == nullptr)
         quit("!AreCharactersColliding: invalid char2");
 
@@ -616,7 +616,7 @@ int Character_IsCollidingWithChar(CharacterInfo *char1, CharacterInfo *char2) {
     return 0;
 }
 
-int Character_IsCollidingWithObject(CharacterInfo *chin, ScriptObject *objid) {
+int Character_IsCollidingWithObject(Character *chin, ScriptObject *objid) {
     if (objid == nullptr)
         quit("!AreCharObjColliding: invalid object number");
 
@@ -669,7 +669,7 @@ int Character_IsCollidingWithObject(CharacterInfo *chin, ScriptObject *objid) {
     return 0;
 }
 
-bool Character_IsInteractionAvailable(CharacterInfo *cchar, int mood) {
+bool Character_IsInteractionAvailable(Character *cchar, int mood) {
 
     play.check_interaction_only = 1;
     Character_RunInteraction(cchar, mood);
@@ -678,11 +678,11 @@ bool Character_IsInteractionAvailable(CharacterInfo *cchar, int mood) {
     return (ciwas == 2);
 }
 
-void Character_LockView(CharacterInfo *chap, int vii) {
+void Character_LockView(Character *chap, int vii) {
     Character_LockViewEx(chap, vii, STOP_MOVING);
 }
 
-void Character_LockViewEx(CharacterInfo *chap, int vii, int stopMoving) {
+void Character_LockViewEx(Character *chap, int vii, int stopMoving) {
     vii--; // convert to 0-based
     AssertView("SetCharacterView", vii);
 
@@ -702,7 +702,7 @@ void Character_LockViewEx(CharacterInfo *chap, int vii, int stopMoving) {
     debug_script_log("%s: View locked to %d", chap->scrname.GetCStr(), vii+1);
 }
 
-void Character_LockViewAlignedEx(CharacterInfo *chap, int vii, int loop, int align, int stopMoving) {
+void Character_LockViewAlignedEx(Character *chap, int vii, int loop, int align, int stopMoving) {
     if (chap->view < 0)
         quit("!Character.LockViewAligned: character has invalid old view number");
 
@@ -732,20 +732,20 @@ void Character_LockViewAlignedEx(CharacterInfo *chap, int vii, int loop, int ali
     chap->pic_yoffs = 0;
 }
 
-void Character_LockViewFrameEx(CharacterInfo *chaa, int view, int loop, int frame, int stopMoving) {
+void Character_LockViewFrameEx(Character *chaa, int view, int loop, int frame, int stopMoving) {
     Character_LockViewEx(chaa, view, stopMoving);
     AssertFrame("Character.LockViewFrame", view - 1, loop, frame);
     chaa->loop = loop;
     chaa->frame = frame;
 }
 
-void Character_LockViewOffsetEx(CharacterInfo *chap, int vii, int xoffs, int yoffs, int stopMoving) {
+void Character_LockViewOffsetEx(Character *chap, int vii, int xoffs, int yoffs, int stopMoving) {
     Character_LockViewEx(chap, vii, stopMoving);
     chap->pic_xoffs = xoffs;
     chap->pic_yoffs = yoffs;
 }
 
-void Character_LoseInventory(CharacterInfo *chap, ScriptInvItem *invi) {
+void Character_LoseInventory(Character *chap, ScriptInvItem *invi) {
 
     if (invi == nullptr)
         quit("!LoseInventoryFromCharacter: invalid inventory number");
@@ -780,7 +780,7 @@ void Character_LoseInventory(CharacterInfo *chap, ScriptInvItem *invi) {
         run_on_event(kScriptEvent_InventoryLose, inum);
 }
 
-void Character_PlaceOnWalkableArea(CharacterInfo *chap) 
+void Character_PlaceOnWalkableArea(Character *chap) 
 {
     if (displayed_room < 0)
         quit("!Character.PlaceOnWalkableArea: no room is currently loaded");
@@ -793,7 +793,7 @@ void Character_PlaceOnWalkableArea(CharacterInfo *chap)
     }
 }
 
-void Character_RemoveTint(CharacterInfo *chaa) {
+void Character_RemoveTint(Character *chaa) {
 
     if (chaa->flags & (CHF_HASTINT | CHF_HASLIGHT)) {
         debug_script_log("Un-tint %s", chaa->scrname.GetCStr());
@@ -804,26 +804,26 @@ void Character_RemoveTint(CharacterInfo *chaa) {
     }
 }
 
-int Character_GetHasExplicitTint_Old(CharacterInfo *ch)
+int Character_GetHasExplicitTint_Old(Character *ch)
 {
     return ch->has_explicit_tint() || ch->has_explicit_light();
 }
 
-int Character_GetHasExplicitTint(CharacterInfo *ch)
+int Character_GetHasExplicitTint(Character *ch)
 {
     return ch->has_explicit_tint();
 }
 
-void Character_Say(CharacterInfo *chaa, const char *text) {
+void Character_Say(Character *chaa, const char *text) {
     _DisplaySpeechCore(chaa->index_id, text);
 }
 
-void Character_SayAt(CharacterInfo *chaa, int x, int y, int width, const char *texx) {
+void Character_SayAt(Character *chaa, int x, int y, int width, const char *texx) {
 
     DisplaySpeechAt(x, y, width, chaa->index_id, texx);
 }
 
-ScriptOverlay* Character_SayBackground(CharacterInfo *chaa, const char *texx) {
+ScriptOverlay* Character_SayBackground(Character *chaa, const char *texx) {
 
     int ovltype = DisplaySpeechBackground(chaa->index_id, texx);
     auto *over = get_overlay(ovltype);
@@ -846,7 +846,7 @@ void SetActiveInventory(int iit) {
 }
 
 // CLNUP check the use of SetActiveInventory
-void Character_SetAsPlayer(CharacterInfo *chaa) {
+void Character_SetAsPlayer(Character *chaa) {
 
     // Set to same character, so ignore.
     if ( game.playercharacter == chaa->index_id )
@@ -877,7 +877,7 @@ void Character_SetAsPlayer(CharacterInfo *chaa) {
     }
 }
 
-void Character_SetIdleView(CharacterInfo *chaa, int iview, int itime) {
+void Character_SetIdleView(Character *chaa, int iview, int itime) {
 
     if (iview == 1) 
         quit("!SetCharacterIdle: view 1 cannot be used as an idle view, sorry.");
@@ -912,17 +912,17 @@ void Character_SetIdleView(CharacterInfo *chaa, int iview, int itime) {
 
 }
 
-bool Character_GetHasExplicitLight(CharacterInfo *ch)
+bool Character_GetHasExplicitLight(Character *ch)
 {
     return ch->has_explicit_light();
 }
 
-int Character_GetLightLevel(CharacterInfo *ch)
+int Character_GetLightLevel(Character *ch)
 {
     return ch->has_explicit_light() ? charextra[ch->index_id].tint_light : 0;
 }
 
-void Character_SetLightLevel(CharacterInfo *chaa, int light_level)
+void Character_SetLightLevel(Character *chaa, int light_level)
 {
     light_level = Math::Clamp(light_level, -100, 100);
     
@@ -931,32 +931,32 @@ void Character_SetLightLevel(CharacterInfo *chaa, int light_level)
     chaa->flags |= CHF_HASLIGHT;
 }
 
-int Character_GetTintRed(CharacterInfo *ch)
+int Character_GetTintRed(Character *ch)
 {
     return ch->has_explicit_tint() ? charextra[ch->index_id].tint_r : 0;
 }
 
-int Character_GetTintGreen(CharacterInfo *ch)
+int Character_GetTintGreen(Character *ch)
 {
     return ch->has_explicit_tint() ? charextra[ch->index_id].tint_g : 0;
 }
 
-int Character_GetTintBlue(CharacterInfo *ch)
+int Character_GetTintBlue(Character *ch)
 {
     return ch->has_explicit_tint() ? charextra[ch->index_id].tint_b : 0;
 }
 
-int Character_GetTintSaturation(CharacterInfo *ch)
+int Character_GetTintSaturation(Character *ch)
 {
     return ch->has_explicit_tint() ? charextra[ch->index_id].tint_level : 0;
 }
 
-int Character_GetTintLuminance(CharacterInfo *ch)
+int Character_GetTintLuminance(Character *ch)
 {
     return ch->has_explicit_tint() ? GfxDef::Value250ToValue100(charextra[ch->index_id].tint_light) : 0;
 }
 
-void Character_SetOption(CharacterInfo *chaa, int flag, int yesorno) {
+void Character_SetOption(Character *chaa, int flag, int yesorno) {
 
     if ((yesorno < 0) || (yesorno > 1))
         quit("!SetCharacterProperty: last parameter must be 0 or 1");
@@ -972,7 +972,7 @@ void Character_SetOption(CharacterInfo *chaa, int flag, int yesorno) {
 
 }
 
-void Character_SetSpeed(CharacterInfo *chaa, int xspeed, int yspeed) {
+void Character_SetSpeed(Character *chaa, int xspeed, int yspeed) {
 
     if ((xspeed == 0) || (yspeed == 0))
         quit("!SetCharacterSpeedEx: invalid speed value");
@@ -995,12 +995,12 @@ void Character_SetSpeed(CharacterInfo *chaa, int xspeed, int yspeed) {
     }
 }
 
-void Character_StopMoving(CharacterInfo *chi)
+void Character_StopMoving(Character *chi)
 {
     Character_StopMovingEx(chi, chi->is_moving() && (mls[chi->get_movelist_id()].move_direct == 0));
 }
 
-void Character_StopMovingEx(CharacterInfo *chi, bool force_walkable_area)
+void Character_StopMovingEx(Character *chi, bool force_walkable_area)
 {
     // If not moving, then clear the move-related flags (for safety) and bail out
     // NOTE: I recall there was a potential case when this flag could remain after Move...
@@ -1049,7 +1049,7 @@ void Character_StopMovingEx(CharacterInfo *chi, bool force_walkable_area)
     chex.process_idle_this_time = 1;
 }
 
-void Character_Tint(CharacterInfo *chaa, int red, int green, int blue, int opacity, int luminance) {
+void Character_Tint(Character *chaa, int red, int green, int blue, int opacity, int luminance) {
     if ((red < 0) || (green < 0) || (blue < 0) ||
         (red > 255) || (green > 255) || (blue > 255) ||
         (opacity < 0) || (opacity > 100) ||
@@ -1071,15 +1071,15 @@ void Character_Tint(CharacterInfo *chaa, int red, int green, int blue, int opaci
     chaa->flags |= CHF_HASTINT;
 }
 
-void Character_Think(CharacterInfo *chaa, const char *text) {
+void Character_Think(Character *chaa, const char *text) {
     _DisplayThoughtCore(chaa->index_id, text);
 }
 
-void Character_UnlockView(CharacterInfo *chaa) {
+void Character_UnlockView(Character *chaa) {
     Character_UnlockViewEx(chaa, STOP_MOVING);
 }
 
-void Character_UnlockViewEx(CharacterInfo *chaa, int stopMoving) {
+void Character_UnlockViewEx(Character *chaa, int stopMoving) {
     if (chaa->flags & CHF_FIXVIEW) {
         debug_script_log("%s: Released view back to default", chaa->scrname.GetCStr());
     }
@@ -1106,7 +1106,7 @@ void Character_UnlockViewEx(CharacterInfo *chaa, int stopMoving) {
 }
 
 // Tests if the given character is permitted to start a move in the room
-bool ValidateCharForMove(CharacterInfo *chaa, const char *api_name)
+bool ValidateCharForMove(Character *chaa, const char *api_name)
 {
     if (chaa->room != displayed_room)
     {
@@ -1123,7 +1123,7 @@ bool ValidateCharForMove(CharacterInfo *chaa, const char *api_name)
 }
 
 // Character_DoMove converts and validates script parameters, and calls corresponding internal character move function
-static void Character_DoMove(CharacterInfo *chaa, const char *api_name,
+static void Character_DoMove(Character *chaa, const char *api_name,
     void *path_arr, int x, int y, bool use_path, bool walk_straight,
     int blocking, int ignwal, bool walk_anim, int repeat = ANIM_ONCE, int direction = FORWARDS)
 {
@@ -1157,37 +1157,37 @@ static void Character_DoMove(CharacterInfo *chaa, const char *api_name,
         GameLoopUntilNotMoving(&chaa->walking);
 }
 
-void Character_Walk(CharacterInfo *chaa, int x, int y, int blocking, int ignwal) 
+void Character_Walk(Character *chaa, int x, int y, int blocking, int ignwal) 
 {
     Character_DoMove(chaa, "Character.Walk", nullptr, x, y, false /* no path */, false /* not straight */, blocking, ignwal, true /* walk anim */);
 }
 
-void Character_Move(CharacterInfo *chaa, int x, int y, int blocking, int ignwal) 
+void Character_Move(Character *chaa, int x, int y, int blocking, int ignwal) 
 {
     Character_DoMove(chaa, "Character.Move", nullptr, x, y, false /* no path */, false /* not straight */, blocking, ignwal, false /* no anim */);
 }
 
-void Character_WalkStraight(CharacterInfo *chaa, int xx, int yy, int blocking)
+void Character_WalkStraight(Character *chaa, int xx, int yy, int blocking)
 {
     Character_DoMove(chaa, "Character.WalkStraight", nullptr, xx, yy, false /* no path */, true /* straight */, blocking, WALKABLE_AREAS, true /* walk anim */);
 }
 
-void Character_MoveStraight(CharacterInfo *chaa, int xx, int yy, int blocking)
+void Character_MoveStraight(Character *chaa, int xx, int yy, int blocking)
 {
     Character_DoMove(chaa, "Character.MoveStraight", nullptr, xx, yy, false /* no path */, true /* straight */, blocking, WALKABLE_AREAS, false /* no anim */);
 }
 
-void Character_WalkPath(CharacterInfo *chaa, void *path_arr, int blocking, int repeat, int direction)
+void Character_WalkPath(Character *chaa, void *path_arr, int blocking, int repeat, int direction)
 {
     Character_DoMove(chaa, "Character.WalkPath", path_arr, 0, 0, true /* use path */, false /* not straight */, blocking, ANYWHERE, true /* walk anim */, repeat, direction);
 }
 
-void Character_MovePath(CharacterInfo *chaa, void *path_arr, int blocking, int repeat, int direction)
+void Character_MovePath(Character *chaa, void *path_arr, int blocking, int repeat, int direction)
 {
     Character_DoMove(chaa, "Character.WalkPath", path_arr, 0, 0, true /* use path */, false /* not straight */, blocking, ANYWHERE, false /* no anim */, repeat, direction);
 }
 
-void Character_RunInteraction(CharacterInfo *chaa, int mood)
+void Character_RunInteraction(Character *chaa, int mood)
 {
     // convert cursor mode to event index (in character event table)
     // TODO: probably move this conversion table elsewhere? should be a global info
@@ -1223,42 +1223,42 @@ void Character_RunInteraction(CharacterInfo *chaa, int mood)
 
 // **** CHARACTER: PROPERTIES ****
 
-int Character_GetProperty(CharacterInfo *chaa, const char *property)
+int Character_GetProperty(Character *chaa, const char *property)
 {
     if (!AssertCharacter("Character.GetProperty", chaa->index_id))
         return 0;
     return get_int_property(game.charProps[chaa->index_id], play.charProps[chaa->index_id], property);
 }
 
-void Character_GetPropertyText(CharacterInfo *chaa, const char *property, char *bufer)
+void Character_GetPropertyText(Character *chaa, const char *property, char *bufer)
 {
     if (!AssertCharacter("Character.GetPropertyText", chaa->index_id))
         return;
     get_text_property(game.charProps[chaa->index_id], play.charProps[chaa->index_id], property, bufer);
 }
 
-const char* Character_GetTextProperty(CharacterInfo *chaa, const char *property)
+const char* Character_GetTextProperty(Character *chaa, const char *property)
 {
     if (!AssertCharacter("Character.GetTextProperty", chaa->index_id))
         return nullptr;
     return get_text_property_dynamic_string(game.charProps[chaa->index_id], play.charProps[chaa->index_id], property);
 }
 
-bool Character_SetProperty(CharacterInfo *chaa, const char *property, int value)
+bool Character_SetProperty(Character *chaa, const char *property, int value)
 {
     if (!AssertCharacter("Character.SetProperty", chaa->index_id))
         return false;
     return set_int_property(play.charProps[chaa->index_id], property, value);
 }
 
-bool Character_SetTextProperty(CharacterInfo *chaa, const char *property, const char *value)
+bool Character_SetTextProperty(Character *chaa, const char *property, const char *value)
 {
     if (!AssertCharacter("Character.SetTextProperty", chaa->index_id))
         return false;
     return set_text_property(play.charProps[chaa->index_id], property, value);
 }
 
-void *Character_GetPath(CharacterInfo *chaa)
+void *Character_GetPath(Character *chaa)
 {
     const int mslot = chaa->get_movelist_id();
     if (mslot == 0)
@@ -1267,7 +1267,7 @@ void *Character_GetPath(CharacterInfo *chaa)
     return ScriptStructHelpers::CreateArrayOfPoints(mls[mslot].pos).Obj;
 }
 
-ScriptInvItem* Character_GetActiveInventory(CharacterInfo *chaa) {
+ScriptInvItem* Character_GetActiveInventory(Character *chaa) {
 
     if (chaa->activeinv <= 0)
         return nullptr;
@@ -1275,7 +1275,7 @@ ScriptInvItem* Character_GetActiveInventory(CharacterInfo *chaa) {
     return &scrInv[chaa->activeinv];
 }
 
-void Character_SetActiveInventory(CharacterInfo *chaa, ScriptInvItem* iit) {
+void Character_SetActiveInventory(Character *chaa, ScriptInvItem* iit) {
     if (iit == nullptr) {
         chaa->activeinv = -1;
 
@@ -1304,31 +1304,31 @@ void Character_SetActiveInventory(CharacterInfo *chaa, ScriptInvItem* iit) {
     GUIE::MarkInventoryForUpdate(chaa->index_id, chaa->index_id == game.playercharacter);
 }
 
-int Character_GetAnimating(CharacterInfo *chaa) {
+int Character_GetAnimating(Character *chaa) {
     if (chaa->animating)
         return 1;
     return 0;
 }
 
-int Character_GetAnimationSpeed(CharacterInfo *chaa) {
+int Character_GetAnimationSpeed(Character *chaa) {
     return chaa->animspeed;
 }
 
-void Character_SetAnimationSpeed(CharacterInfo *chaa, int newval) {
+void Character_SetAnimationSpeed(Character *chaa, int newval) {
 
     chaa->animspeed = newval;
 }
 
-int Character_GetAnimationVolume(CharacterInfo *chaa) {
+int Character_GetAnimationVolume(Character *chaa) {
     return charextra[chaa->index_id].anim_volume;
 }
 
-void Character_SetAnimationVolume(CharacterInfo *chaa, int newval) {
+void Character_SetAnimationVolume(Character *chaa, int newval) {
 
     charextra[chaa->index_id].anim_volume = Math::Clamp(newval, 0, 100);
 }
 
-int Character_GetBaseline(CharacterInfo *chaa) {
+int Character_GetBaseline(Character *chaa) {
 
     if (chaa->baseline < 1)
         return 0;
@@ -1336,17 +1336,17 @@ int Character_GetBaseline(CharacterInfo *chaa) {
     return chaa->baseline;
 }
 
-void Character_SetBaseline(CharacterInfo *chaa, int basel) {
+void Character_SetBaseline(Character *chaa, int basel) {
 
     chaa->baseline = basel;
 }
 
-int Character_GetBlinkInterval(CharacterInfo *chaa) {
+int Character_GetBlinkInterval(Character *chaa) {
 
     return chaa->blinkinterval;
 }
 
-void Character_SetBlinkInterval(CharacterInfo *chaa, int interval) {
+void Character_SetBlinkInterval(Character *chaa, int interval) {
 
     if (interval < 0)
         quit("!SetCharacterBlinkView: invalid blink interval");
@@ -1357,12 +1357,12 @@ void Character_SetBlinkInterval(CharacterInfo *chaa, int interval) {
         chaa->blinktimer = chaa->blinkinterval;
 }
 
-int Character_GetBlinkView(CharacterInfo *chaa) {
+int Character_GetBlinkView(Character *chaa) {
 
     return chaa->blinkview + 1;
 }
 
-void Character_SetBlinkView(CharacterInfo *chaa, int vii) {
+void Character_SetBlinkView(Character *chaa, int vii) {
 
     if (((vii < 2) || (vii > game.numviews)) && (vii != -1))
         quit("!SetCharacterBlinkView: invalid view number");
@@ -1370,60 +1370,60 @@ void Character_SetBlinkView(CharacterInfo *chaa, int vii) {
     chaa->blinkview = vii - 1;
 }
 
-int Character_GetBlinkWhileThinking(CharacterInfo *chaa) {
+int Character_GetBlinkWhileThinking(Character *chaa) {
     if (chaa->flags & CHF_NOBLINKANDTHINK)
         return 0;
     return 1;
 }
 
-void Character_SetBlinkWhileThinking(CharacterInfo *chaa, int yesOrNo) {
+void Character_SetBlinkWhileThinking(Character *chaa, int yesOrNo) {
     chaa->flags &= ~CHF_NOBLINKANDTHINK;
     if (yesOrNo == 0)
         chaa->flags |= CHF_NOBLINKANDTHINK;
 }
 
-int Character_GetBlockingHeight(CharacterInfo *chaa) {
+int Character_GetBlockingHeight(Character *chaa) {
 
     return chaa->blocking_height;
 }
 
-void Character_SetBlockingHeight(CharacterInfo *chaa, int hit) {
+void Character_SetBlockingHeight(Character *chaa, int hit) {
 
     chaa->blocking_height = hit;
 }
 
-int Character_GetBlockingWidth(CharacterInfo *chaa) {
+int Character_GetBlockingWidth(Character *chaa) {
 
     return chaa->blocking_width;
 }
 
-void Character_SetBlockingWidth(CharacterInfo *chaa, int wid) {
+void Character_SetBlockingWidth(Character *chaa, int wid) {
 
     chaa->blocking_width = wid;
 }
 
-int Character_GetDiagonalWalking(CharacterInfo *chaa) {
+int Character_GetDiagonalWalking(Character *chaa) {
 
     if (chaa->flags & CHF_NODIAGONAL)
         return 0;
     return 1;  
 }
 
-void Character_SetDiagonalWalking(CharacterInfo *chaa, int yesorno) {
+void Character_SetDiagonalWalking(Character *chaa, int yesorno) {
 
     chaa->flags &= ~CHF_NODIAGONAL;
     if (!yesorno)
         chaa->flags |= CHF_NODIAGONAL;
 }
 
-int Character_GetClickable(CharacterInfo *chaa) {
+int Character_GetClickable(Character *chaa) {
 
     if (chaa->flags & CHF_NOINTERACT)
         return 0;
     return 1;
 }
 
-void Character_SetClickable(CharacterInfo *chaa, int clik) {
+void Character_SetClickable(Character *chaa, int clik) {
 
     chaa->flags &= ~CHF_NOINTERACT;
     // if they don't want it clickable, set the relevant bit
@@ -1431,34 +1431,34 @@ void Character_SetClickable(CharacterInfo *chaa, int clik) {
         chaa->flags |= CHF_NOINTERACT;
 }
 
-int Character_GetID(CharacterInfo *chaa) {
+int Character_GetID(Character *chaa) {
 
     return chaa->index_id;
 
 }
 
-const char *Character_GetScriptName(CharacterInfo *chin)
+const char *Character_GetScriptName(Character *chin)
 {
     return CreateNewScriptString(game.chars[chin->index_id].scrname);
 }
 
-bool Character_GetEnabled(CharacterInfo *chaa) {
+bool Character_GetEnabled(Character *chaa) {
     return chaa->is_enabled();
 }
 
-void Character_SetEnabled(CharacterInfo *chaa, bool newval) {
+void Character_SetEnabled(Character *chaa, bool newval) {
     chaa->set_enabled(newval);
 }
 
-int Character_GetFrame(CharacterInfo *chaa) {
+int Character_GetFrame(Character *chaa) {
     return chaa->frame;
 }
 
-void Character_SetFrame(CharacterInfo *chaa, int newval) {
+void Character_SetFrame(Character *chaa, int newval) {
     chaa->frame = newval;
 }
 
-int Character_GetIdleView(CharacterInfo *chaa) {
+int Character_GetIdleView(Character *chaa) {
 
     if (chaa->idleview < 1)
         return -1;
@@ -1466,14 +1466,14 @@ int Character_GetIdleView(CharacterInfo *chaa) {
     return chaa->idleview + 1;
 }
 
-int Character_GetIInventoryQuantity(CharacterInfo *chaa, int index) {
+int Character_GetIInventoryQuantity(Character *chaa, int index) {
     if ((index < 1) || (index >= game.numinvitems))
         quitprintf("!Character.InventoryQuantity: invalid inventory index %d", index);
 
     return chaa->inv[index];
 }
 
-int Character_HasInventory(CharacterInfo *chaa, ScriptInvItem *invi)
+int Character_HasInventory(Character *chaa, ScriptInvItem *invi)
 {
     if (invi == nullptr)
         quit("!Character.HasInventory: NULL inventory item supplied");
@@ -1481,7 +1481,7 @@ int Character_HasInventory(CharacterInfo *chaa, ScriptInvItem *invi)
     return (chaa->inv[invi->id] > 0) ? 1 : 0;
 }
 
-void Character_SetIInventoryQuantity(CharacterInfo *chaa, int index, int quant) {
+void Character_SetIInventoryQuantity(Character *chaa, int index, int quant) {
     if ((index < 1) || (index >= game.numinvitems))
         quitprintf("!Character.InventoryQuantity: invalid inventory index %d", index);
 
@@ -1492,7 +1492,7 @@ void Character_SetIInventoryQuantity(CharacterInfo *chaa, int index, int quant) 
 }
 
 // [DEPRECATED]
-int Character_GetIgnoreLighting(CharacterInfo *chaa) {
+int Character_GetIgnoreLighting(Character *chaa) {
 
     if (chaa->flags & CHF_NOLIGHTING)
         return 1;
@@ -1500,44 +1500,44 @@ int Character_GetIgnoreLighting(CharacterInfo *chaa) {
 }
 
 // [DEPRECATED]
-void Character_SetIgnoreLighting(CharacterInfo *chaa, int yesorno) {
+void Character_SetIgnoreLighting(Character *chaa, int yesorno) {
 
     chaa->flags &= ~CHF_NOLIGHTING;
     if (yesorno)
         chaa->flags |= CHF_NOLIGHTING;
 }
 
-int Character_GetManualScaling(CharacterInfo *chaa) {
+int Character_GetManualScaling(Character *chaa) {
 
     return (chaa->flags & CHF_MANUALSCALING) ? 1 : 0;
 }
 
-void Character_SetManualScaling(CharacterInfo *chaa, int yesorno) {
+void Character_SetManualScaling(Character *chaa, int yesorno) {
 
     chaa->flags &= ~CHF_MANUALSCALING;
     if (yesorno)
         chaa->flags |= CHF_MANUALSCALING;
 }
 
-int Character_GetMovementLinkedToAnimation(CharacterInfo *chaa) {
+int Character_GetMovementLinkedToAnimation(Character *chaa) {
 
     if (chaa->flags & CHF_ANTIGLIDE)
         return 1;
     return 0;
 }
 
-void Character_SetMovementLinkedToAnimation(CharacterInfo *chaa, int yesorno) {
+void Character_SetMovementLinkedToAnimation(Character *chaa, int yesorno) {
 
     chaa->flags &= ~CHF_ANTIGLIDE;
     if (yesorno)
         chaa->flags |= CHF_ANTIGLIDE;
 }
 
-int Character_GetLoop(CharacterInfo *chaa) {
+int Character_GetLoop(Character *chaa) {
     return chaa->loop;
 }
 
-void Character_SetLoop(CharacterInfo *chaa, int newval) {
+void Character_SetLoop(Character *chaa, int newval) {
     AssertLoop("Character.Loop", chaa->view, newval);
 
     chaa->loop = newval;
@@ -1545,13 +1545,13 @@ void Character_SetLoop(CharacterInfo *chaa, int newval) {
         chaa->frame = 0;
 }
 
-int Character_GetMoving(CharacterInfo *chaa) {
+int Character_GetMoving(Character *chaa) {
     if (chaa->walking)
         return 1;
     return 0;
 }
 
-int Character_GetDestinationX(CharacterInfo *chaa) {
+int Character_GetDestinationX(Character *chaa) {
     if (chaa->walking) {
         MoveList *cmls = &mls[chaa->get_movelist_id()];
         return cmls->pos.back().X;
@@ -1560,7 +1560,7 @@ int Character_GetDestinationX(CharacterInfo *chaa) {
         return chaa->x;
 }
 
-int Character_GetDestinationY(CharacterInfo *chaa) {
+int Character_GetDestinationY(Character *chaa) {
     if (chaa->walking) {
         MoveList *cmls = &mls[chaa->get_movelist_id()];
         return cmls->pos.back().Y;
@@ -1569,37 +1569,37 @@ int Character_GetDestinationY(CharacterInfo *chaa) {
         return chaa->y;
 }
 
-const char* Character_GetName(CharacterInfo *chaa) {
+const char* Character_GetName(Character *chaa) {
     return CreateNewScriptString(game.chars[chaa->index_id].name.GetCStr());
 }
 
-void Character_SetName(CharacterInfo *chaa, const char *newName) {
+void Character_SetName(Character *chaa, const char *newName) {
     chaa->name = newName;
     // Fill legacy name fields, for compatibility with old scripts and plugins
     GUIE::MarkSpecialLabelsForUpdate(kLabelMacro_Overhotspot);
 }
 
-int Character_GetNormalView(CharacterInfo *chaa) {
+int Character_GetNormalView(Character *chaa) {
     return chaa->defview + 1;
 }
 
-int Character_GetPreviousRoom(CharacterInfo *chaa) {
+int Character_GetPreviousRoom(Character *chaa) {
     return chaa->prevroom;
 }
 
-int Character_GetRoom(CharacterInfo *chaa) {
+int Character_GetRoom(Character *chaa) {
     return chaa->room;
 }
 
 
-int Character_GetScaleMoveSpeed(CharacterInfo *chaa) {
+int Character_GetScaleMoveSpeed(Character *chaa) {
 
     if (chaa->flags & CHF_SCALEMOVESPEED)
         return 1;
     return 0;  
 }
 
-void Character_SetScaleMoveSpeed(CharacterInfo *chaa, int yesorno) {
+void Character_SetScaleMoveSpeed(Character *chaa, int yesorno) {
 
     if ((yesorno < 0) || (yesorno > 1))
         quit("Character.ScaleMoveSpeed: value must be true or false (1 or 0)");
@@ -1609,14 +1609,14 @@ void Character_SetScaleMoveSpeed(CharacterInfo *chaa, int yesorno) {
         chaa->flags |= CHF_SCALEMOVESPEED;
 }
 
-int Character_GetScaleVolume(CharacterInfo *chaa) {
+int Character_GetScaleVolume(Character *chaa) {
 
     if (chaa->flags & CHF_SCALEVOLUME)
         return 1;
     return 0;  
 }
 
-void Character_SetScaleVolume(CharacterInfo *chaa, int yesorno) {
+void Character_SetScaleVolume(Character *chaa, int yesorno) {
 
     if ((yesorno < 0) || (yesorno > 1))
         quit("Character.ScaleVolume: value must be true or false (1 or 0)");
@@ -1626,11 +1626,11 @@ void Character_SetScaleVolume(CharacterInfo *chaa, int yesorno) {
         chaa->flags |= CHF_SCALEVOLUME;
 }
 
-int Character_GetScaling(CharacterInfo *chaa) {
+int Character_GetScaling(Character *chaa) {
     return charextra[chaa->index_id].zoom;
 }
 
-void Character_SetScaling(CharacterInfo *chaa, int zoomlevel) {
+void Character_SetScaling(Character *chaa, int zoomlevel) {
 
     if ((chaa->flags & CHF_MANUALSCALING) == 0)
     {
@@ -1645,38 +1645,38 @@ void Character_SetScaling(CharacterInfo *chaa, int zoomlevel) {
     charextra[chaa->index_id].zoom = zoom_fixed;
 }
 
-int Character_GetSolid(CharacterInfo *chaa) {
+int Character_GetSolid(Character *chaa) {
 
     if (chaa->flags & CHF_NOBLOCKING)
         return 0;
     return 1;
 }
 
-void Character_SetSolid(CharacterInfo *chaa, int yesorno) {
+void Character_SetSolid(Character *chaa, int yesorno) {
 
     chaa->flags &= ~CHF_NOBLOCKING;
     if (!yesorno)
         chaa->flags |= CHF_NOBLOCKING;
 }
 
-int Character_GetSpeaking(CharacterInfo *chaa) {
+int Character_GetSpeaking(Character *chaa) {
     if (get_character_currently_talking() == chaa->index_id)
         return 1;
 
     return 0;
 }
 
-int Character_GetSpeechColor(CharacterInfo *chaa) {
+int Character_GetSpeechColor(Character *chaa) {
 
     return chaa->talkcolor;
 }
 
-void Character_SetSpeechColor(CharacterInfo *chaa, int ncol) {
+void Character_SetSpeechColor(Character *chaa, int ncol) {
 
     chaa->talkcolor = ncol;
 }
 
-int Character_GetSpeechAnimationDelay(CharacterInfo *chaa)
+int Character_GetSpeechAnimationDelay(Character *chaa)
 {
     if (game.options[OPT_GLOBALTALKANIMSPD] != 0)
         return play.talkanim_speed;
@@ -1684,7 +1684,7 @@ int Character_GetSpeechAnimationDelay(CharacterInfo *chaa)
         return chaa->speech_anim_speed;
 }
 
-void Character_SetSpeechAnimationDelay(CharacterInfo *chaa, int newDelay)
+void Character_SetSpeechAnimationDelay(Character *chaa, int newDelay)
 {
     if (game.options[OPT_GLOBALTALKANIMSPD] != 0)
     {
@@ -1695,22 +1695,22 @@ void Character_SetSpeechAnimationDelay(CharacterInfo *chaa, int newDelay)
     chaa->speech_anim_speed = newDelay;
 }
 
-int Character_GetIdleAnimationDelay(CharacterInfo *chaa)
+int Character_GetIdleAnimationDelay(Character *chaa)
 {
     return chaa->idle_anim_speed;
 }
 
-void Character_SetIdleAnimationDelay(CharacterInfo *chaa, int newDelay)
+void Character_SetIdleAnimationDelay(Character *chaa, int newDelay)
 {
     chaa->idle_anim_speed = newDelay;
 }
 
-int Character_GetSpeechView(CharacterInfo *chaa) {
+int Character_GetSpeechView(Character *chaa) {
 
     return chaa->talkview + 1;
 }
 
-void Character_SetSpeechView(CharacterInfo *chaa, int vii) {
+void Character_SetSpeechView(Character *chaa, int vii) {
     if (vii == -1) {
         chaa->talkview = -1;
         return;
@@ -1722,12 +1722,12 @@ void Character_SetSpeechView(CharacterInfo *chaa, int vii) {
     chaa->talkview = vii - 1;
 }
 
-bool Character_GetThinking(CharacterInfo *chaa)
+bool Character_GetThinking(Character *chaa)
 {
     return char_thinking == chaa->index_id;
 }
 
-int Character_GetThinkingFrame(CharacterInfo *chaa)
+int Character_GetThinkingFrame(Character *chaa)
 {
     if (char_thinking == chaa->index_id)
         return chaa->thinkview > 0 ? chaa->frame : -1;
@@ -1736,24 +1736,24 @@ int Character_GetThinkingFrame(CharacterInfo *chaa)
     return -1;
 }
 
-int Character_GetThinkView(CharacterInfo *chaa) {
+int Character_GetThinkView(Character *chaa) {
 
     return chaa->thinkview + 1;
 }
 
-void Character_SetThinkView(CharacterInfo *chaa, int vii) {
+void Character_SetThinkView(Character *chaa, int vii) {
     if (((vii < 2) || (vii > game.numviews)) && (vii != -1))
         quit("!SetCharacterThinkView: invalid view number");
 
     chaa->thinkview = vii - 1;
 }
 
-int Character_GetTransparency(CharacterInfo *chaa) {
+int Character_GetTransparency(Character *chaa) {
 
     return GfxDef::LegacyTrans255ToTrans100(chaa->transparency);
 }
 
-void Character_SetTransparency(CharacterInfo *chaa, int trans) {
+void Character_SetTransparency(Character *chaa, int trans) {
 
     if ((trans < 0) || (trans > 100))
         quit("!SetCharTransparent: transparency value must be between 0 and 100");
@@ -1761,47 +1761,47 @@ void Character_SetTransparency(CharacterInfo *chaa, int trans) {
     chaa->transparency = GfxDef::Trans100ToLegacyTrans255(trans);
 }
 
-bool Character_GetVisible(CharacterInfo *chaa) {
+bool Character_GetVisible(Character *chaa) {
     return chaa->is_visible();
 }
 
-void Character_SetVisible(CharacterInfo *chaa, bool newval) {
+void Character_SetVisible(Character *chaa, bool newval) {
     chaa->set_visible(newval);
 }
 
-int Character_GetBlendMode(CharacterInfo *chaa) {
+int Character_GetBlendMode(Character *chaa) {
     return charextra[chaa->index_id].blend_mode;
 }
 
-void Character_SetBlendMode(CharacterInfo *chaa, int blendMode) {
+void Character_SetBlendMode(Character *chaa, int blendMode) {
     if ((blendMode < 0) || (blendMode >= kNumBlendModes))
         quitprintf("!SetBlendMode: invalid blend mode %d, supported modes are %d - %d", blendMode, 0, kNumBlendModes - 1);
     charextra[chaa->index_id].blend_mode = (BlendMode)blendMode;
 }
 
-float Character_GetRotation(CharacterInfo *chaa) {
+float Character_GetRotation(Character *chaa) {
     return charextra[chaa->index_id].rotation;
 }
 
-void Character_SetRotation(CharacterInfo *chaa, float degrees) {
+void Character_SetRotation(Character *chaa, float degrees) {
     charextra[chaa->index_id].rotation = Math::ClampAngle360(degrees);
     charextra[chaa->index_id].UpdateGraphicSpace(chaa);
 }
 
-float Character_GetFaceDirectionRatio(CharacterInfo *chaa) {
+float Character_GetFaceDirectionRatio(Character *chaa) {
     return charextra[chaa->index_id].face_dir_ratio;
 }
 
-void Character_SetFaceDirectionRatio(CharacterInfo *chaa, float ratio) {
+void Character_SetFaceDirectionRatio(Character *chaa, float ratio) {
     charextra[chaa->index_id].face_dir_ratio = ratio;
 }
 
-int Character_GetTurnBeforeWalking(CharacterInfo *chaa) {
+int Character_GetTurnBeforeWalking(Character *chaa) {
     // NOTE: this flag has inverse meaning
     return ((chaa->flags & CHF_NOTURNWHENWALK) != 0) ? 0 : 1;
 }
 
-void Character_SetTurnBeforeWalking(CharacterInfo *chaa, int on) {
+void Character_SetTurnBeforeWalking(Character *chaa, int on) {
     // NOTE: this flag has inverse meaning
     if (on)
         chaa->flags &= ~CHF_NOTURNWHENWALK;
@@ -1809,60 +1809,60 @@ void Character_SetTurnBeforeWalking(CharacterInfo *chaa, int on) {
         chaa->flags |= CHF_NOTURNWHENWALK;
 }
 
-int Character_GetTurnWhenFacing(CharacterInfo *chaa) {
+int Character_GetTurnWhenFacing(Character *chaa) {
     return ((chaa->flags & CHF_TURNWHENFACE) != 0) ? 1 : 0;
 }
 
-void Character_SetTurnWhenFacing(CharacterInfo *chaa, int on) {
+void Character_SetTurnWhenFacing(Character *chaa, int on) {
     if (on)
         chaa->flags |= CHF_TURNWHENFACE;
     else
         chaa->flags &= ~CHF_TURNWHENFACE;
 }
 
-int Character_GetView(CharacterInfo *chaa) {
+int Character_GetView(Character *chaa) {
     return chaa->view + 1;
 }
 
-int Character_GetWalkSpeedX(CharacterInfo *chaa) {
+int Character_GetWalkSpeedX(Character *chaa) {
     return chaa->walkspeed;
 }
 
-int Character_GetWalkSpeedY(CharacterInfo *chaa) {
+int Character_GetWalkSpeedY(Character *chaa) {
     if (chaa->walkspeed_y != UNIFORM_WALK_SPEED)
         return chaa->walkspeed_y;
 
     return chaa->walkspeed;
 }
 
-int Character_GetX(CharacterInfo *chaa) {
+int Character_GetX(Character *chaa) {
     return chaa->x;
 }
 
-void Character_SetX(CharacterInfo *chaa, int newval) {
+void Character_SetX(Character *chaa, int newval) {
     chaa->x = newval;
     charextra[chaa->index_id].UpdateGraphicSpace(chaa);
 }
 
-int Character_GetY(CharacterInfo *chaa) {
+int Character_GetY(Character *chaa) {
     return chaa->y;
 }
 
-void Character_SetY(CharacterInfo *chaa, int newval) {
+void Character_SetY(Character *chaa, int newval) {
     chaa->y = newval;
     charextra[chaa->index_id].UpdateGraphicSpace(chaa);
 }
 
-int Character_GetZ(CharacterInfo *chaa) {
+int Character_GetZ(Character *chaa) {
     return chaa->z;
 }
 
-void Character_SetZ(CharacterInfo *chaa, int newval) {
+void Character_SetZ(Character *chaa, int newval) {
     chaa->z = newval;
     charextra[chaa->index_id].UpdateGraphicSpace(chaa);
 }
 
-int Character_GetSpeakingFrame(CharacterInfo *chaa) {
+int Character_GetSpeakingFrame(Character *chaa) {
 
     if ((face_talking >= 0) && (facetalkrepeat))
     {
@@ -1883,12 +1883,12 @@ int Character_GetSpeakingFrame(CharacterInfo *chaa) {
     return -1;
 }
 
-bool Character_GetUseRegionTint(CharacterInfo *chaa)
+bool Character_GetUseRegionTint(Character *chaa)
 {
     return (chaa->flags & CHF_NOLIGHTING) == 0;
 }
 
-void Character_SetUseRegionTint(CharacterInfo *chaa, int yesorno)
+void Character_SetUseRegionTint(Character *chaa, int yesorno)
 {
     chaa->flags &= ~CHF_NOLIGHTING;
     if (!yesorno)
@@ -1903,7 +1903,7 @@ const int turnlooporder[8] = {0, 6, 1, 7, 3, 5, 2, 4};
 // Core character move implementation:
 // uses a provided path or searches for a path to a given destination;
 // starts a move or walk (with automatic animation).
-void move_character_impl(CharacterInfo *chin, const std::vector<Point> *path, int tox, int toy, bool ignwal, bool walk_anim,
+void move_character_impl(Character *chin, const std::vector<Point> *path, int tox, int toy, bool ignwal, bool walk_anim,
     const RunPathParams &run_params)
 {
     const int chac = chin->index_id;
@@ -2019,7 +2019,7 @@ int find_looporder_index (int curloop) {
 }
 
 // returns 0 to use diagonal, 1 to not
-int useDiagonal (CharacterInfo *char1) {
+int useDiagonal (Character *char1) {
     if ((views[char1->view].numLoops < 8) || ((char1->flags & CHF_NODIAGONAL)!=0))
         return 1;
     // If they have just provided standing frames for loops 4-7, to
@@ -2030,7 +2030,7 @@ int useDiagonal (CharacterInfo *char1) {
 }
 
 // returns 1 normally, or 0 if they only have horizontal animations
-int hasUpDownLoops(CharacterInfo *char1) {
+int hasUpDownLoops(Character *char1) {
     // if no loops in the Down animation
     // or no loops in the Up animation
     if ((views[char1->view].loops[0].numFrames < 1) ||
@@ -2043,7 +2043,7 @@ int hasUpDownLoops(CharacterInfo *char1) {
     return 1;
 }
 
-void start_character_turning (CharacterInfo *chinf, int useloop, int no_diagonal) {
+void start_character_turning (Character *chinf, int useloop, int no_diagonal) {
     // work out how far round they have to turn 
     int fromidx = find_looporder_index (chinf->loop);
     int toidx = find_looporder_index (useloop);
@@ -2084,7 +2084,7 @@ void start_character_turning (CharacterInfo *chinf, int useloop, int no_diagonal
 
 }
 
-void fix_player_sprite(CharacterInfo *chinf, const MoveList &cmls) {
+void fix_player_sprite(Character *chinf, const MoveList &cmls) {
     const float xpmove = cmls.permove[cmls.onstage].X;
     const float ypmove = cmls.permove[cmls.onstage].Y;
 
@@ -2143,7 +2143,7 @@ int has_hit_another_character(int sourceChar) {
 // Does the next move from the character's movelist.
 // Returns 1 if they are now waiting for another char to move,
 // otherwise returns 0
-int doNextCharMoveStep(CharacterInfo *chi, CharacterExtras *chex) {
+int doNextCharMoveStep(Character *chi, CharacterExtras *chex) {
     int ntf=0, xwas = chi->x, ywas = chi->y;
 
     if (do_movelist_move(chi->walking, chi->x, chi->y) == 2) 
@@ -2181,7 +2181,7 @@ int doNextCharMoveStep(CharacterInfo *chi, CharacterExtras *chex) {
     return 0;
 }
 
-bool is_char_walking_ndirect(CharacterInfo *chi)
+bool is_char_walking_ndirect(Character *chi)
 {
     return chi->is_moving_not_turning() &&
         (mls[chi->get_movelist_id()].move_direct == 0);
@@ -2233,7 +2233,7 @@ bool FindNearestWalkableAreaForCharacter(const Point &src, Point &dst)
     return true;
 }
 
-void FindReasonableLoopForCharacter(CharacterInfo *chap) {
+void FindReasonableLoopForCharacter(Character *chap) {
 
     if (chap->loop >= views[chap->view].numLoops)
         chap->loop=kDirLoop_Default;
@@ -2254,17 +2254,17 @@ void FindReasonableLoopForCharacter(CharacterInfo *chap) {
 
 }
 
-void move_character(CharacterInfo *chaa, int tox, int toy, bool ignwal, bool walk_anim)
+void move_character(Character *chaa, int tox, int toy, bool ignwal, bool walk_anim)
 {
     move_character_impl(chaa, nullptr, tox, toy, ignwal, walk_anim, RunPathParams());
 }
 
-void move_character(CharacterInfo *chaa, const std::vector<Point> &path, bool walk_anim, const RunPathParams &run_params)
+void move_character(Character *chaa, const std::vector<Point> &path, bool walk_anim, const RunPathParams &run_params)
 {
     move_character_impl(chaa, &path, 0, 0, true /* ignore walls */, walk_anim, run_params);
 }
 
-void move_character_straight(CharacterInfo *chaa, int x, int y, bool walk_anim)
+void move_character_straight(Character *chaa, int x, int y, bool walk_anim)
 {
     MaskRouteFinder *pathfind = get_room_pathfinder();
     pathfind->SetWalkableArea(prepare_walkable_areas(chaa->index_id), thisroom.MaskResolution);
@@ -2287,12 +2287,12 @@ void move_character_straight(CharacterInfo *chaa, int x, int y, bool walk_anim)
     move_character_impl(chaa, &path, movetox, movetoy, false /* walkable areas */, walk_anim, RunPathParams());
 }
 
-void walk_character(CharacterInfo *chaa, int tox, int toy, bool ignwal)
+void walk_character(Character *chaa, int tox, int toy, bool ignwal)
 {
     move_character(chaa, tox, toy, ignwal, true /* animate */);
 }
 
-void walk_character_straight(CharacterInfo *chaa, int x, int y)
+void walk_character_straight(Character *chaa, int x, int y)
 {
     move_character_straight(chaa, x, y, true /* animate */);
 }
@@ -2308,7 +2308,7 @@ void MoveCharacterToHotspot(int chaa, int hotsp)
     GameLoopUntilNotMoving(&game.chars[chaa].walking);
 }
 
-int wantMoveNow (CharacterInfo *chi, CharacterExtras *chex) {
+int wantMoveNow (Character *chi, CharacterExtras *chex) {
     // check most likely case first
     if ((chex->zoom == 100) || ((chi->flags & CHF_SCALEMOVESPEED) == 0))
         return 1;
@@ -2390,7 +2390,7 @@ void setup_player_character(int charid) {
 // Animate character internal implementation;
 // this function may be called by the game logic too, so we assume
 // the arguments must be correct, and do not fix them up as we do for API functions.
-void animate_character(CharacterInfo *chap, int loopn, int sppd, int rept,
+void animate_character(Character *chap, int loopn, int sppd, int rept,
     int direction, int sframe, int volume)
 {
     if ((chap->view < 0) || (chap->view > game.numviews) ||
@@ -2416,7 +2416,7 @@ void animate_character(CharacterInfo *chap, int loopn, int sppd, int rept,
     charextra[chap->index_id].CheckViewFrame(chap);
 }
 
-void stop_character_anim(CharacterInfo *chap)
+void stop_character_anim(Character *chap)
 { // TODO: may expand with resetting more properties,
   // but have to be careful to not break logic somewhere
     chap->animating = 0;
@@ -2444,7 +2444,7 @@ Bitmap *GetCharacterSourceImage(int charid)
     return spriteset[sppic];
 }
 
-CharacterInfo *GetCharacterAtScreen(int xx, int yy) {
+Character *GetCharacterAtScreen(int xx, int yy) {
     VpPoint vpt = play.ScreenToRoom(xx, yy);
     if (vpt.second < 0)
         return nullptr;
@@ -2454,7 +2454,7 @@ CharacterInfo *GetCharacterAtScreen(int xx, int yy) {
     return &game.chars[chnum];
 }
 
-CharacterInfo *GetCharacterAtRoom(int x, int y)
+Character *GetCharacterAtRoom(int x, int y)
 {
     int hsnum = is_pos_on_character(x, y);
     if (hsnum < 0)
@@ -2544,7 +2544,7 @@ int is_pos_on_character(int xx,int yy) {
 }
 
 void get_char_blocking_rect(int charid, int *x1, int *y1, int *width, int *y2) {
-    CharacterInfo *char1 = &game.chars[charid];
+    Character *char1 = &game.chars[charid];
     int cwidth, fromx;
 
     if (char1->blocking_width < 1)
@@ -2660,7 +2660,7 @@ void _displayspeech(const char*texx, int aschar, int xx, int yy, int widd, int i
     if (!is_valid_character(aschar))
         quit("!DisplaySpeech: invalid character");
 
-    CharacterInfo *speakingChar = &game.chars[aschar];
+    Character *speakingChar = &game.chars[aschar];
     if ((speakingChar->view < 0) || (speakingChar->view >= game.numviews))
         quit("!DisplaySpeech: character has invalid view");
 
@@ -3288,926 +3288,926 @@ void UpdateInventory() {
 #include "script/script_runtime.h"
 #include "ac/dynobj/scriptstring.h"
 
-CharacterInfo *Character_GetByName(const char *name)
+Character *Character_GetByName(const char *name)
 {
-    return static_cast<CharacterInfo*>(ccGetScriptObjectAddress(name, ccDynamicCharacter.GetType()));
+    return static_cast<Character*>(ccGetScriptObjectAddress(name, ccDynamicCharacter.GetType()));
 }
 
 
 RuntimeScriptValue Sc_Character_GetByName(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_OBJ_POBJ(CharacterInfo, ccDynamicCharacter, Character_GetByName, const char);
+    API_SCALL_OBJ_POBJ(Character, ccDynamicCharacter, Character_GetByName, const char);
 }
 
-// void | CharacterInfo *chaa, ScriptInvItem *invi, int addIndex
+// void | Character *chaa, ScriptInvItem *invi, int addIndex
 RuntimeScriptValue Sc_Character_AddInventory(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_POBJ_PINT(CharacterInfo, Character_AddInventory, ScriptInvItem);
+    API_OBJCALL_VOID_POBJ_PINT(Character, Character_AddInventory, ScriptInvItem);
 }
 
-// void | CharacterInfo *chaa, int x, int y
+// void | Character *chaa, int x, int y
 RuntimeScriptValue Sc_Character_AddWaypoint(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT2(CharacterInfo, Character_AddWaypoint);
+    API_OBJCALL_VOID_PINT2(Character, Character_AddWaypoint);
 }
 
-// void | CharacterInfo *chaa, int loop, int delay, int repeat, int blocking, int direction
+// void | Character *chaa, int loop, int delay, int repeat, int blocking, int direction
 RuntimeScriptValue Sc_Character_Animate5(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT5(CharacterInfo, Character_Animate5);
+    API_OBJCALL_VOID_PINT5(Character, Character_Animate5);
 }
 
 RuntimeScriptValue Sc_Character_Animate6(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT6(CharacterInfo, Character_Animate6);
+    API_OBJCALL_VOID_PINT6(Character, Character_Animate6);
 }
 
 RuntimeScriptValue Sc_Character_Animate(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT7(CharacterInfo, Character_Animate);
+    API_OBJCALL_VOID_PINT7(Character, Character_Animate);
 }
 
-// void | CharacterInfo *chaa, int room, int x, int y
+// void | Character *chaa, int room, int x, int y
 RuntimeScriptValue Sc_Character_ChangeRoom(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT3(CharacterInfo, Character_ChangeRoom);
+    API_OBJCALL_VOID_PINT3(Character, Character_ChangeRoom);
 }
 
 RuntimeScriptValue Sc_Character_ChangeRoomSetLoop(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT4(CharacterInfo, Character_ChangeRoomSetLoop);
+    API_OBJCALL_VOID_PINT4(Character, Character_ChangeRoomSetLoop);
 }
 
-// void | CharacterInfo *chaa, int room, int newPos
+// void | Character *chaa, int room, int newPos
 RuntimeScriptValue Sc_Character_ChangeRoomAutoPosition(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT2(CharacterInfo, Character_ChangeRoomAutoPosition);
+    API_OBJCALL_VOID_PINT2(Character, Character_ChangeRoomAutoPosition);
 }
 
-// void | CharacterInfo *chap, int vii
+// void | Character *chap, int vii
 RuntimeScriptValue Sc_Character_ChangeView(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(CharacterInfo, Character_ChangeView);
+    API_OBJCALL_VOID_PINT(Character, Character_ChangeView);
 }
 
-// void | CharacterInfo *char1, CharacterInfo *char2, int blockingStyle
+// void | Character *char1, Character *char2, int blockingStyle
 RuntimeScriptValue Sc_Character_FaceCharacter(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_POBJ_PINT(CharacterInfo, Character_FaceCharacter, CharacterInfo);
+    API_OBJCALL_VOID_POBJ_PINT(Character, Character_FaceCharacter, Character);
 }
 
-// void | CharacterInfo *char1, int direction, int blockingStyle
+// void | Character *char1, int direction, int blockingStyle
 RuntimeScriptValue Sc_Character_FaceDirection(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT2(CharacterInfo, Character_FaceDirection);
+    API_OBJCALL_VOID_PINT2(Character, Character_FaceDirection);
 }
 
-// void | CharacterInfo *char1, int xx, int yy, int blockingStyle
+// void | Character *char1, int xx, int yy, int blockingStyle
 RuntimeScriptValue Sc_Character_FaceLocation(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT3(CharacterInfo, Character_FaceLocation);
+    API_OBJCALL_VOID_PINT3(Character, Character_FaceLocation);
 }
 
-// void | CharacterInfo *char1, ScriptObject *obj, int blockingStyle
+// void | Character *char1, ScriptObject *obj, int blockingStyle
 RuntimeScriptValue Sc_Character_FaceObject(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_POBJ_PINT(CharacterInfo, Character_FaceObject, ScriptObject);
+    API_OBJCALL_VOID_POBJ_PINT(Character, Character_FaceObject, ScriptObject);
 }
 
-// void | CharacterInfo *chaa, CharacterInfo *tofollow, int distaway, int eagerness
+// void | Character *chaa, Character *tofollow, int distaway, int eagerness
 RuntimeScriptValue Sc_Character_FollowCharacter(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_POBJ_PINT2(CharacterInfo, Character_FollowCharacter, CharacterInfo);
+    API_OBJCALL_VOID_POBJ_PINT2(Character, Character_FollowCharacter, Character);
 }
 
-// CharacterInfo * | CharacterInfo *chaa
+// Character * | Character *chaa
 RuntimeScriptValue Sc_Character_GetFollowing(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_OBJ(CharacterInfo, CharacterInfo, ccDynamicCharacter, Character_GetFollowing);
+    API_OBJCALL_OBJ(Character, Character, ccDynamicCharacter, Character_GetFollowing);
 }
 
-// int (CharacterInfo *chaa, const char *property)
+// int (Character *chaa, const char *property)
 RuntimeScriptValue Sc_Character_GetProperty(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT_POBJ(CharacterInfo, Character_GetProperty, const char);
+    API_OBJCALL_INT_POBJ(Character, Character_GetProperty, const char);
 }
 
-// void (CharacterInfo *chaa, const char *property, char *bufer)
+// void (Character *chaa, const char *property, char *bufer)
 RuntimeScriptValue Sc_Character_GetPropertyText(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_POBJ2(CharacterInfo, Character_GetPropertyText, const char, char);
+    API_OBJCALL_VOID_POBJ2(Character, Character_GetPropertyText, const char, char);
 }
 
-// const char* (CharacterInfo *chaa, const char *property)
+// const char* (Character *chaa, const char *property)
 RuntimeScriptValue Sc_Character_GetTextProperty(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_OBJ_POBJ(CharacterInfo, const char, myScriptStringImpl, Character_GetTextProperty, const char);
+    API_OBJCALL_OBJ_POBJ(Character, const char, myScriptStringImpl, Character_GetTextProperty, const char);
 }
 
 RuntimeScriptValue Sc_Character_SetProperty(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_BOOL_POBJ_PINT(CharacterInfo, Character_SetProperty, const char);
+    API_OBJCALL_BOOL_POBJ_PINT(Character, Character_SetProperty, const char);
 }
 
 RuntimeScriptValue Sc_Character_SetTextProperty(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_BOOL_POBJ2(CharacterInfo, Character_SetTextProperty, const char, const char);
+    API_OBJCALL_BOOL_POBJ2(Character, Character_SetTextProperty, const char, const char);
 }
 
 RuntimeScriptValue Sc_Character_GetPath(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_OBJ(CharacterInfo, void, globalDynamicArray, Character_GetPath);
+    API_OBJCALL_OBJ(Character, void, globalDynamicArray, Character_GetPath);
 }
 
-// int (CharacterInfo *chaa, ScriptInvItem *invi)
+// int (Character *chaa, ScriptInvItem *invi)
 RuntimeScriptValue Sc_Character_HasInventory(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT_POBJ(CharacterInfo, Character_HasInventory, ScriptInvItem);
+    API_OBJCALL_INT_POBJ(Character, Character_HasInventory, ScriptInvItem);
 }
 
-// int (CharacterInfo *char1, CharacterInfo *char2)
+// int (Character *char1, Character *char2)
 RuntimeScriptValue Sc_Character_IsCollidingWithChar(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT_POBJ(CharacterInfo, Character_IsCollidingWithChar, CharacterInfo);
+    API_OBJCALL_INT_POBJ(Character, Character_IsCollidingWithChar, Character);
 }
 
-// int (CharacterInfo *chin, ScriptObject *objid)
+// int (Character *chin, ScriptObject *objid)
 RuntimeScriptValue Sc_Character_IsCollidingWithObject(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT_POBJ(CharacterInfo, Character_IsCollidingWithObject, ScriptObject);
+    API_OBJCALL_INT_POBJ(Character, Character_IsCollidingWithObject, ScriptObject);
 }
 
 RuntimeScriptValue Sc_Character_IsInteractionAvailable(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_BOOL_PINT(CharacterInfo, Character_IsInteractionAvailable);
+    API_OBJCALL_BOOL_PINT(Character, Character_IsInteractionAvailable);
 }
 
-// void (CharacterInfo *chap, int vii)
+// void (Character *chap, int vii)
 RuntimeScriptValue Sc_Character_LockView(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(CharacterInfo, Character_LockView);
+    API_OBJCALL_VOID_PINT(Character, Character_LockView);
 }
 
-// void (CharacterInfo *chap, int vii, int stopMoving)
+// void (Character *chap, int vii, int stopMoving)
 RuntimeScriptValue Sc_Character_LockViewEx(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT2(CharacterInfo, Character_LockViewEx);
+    API_OBJCALL_VOID_PINT2(Character, Character_LockViewEx);
 }
 
 RuntimeScriptValue Sc_Character_LockViewAlignedEx(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT4(CharacterInfo, Character_LockViewAlignedEx);
+    API_OBJCALL_VOID_PINT4(Character, Character_LockViewAlignedEx);
 }
 
-// void (CharacterInfo *chaa, int view, int loop, int frame, int stopMoving)
+// void (Character *chaa, int view, int loop, int frame, int stopMoving)
 RuntimeScriptValue Sc_Character_LockViewFrameEx(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT4(CharacterInfo, Character_LockViewFrameEx);
+    API_OBJCALL_VOID_PINT4(Character, Character_LockViewFrameEx);
 }
 
-// void (CharacterInfo *chap, int vii, int xoffs, int yoffs, int stopMoving)
+// void (Character *chap, int vii, int xoffs, int yoffs, int stopMoving)
 RuntimeScriptValue Sc_Character_LockViewOffsetEx(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT4(CharacterInfo, Character_LockViewOffsetEx);
+    API_OBJCALL_VOID_PINT4(Character, Character_LockViewOffsetEx);
 }
 
-// void (CharacterInfo *chap, ScriptInvItem *invi)
+// void (Character *chap, ScriptInvItem *invi)
 RuntimeScriptValue Sc_Character_LoseInventory(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_POBJ(CharacterInfo, Character_LoseInventory, ScriptInvItem);
+    API_OBJCALL_VOID_POBJ(Character, Character_LoseInventory, ScriptInvItem);
 }
 
-// void (CharacterInfo *chaa, int x, int y, int blocking, int direct) 
+// void (Character *chaa, int x, int y, int blocking, int direct) 
 RuntimeScriptValue Sc_Character_Move(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT4(CharacterInfo, Character_Move);
+    API_OBJCALL_VOID_PINT4(Character, Character_Move);
 }
 
 RuntimeScriptValue Sc_Character_MoveStraight(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT3(CharacterInfo, Character_MoveStraight);
+    API_OBJCALL_VOID_PINT3(Character, Character_MoveStraight);
 }
 
 RuntimeScriptValue Sc_Character_MovePath(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_POBJ_PINT3(CharacterInfo, Character_MovePath, void);
+    API_OBJCALL_VOID_POBJ_PINT3(Character, Character_MovePath, void);
 }
 
-// void (CharacterInfo *chap) 
+// void (Character *chap) 
 RuntimeScriptValue Sc_Character_PlaceOnWalkableArea(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID(CharacterInfo, Character_PlaceOnWalkableArea);
+    API_OBJCALL_VOID(Character, Character_PlaceOnWalkableArea);
 }
 
-// void (CharacterInfo *chaa)
+// void (Character *chaa)
 RuntimeScriptValue Sc_Character_RemoveTint(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID(CharacterInfo, Character_RemoveTint);
+    API_OBJCALL_VOID(Character, Character_RemoveTint);
 }
 
-// void (CharacterInfo *chaa, int mood)
+// void (Character *chaa, int mood)
 RuntimeScriptValue Sc_Character_RunInteraction(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(CharacterInfo, Character_RunInteraction);
+    API_OBJCALL_VOID_PINT(Character, Character_RunInteraction);
 }
 
-// void (CharacterInfo *chaa, const char *texx, ...)
+// void (Character *chaa, const char *texx, ...)
 RuntimeScriptValue Sc_Character_Say(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_SCRIPT_SPRINTF(Character_Say, 1);
-    Character_Say((CharacterInfo*)self, scsf_buffer);
+    Character_Say((Character*)self, scsf_buffer);
     return RuntimeScriptValue((int32_t)0);
 }
 
 RuntimeScriptValue Sc_Character_SayAt(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_SCRIPT_SPRINTF(Character_SayAt, 4);
-    Character_SayAt((CharacterInfo*)self, params[0].IValue, params[1].IValue, params[2].IValue, scsf_buffer);
+    Character_SayAt((Character*)self, params[0].IValue, params[1].IValue, params[2].IValue, scsf_buffer);
     return RuntimeScriptValue((int32_t)0);
 }
 
 RuntimeScriptValue Sc_Character_SayBackground(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_SCRIPT_SPRINTF(Character_SayBackground, 1);
-    auto *ret_obj = Character_SayBackground((CharacterInfo*)self, scsf_buffer);
+    auto *ret_obj = Character_SayBackground((Character*)self, scsf_buffer);
     return RuntimeScriptValue().SetScriptObject(ret_obj, ret_obj);
 }
 
 RuntimeScriptValue Sc_Character_SetAsPlayer(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID(CharacterInfo, Character_SetAsPlayer);
+    API_OBJCALL_VOID(Character, Character_SetAsPlayer);
 }
 
-// void (CharacterInfo *chaa, int iview, int itime)
+// void (Character *chaa, int iview, int itime)
 RuntimeScriptValue Sc_Character_SetIdleView(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT2(CharacterInfo, Character_SetIdleView);
+    API_OBJCALL_VOID_PINT2(Character, Character_SetIdleView);
 }
 
 RuntimeScriptValue Sc_Character_GetHasExplicitLight(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_BOOL(CharacterInfo, Character_GetHasExplicitLight);
+    API_OBJCALL_BOOL(Character, Character_GetHasExplicitLight);
 }
 
 RuntimeScriptValue Sc_Character_GetLightLevel(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(CharacterInfo, Character_GetLightLevel);
+    API_OBJCALL_INT(Character, Character_GetLightLevel);
 }
 
 RuntimeScriptValue Sc_Character_SetLightLevel(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(CharacterInfo, Character_SetLightLevel);
+    API_OBJCALL_VOID_PINT(Character, Character_SetLightLevel);
 }
 
 RuntimeScriptValue Sc_Character_GetTintBlue(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(CharacterInfo, Character_GetTintBlue);
+    API_OBJCALL_INT(Character, Character_GetTintBlue);
 }
 
 RuntimeScriptValue Sc_Character_GetTintGreen(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(CharacterInfo, Character_GetTintGreen);
+    API_OBJCALL_INT(Character, Character_GetTintGreen);
 }
 
 RuntimeScriptValue Sc_Character_GetTintRed(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(CharacterInfo, Character_GetTintRed);
+    API_OBJCALL_INT(Character, Character_GetTintRed);
 }
 
 RuntimeScriptValue Sc_Character_GetTintSaturation(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(CharacterInfo, Character_GetTintSaturation);
+    API_OBJCALL_INT(Character, Character_GetTintSaturation);
 }
 
 RuntimeScriptValue Sc_Character_GetTintLuminance(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(CharacterInfo, Character_GetTintLuminance);
+    API_OBJCALL_INT(Character, Character_GetTintLuminance);
 }
 
-// void (CharacterInfo *chaa, int xspeed, int yspeed)
+// void (Character *chaa, int xspeed, int yspeed)
 RuntimeScriptValue Sc_Character_SetSpeed(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT2(CharacterInfo, Character_SetSpeed);
+    API_OBJCALL_VOID_PINT2(Character, Character_SetSpeed);
 }
 
-// void (CharacterInfo *charp)
+// void (Character *charp)
 RuntimeScriptValue Sc_Character_StopMoving(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID(CharacterInfo, Character_StopMoving);
+    API_OBJCALL_VOID(Character, Character_StopMoving);
 }
 
-// void (CharacterInfo *chaa, const char *texx, ...)
+// void (Character *chaa, const char *texx, ...)
 RuntimeScriptValue Sc_Character_Think(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
     API_OBJCALL_SCRIPT_SPRINTF(Character_Think, 1);
-    Character_Think((CharacterInfo*)self, scsf_buffer);
+    Character_Think((Character*)self, scsf_buffer);
     return RuntimeScriptValue((int32_t)0);
 }
 
-//void (CharacterInfo *chaa, int red, int green, int blue, int opacity, int luminance)
+//void (Character *chaa, int red, int green, int blue, int opacity, int luminance)
 RuntimeScriptValue Sc_Character_Tint(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT5(CharacterInfo, Character_Tint);
+    API_OBJCALL_VOID_PINT5(Character, Character_Tint);
 }
 
-// void (CharacterInfo *chaa)
+// void (Character *chaa)
 RuntimeScriptValue Sc_Character_UnlockView(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID(CharacterInfo, Character_UnlockView);
+    API_OBJCALL_VOID(Character, Character_UnlockView);
 }
 
-// void (CharacterInfo *chaa, int stopMoving)
+// void (Character *chaa, int stopMoving)
 RuntimeScriptValue Sc_Character_UnlockViewEx(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(CharacterInfo, Character_UnlockViewEx);
+    API_OBJCALL_VOID_PINT(Character, Character_UnlockViewEx);
 }
 
-// void (CharacterInfo *chaa, int x, int y, int blocking, int direct)
+// void (Character *chaa, int x, int y, int blocking, int direct)
 RuntimeScriptValue Sc_Character_Walk(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT4(CharacterInfo, Character_Walk);
+    API_OBJCALL_VOID_PINT4(Character, Character_Walk);
 }
 
-// void (CharacterInfo *chaa, int xx, int yy, int blocking)
+// void (Character *chaa, int xx, int yy, int blocking)
 RuntimeScriptValue Sc_Character_WalkStraight(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT3(CharacterInfo, Character_WalkStraight);
+    API_OBJCALL_VOID_PINT3(Character, Character_WalkStraight);
 }
 
 RuntimeScriptValue Sc_Character_WalkPath(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_POBJ_PINT3(CharacterInfo, Character_WalkPath, void);
+    API_OBJCALL_VOID_POBJ_PINT3(Character, Character_WalkPath, void);
 }
 
 RuntimeScriptValue Sc_GetCharacterAtRoom(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_OBJ_PINT2(CharacterInfo, ccDynamicCharacter, GetCharacterAtRoom);
+    API_SCALL_OBJ_PINT2(Character, ccDynamicCharacter, GetCharacterAtRoom);
 }
 
-// CharacterInfo *(int xx, int yy)
+// Character *(int xx, int yy)
 RuntimeScriptValue Sc_GetCharacterAtScreen(const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_SCALL_OBJ_PINT2(CharacterInfo, ccDynamicCharacter, GetCharacterAtScreen);
+    API_SCALL_OBJ_PINT2(Character, ccDynamicCharacter, GetCharacterAtScreen);
 }
 
-// ScriptInvItem* (CharacterInfo *chaa)
+// ScriptInvItem* (Character *chaa)
 RuntimeScriptValue Sc_Character_GetActiveInventory(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_OBJ(CharacterInfo, ScriptInvItem, ccDynamicInv, Character_GetActiveInventory);
+    API_OBJCALL_OBJ(Character, ScriptInvItem, ccDynamicInv, Character_GetActiveInventory);
 }
 
-// void (CharacterInfo *chaa, ScriptInvItem* iit)
+// void (Character *chaa, ScriptInvItem* iit)
 RuntimeScriptValue Sc_Character_SetActiveInventory(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_POBJ(CharacterInfo, Character_SetActiveInventory, ScriptInvItem);
+    API_OBJCALL_VOID_POBJ(Character, Character_SetActiveInventory, ScriptInvItem);
 }
 
-// int (CharacterInfo *chaa)
+// int (Character *chaa)
 RuntimeScriptValue Sc_Character_GetAnimating(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(CharacterInfo, Character_GetAnimating);
+    API_OBJCALL_INT(Character, Character_GetAnimating);
 }
 
-// int (CharacterInfo *chaa)
+// int (Character *chaa)
 RuntimeScriptValue Sc_Character_GetAnimationSpeed(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(CharacterInfo, Character_GetAnimationSpeed);
+    API_OBJCALL_INT(Character, Character_GetAnimationSpeed);
 }
 
-// void (CharacterInfo *chaa, int newval)
+// void (Character *chaa, int newval)
 RuntimeScriptValue Sc_Character_SetAnimationSpeed(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(CharacterInfo, Character_SetAnimationSpeed);
+    API_OBJCALL_VOID_PINT(Character, Character_SetAnimationSpeed);
 }
 
 RuntimeScriptValue Sc_Character_GetAnimationVolume(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(CharacterInfo, Character_GetAnimationVolume);
+    API_OBJCALL_INT(Character, Character_GetAnimationVolume);
 }
 
 RuntimeScriptValue Sc_Character_SetAnimationVolume(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(CharacterInfo, Character_SetAnimationVolume);
+    API_OBJCALL_VOID_PINT(Character, Character_SetAnimationVolume);
 }
 
-// int (CharacterInfo *chaa)
+// int (Character *chaa)
 RuntimeScriptValue Sc_Character_GetBaseline(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(CharacterInfo, Character_GetBaseline);
+    API_OBJCALL_INT(Character, Character_GetBaseline);
 }
 
-// void (CharacterInfo *chaa, int basel)
+// void (Character *chaa, int basel)
 RuntimeScriptValue Sc_Character_SetBaseline(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(CharacterInfo, Character_SetBaseline);
+    API_OBJCALL_VOID_PINT(Character, Character_SetBaseline);
 }
 
-// int (CharacterInfo *chaa)
+// int (Character *chaa)
 RuntimeScriptValue Sc_Character_GetBlinkInterval(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(CharacterInfo, Character_GetBlinkInterval);
+    API_OBJCALL_INT(Character, Character_GetBlinkInterval);
 }
 
-// void (CharacterInfo *chaa, int interval)
+// void (Character *chaa, int interval)
 RuntimeScriptValue Sc_Character_SetBlinkInterval(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(CharacterInfo, Character_SetBlinkInterval);
+    API_OBJCALL_VOID_PINT(Character, Character_SetBlinkInterval);
 }
 
-// int (CharacterInfo *chaa)
+// int (Character *chaa)
 RuntimeScriptValue Sc_Character_GetBlinkView(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(CharacterInfo, Character_GetBlinkView);
+    API_OBJCALL_INT(Character, Character_GetBlinkView);
 }
 
-// void (CharacterInfo *chaa, int vii)
+// void (Character *chaa, int vii)
 RuntimeScriptValue Sc_Character_SetBlinkView(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(CharacterInfo, Character_SetBlinkView);
+    API_OBJCALL_VOID_PINT(Character, Character_SetBlinkView);
 }
 
-// int (CharacterInfo *chaa)
+// int (Character *chaa)
 RuntimeScriptValue Sc_Character_GetBlinkWhileThinking(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(CharacterInfo, Character_GetBlinkWhileThinking);
+    API_OBJCALL_INT(Character, Character_GetBlinkWhileThinking);
 }
 
-// void (CharacterInfo *chaa, int yesOrNo)
+// void (Character *chaa, int yesOrNo)
 RuntimeScriptValue Sc_Character_SetBlinkWhileThinking(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(CharacterInfo, Character_SetBlinkWhileThinking);
+    API_OBJCALL_VOID_PINT(Character, Character_SetBlinkWhileThinking);
 }
 
-// int (CharacterInfo *chaa)
+// int (Character *chaa)
 RuntimeScriptValue Sc_Character_GetBlockingHeight(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(CharacterInfo, Character_GetBlockingHeight);
+    API_OBJCALL_INT(Character, Character_GetBlockingHeight);
 }
 
-// void (CharacterInfo *chaa, int hit)
+// void (Character *chaa, int hit)
 RuntimeScriptValue Sc_Character_SetBlockingHeight(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(CharacterInfo, Character_SetBlockingHeight);
+    API_OBJCALL_VOID_PINT(Character, Character_SetBlockingHeight);
 }
 
-// int (CharacterInfo *chaa)
+// int (Character *chaa)
 RuntimeScriptValue Sc_Character_GetBlockingWidth(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(CharacterInfo, Character_GetBlockingWidth);
+    API_OBJCALL_INT(Character, Character_GetBlockingWidth);
 }
 
-// void (CharacterInfo *chaa, int wid)
+// void (Character *chaa, int wid)
 RuntimeScriptValue Sc_Character_SetBlockingWidth(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(CharacterInfo, Character_SetBlockingWidth);
+    API_OBJCALL_VOID_PINT(Character, Character_SetBlockingWidth);
 }
 
-// int (CharacterInfo *chaa)
+// int (Character *chaa)
 RuntimeScriptValue Sc_Character_GetClickable(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(CharacterInfo, Character_GetClickable);
+    API_OBJCALL_INT(Character, Character_GetClickable);
 }
 
-// void (CharacterInfo *chaa, int clik)
+// void (Character *chaa, int clik)
 RuntimeScriptValue Sc_Character_SetClickable(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(CharacterInfo, Character_SetClickable);
+    API_OBJCALL_VOID_PINT(Character, Character_SetClickable);
 }
 
-// int (CharacterInfo *chaa)
+// int (Character *chaa)
 RuntimeScriptValue Sc_Character_GetDiagonalWalking(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(CharacterInfo, Character_GetDiagonalWalking);
+    API_OBJCALL_INT(Character, Character_GetDiagonalWalking);
 }
 
-// void (CharacterInfo *chaa, int yesorno)
+// void (Character *chaa, int yesorno)
 RuntimeScriptValue Sc_Character_SetDiagonalWalking(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(CharacterInfo, Character_SetDiagonalWalking);
+    API_OBJCALL_VOID_PINT(Character, Character_SetDiagonalWalking);
 }
 
 RuntimeScriptValue Sc_Character_GetEnabled(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_BOOL(CharacterInfo, Character_GetEnabled);
+    API_OBJCALL_BOOL(Character, Character_GetEnabled);
 }
 
 RuntimeScriptValue Sc_Character_SetEnabled(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PBOOL(CharacterInfo, Character_SetEnabled);
+    API_OBJCALL_VOID_PBOOL(Character, Character_SetEnabled);
 }
 
-// int (CharacterInfo *chaa)
+// int (Character *chaa)
 RuntimeScriptValue Sc_Character_GetFrame(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(CharacterInfo, Character_GetFrame);
+    API_OBJCALL_INT(Character, Character_GetFrame);
 }
 
-// void (CharacterInfo *chaa, int newval)
+// void (Character *chaa, int newval)
 RuntimeScriptValue Sc_Character_SetFrame(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(CharacterInfo, Character_SetFrame);
+    API_OBJCALL_VOID_PINT(Character, Character_SetFrame);
 }
 
 RuntimeScriptValue Sc_Character_GetHasExplicitTint_Old(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(CharacterInfo, Character_GetHasExplicitTint_Old);
+    API_OBJCALL_INT(Character, Character_GetHasExplicitTint_Old);
 }
 
 RuntimeScriptValue Sc_Character_GetHasExplicitTint(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(CharacterInfo, Character_GetHasExplicitTint);
+    API_OBJCALL_INT(Character, Character_GetHasExplicitTint);
 }
 
-// int (CharacterInfo *chaa)
+// int (Character *chaa)
 RuntimeScriptValue Sc_Character_GetID(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(CharacterInfo, Character_GetID);
+    API_OBJCALL_INT(Character, Character_GetID);
 }
 
 RuntimeScriptValue Sc_Character_GetScriptName(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_OBJ(CharacterInfo, const char, myScriptStringImpl, Character_GetScriptName);
+    API_OBJCALL_OBJ(Character, const char, myScriptStringImpl, Character_GetScriptName);
 }
 
-// int (CharacterInfo *chaa)
+// int (Character *chaa)
 RuntimeScriptValue Sc_Character_GetIdleView(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(CharacterInfo, Character_GetIdleView);
+    API_OBJCALL_INT(Character, Character_GetIdleView);
 }
 
-// int (CharacterInfo *chaa, int index)
+// int (Character *chaa, int index)
 RuntimeScriptValue Sc_Character_GetIInventoryQuantity(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT_PINT(CharacterInfo, Character_GetIInventoryQuantity);
+    API_OBJCALL_INT_PINT(Character, Character_GetIInventoryQuantity);
 }
 
-// void (CharacterInfo *chaa, int index, int quant)
+// void (Character *chaa, int index, int quant)
 RuntimeScriptValue Sc_Character_SetIInventoryQuantity(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT2(CharacterInfo, Character_SetIInventoryQuantity);
+    API_OBJCALL_VOID_PINT2(Character, Character_SetIInventoryQuantity);
 }
 
-// [DEPRECATED] int (CharacterInfo *chaa)
+// [DEPRECATED] int (Character *chaa)
 RuntimeScriptValue Sc_Character_GetIgnoreLighting(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(CharacterInfo, Character_GetIgnoreLighting);
+    API_OBJCALL_INT(Character, Character_GetIgnoreLighting);
 }
 
-// [DEPRECATED] void (CharacterInfo *chaa, int yesorno)
+// [DEPRECATED] void (Character *chaa, int yesorno)
 RuntimeScriptValue Sc_Character_SetIgnoreLighting(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(CharacterInfo, Character_SetIgnoreLighting);
+    API_OBJCALL_VOID_PINT(Character, Character_SetIgnoreLighting);
 }
 
-// int (CharacterInfo *chaa)
+// int (Character *chaa)
 RuntimeScriptValue Sc_Character_GetLoop(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(CharacterInfo, Character_GetLoop);
+    API_OBJCALL_INT(Character, Character_GetLoop);
 }
 
-// void (CharacterInfo *chaa, int newval)
+// void (Character *chaa, int newval)
 RuntimeScriptValue Sc_Character_SetLoop(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(CharacterInfo, Character_SetLoop);
+    API_OBJCALL_VOID_PINT(Character, Character_SetLoop);
 }
 
 RuntimeScriptValue Sc_Character_GetManualScaling(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(CharacterInfo, Character_GetManualScaling);
+    API_OBJCALL_INT(Character, Character_GetManualScaling);
 }
 
 RuntimeScriptValue Sc_Character_SetManualScaling(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(CharacterInfo, Character_SetManualScaling);
+    API_OBJCALL_VOID_PINT(Character, Character_SetManualScaling);
 }
 
-// int (CharacterInfo *chaa)
+// int (Character *chaa)
 RuntimeScriptValue Sc_Character_GetMovementLinkedToAnimation(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(CharacterInfo, Character_GetMovementLinkedToAnimation);
+    API_OBJCALL_INT(Character, Character_GetMovementLinkedToAnimation);
 }
 
-// void (CharacterInfo *chaa, int yesorno)
+// void (Character *chaa, int yesorno)
 RuntimeScriptValue Sc_Character_SetMovementLinkedToAnimation(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(CharacterInfo, Character_SetMovementLinkedToAnimation);
+    API_OBJCALL_VOID_PINT(Character, Character_SetMovementLinkedToAnimation);
 }
 
-// int (CharacterInfo *chaa)
+// int (Character *chaa)
 RuntimeScriptValue Sc_Character_GetMoving(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(CharacterInfo, Character_GetMoving);
+    API_OBJCALL_INT(Character, Character_GetMoving);
 }
 
-// int (CharacterInfo *chaa)
+// int (Character *chaa)
 RuntimeScriptValue Sc_Character_GetDestinationX(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(CharacterInfo, Character_GetDestinationX);
+    API_OBJCALL_INT(Character, Character_GetDestinationX);
 }
 
-// int (CharacterInfo *chaa)
+// int (Character *chaa)
 RuntimeScriptValue Sc_Character_GetDestinationY(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(CharacterInfo, Character_GetDestinationY);
+    API_OBJCALL_INT(Character, Character_GetDestinationY);
 }
 
-// const char* (CharacterInfo *chaa)
+// const char* (Character *chaa)
 RuntimeScriptValue Sc_Character_GetName(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_OBJ(CharacterInfo, const char, myScriptStringImpl, Character_GetName);
+    API_OBJCALL_OBJ(Character, const char, myScriptStringImpl, Character_GetName);
 }
 
-// void (CharacterInfo *chaa, const char *newName)
+// void (Character *chaa, const char *newName)
 RuntimeScriptValue Sc_Character_SetName(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_POBJ(CharacterInfo, Character_SetName, const char);
+    API_OBJCALL_VOID_POBJ(Character, Character_SetName, const char);
 }
 
-// int (CharacterInfo *chaa)
+// int (Character *chaa)
 RuntimeScriptValue Sc_Character_GetNormalView(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(CharacterInfo, Character_GetNormalView);
+    API_OBJCALL_INT(Character, Character_GetNormalView);
 }
 
-// int (CharacterInfo *chaa)
+// int (Character *chaa)
 RuntimeScriptValue Sc_Character_GetPreviousRoom(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(CharacterInfo, Character_GetPreviousRoom);
+    API_OBJCALL_INT(Character, Character_GetPreviousRoom);
 }
 
-// int (CharacterInfo *chaa)
+// int (Character *chaa)
 RuntimeScriptValue Sc_Character_GetRoom(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(CharacterInfo, Character_GetRoom);
+    API_OBJCALL_INT(Character, Character_GetRoom);
 }
 
-// int (CharacterInfo *chaa)
+// int (Character *chaa)
 RuntimeScriptValue Sc_Character_GetScaleMoveSpeed(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(CharacterInfo, Character_GetScaleMoveSpeed);
+    API_OBJCALL_INT(Character, Character_GetScaleMoveSpeed);
 }
 
-// void (CharacterInfo *chaa, int yesorno)
+// void (Character *chaa, int yesorno)
 RuntimeScriptValue Sc_Character_SetScaleMoveSpeed(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(CharacterInfo, Character_SetScaleMoveSpeed);
+    API_OBJCALL_VOID_PINT(Character, Character_SetScaleMoveSpeed);
 }
 
-// int (CharacterInfo *chaa)
+// int (Character *chaa)
 RuntimeScriptValue Sc_Character_GetScaleVolume(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(CharacterInfo, Character_GetScaleVolume);
+    API_OBJCALL_INT(Character, Character_GetScaleVolume);
 }
 
-// void (CharacterInfo *chaa, int yesorno)
+// void (Character *chaa, int yesorno)
 RuntimeScriptValue Sc_Character_SetScaleVolume(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(CharacterInfo, Character_SetScaleVolume);
+    API_OBJCALL_VOID_PINT(Character, Character_SetScaleVolume);
 }
 
-// int (CharacterInfo *chaa)
+// int (Character *chaa)
 RuntimeScriptValue Sc_Character_GetScaling(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(CharacterInfo, Character_GetScaling);
+    API_OBJCALL_INT(Character, Character_GetScaling);
 }
 
-// void (CharacterInfo *chaa, int zoomlevel)
+// void (Character *chaa, int zoomlevel)
 RuntimeScriptValue Sc_Character_SetScaling(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(CharacterInfo, Character_SetScaling);
+    API_OBJCALL_VOID_PINT(Character, Character_SetScaling);
 }
 
-// int (CharacterInfo *chaa)
+// int (Character *chaa)
 RuntimeScriptValue Sc_Character_GetSolid(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(CharacterInfo, Character_GetSolid);
+    API_OBJCALL_INT(Character, Character_GetSolid);
 }
 
-// void (CharacterInfo *chaa, int yesorno)
+// void (Character *chaa, int yesorno)
 RuntimeScriptValue Sc_Character_SetSolid(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(CharacterInfo, Character_SetSolid);
+    API_OBJCALL_VOID_PINT(Character, Character_SetSolid);
 }
 
-// int (CharacterInfo *chaa)
+// int (Character *chaa)
 RuntimeScriptValue Sc_Character_GetSpeaking(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(CharacterInfo, Character_GetSpeaking);
+    API_OBJCALL_INT(Character, Character_GetSpeaking);
 }
 
-// int (CharacterInfo *chaa)
+// int (Character *chaa)
 RuntimeScriptValue Sc_Character_GetSpeakingFrame(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(CharacterInfo, Character_GetSpeakingFrame);
+    API_OBJCALL_INT(Character, Character_GetSpeakingFrame);
 }
 
-// int (CharacterInfo *cha)
+// int (Character *cha)
 RuntimeScriptValue Sc_Character_GetSpeechAnimationDelay(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(CharacterInfo, Character_GetSpeechAnimationDelay);
+    API_OBJCALL_INT(Character, Character_GetSpeechAnimationDelay);
 }
 
-// void (CharacterInfo *chaa, int newDelay)
+// void (Character *chaa, int newDelay)
 RuntimeScriptValue Sc_Character_SetSpeechAnimationDelay(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(CharacterInfo, Character_SetSpeechAnimationDelay);
+    API_OBJCALL_VOID_PINT(Character, Character_SetSpeechAnimationDelay);
 }
 
 RuntimeScriptValue Sc_Character_GetIdleAnimationDelay(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(CharacterInfo, Character_GetIdleAnimationDelay);
+    API_OBJCALL_INT(Character, Character_GetIdleAnimationDelay);
 }
 
-// void (CharacterInfo *chaa, int newDelay)
+// void (Character *chaa, int newDelay)
 RuntimeScriptValue Sc_Character_SetIdleAnimationDelay(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(CharacterInfo, Character_SetIdleAnimationDelay);
+    API_OBJCALL_VOID_PINT(Character, Character_SetIdleAnimationDelay);
 }
 
-// int (CharacterInfo *chaa)
+// int (Character *chaa)
 RuntimeScriptValue Sc_Character_GetSpeechColor(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(CharacterInfo, Character_GetSpeechColor);
+    API_OBJCALL_INT(Character, Character_GetSpeechColor);
 }
 
-// void (CharacterInfo *chaa, int ncol)
+// void (Character *chaa, int ncol)
 RuntimeScriptValue Sc_Character_SetSpeechColor(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(CharacterInfo, Character_SetSpeechColor);
+    API_OBJCALL_VOID_PINT(Character, Character_SetSpeechColor);
 }
 
-// int (CharacterInfo *chaa)
+// int (Character *chaa)
 RuntimeScriptValue Sc_Character_GetSpeechView(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(CharacterInfo, Character_GetSpeechView);
+    API_OBJCALL_INT(Character, Character_GetSpeechView);
 }
 
-// void (CharacterInfo *chaa, int vii)
+// void (Character *chaa, int vii)
 RuntimeScriptValue Sc_Character_SetSpeechView(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(CharacterInfo, Character_SetSpeechView);
+    API_OBJCALL_VOID_PINT(Character, Character_SetSpeechView);
 }
 
 RuntimeScriptValue Sc_Character_GetThinking(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_BOOL(CharacterInfo, Character_GetThinking);
+    API_OBJCALL_BOOL(Character, Character_GetThinking);
 }
 
 RuntimeScriptValue Sc_Character_GetThinkingFrame(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(CharacterInfo, Character_GetThinkingFrame);
+    API_OBJCALL_INT(Character, Character_GetThinkingFrame);
 }
 
-// int (CharacterInfo *chaa)
+// int (Character *chaa)
 RuntimeScriptValue Sc_Character_GetThinkView(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(CharacterInfo, Character_GetThinkView);
+    API_OBJCALL_INT(Character, Character_GetThinkView);
 }
 
-// void (CharacterInfo *chaa, int vii)
+// void (Character *chaa, int vii)
 RuntimeScriptValue Sc_Character_SetThinkView(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(CharacterInfo, Character_SetThinkView);
+    API_OBJCALL_VOID_PINT(Character, Character_SetThinkView);
 }
 
-// int (CharacterInfo *chaa)
+// int (Character *chaa)
 RuntimeScriptValue Sc_Character_GetTransparency(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(CharacterInfo, Character_GetTransparency);
+    API_OBJCALL_INT(Character, Character_GetTransparency);
 }
 
-// void (CharacterInfo *chaa, int trans)
+// void (Character *chaa, int trans)
 RuntimeScriptValue Sc_Character_SetTransparency(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(CharacterInfo, Character_SetTransparency);
+    API_OBJCALL_VOID_PINT(Character, Character_SetTransparency);
 }
 
-// int (CharacterInfo *chaa)
+// int (Character *chaa)
 RuntimeScriptValue Sc_Character_GetTurnBeforeWalking(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(CharacterInfo, Character_GetTurnBeforeWalking);
+    API_OBJCALL_INT(Character, Character_GetTurnBeforeWalking);
 }
 
-// void (CharacterInfo *chaa, int yesorno)
+// void (Character *chaa, int yesorno)
 RuntimeScriptValue Sc_Character_SetTurnBeforeWalking(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(CharacterInfo, Character_SetTurnBeforeWalking);
+    API_OBJCALL_VOID_PINT(Character, Character_SetTurnBeforeWalking);
 }
 
 RuntimeScriptValue Sc_Character_GetTurnWhenFacing (void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(CharacterInfo, Character_GetTurnWhenFacing );
+    API_OBJCALL_INT(Character, Character_GetTurnWhenFacing );
 }
 
 RuntimeScriptValue Sc_Character_SetTurnWhenFacing (void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(CharacterInfo, Character_SetTurnWhenFacing);
+    API_OBJCALL_VOID_PINT(Character, Character_SetTurnWhenFacing);
 }
 
-// int (CharacterInfo *chaa)
+// int (Character *chaa)
 RuntimeScriptValue Sc_Character_GetView(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(CharacterInfo, Character_GetView);
+    API_OBJCALL_INT(Character, Character_GetView);
 }
 
 RuntimeScriptValue Sc_Character_GetVisible(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_BOOL(CharacterInfo, Character_GetVisible);
+    API_OBJCALL_BOOL(Character, Character_GetVisible);
 }
 
 RuntimeScriptValue Sc_Character_SetVisible(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PBOOL(CharacterInfo, Character_SetVisible);
+    API_OBJCALL_VOID_PBOOL(Character, Character_SetVisible);
 }
 
-// int (CharacterInfo *chaa)
+// int (Character *chaa)
 RuntimeScriptValue Sc_Character_GetWalkSpeedX(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(CharacterInfo, Character_GetWalkSpeedX);
+    API_OBJCALL_INT(Character, Character_GetWalkSpeedX);
 }
 
-// int (CharacterInfo *chaa)
+// int (Character *chaa)
 RuntimeScriptValue Sc_Character_GetWalkSpeedY(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(CharacterInfo, Character_GetWalkSpeedY);
+    API_OBJCALL_INT(Character, Character_GetWalkSpeedY);
 }
 
-// int (CharacterInfo *chaa)
+// int (Character *chaa)
 RuntimeScriptValue Sc_Character_GetX(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(CharacterInfo, Character_GetX);
+    API_OBJCALL_INT(Character, Character_GetX);
 }
 
-// void (CharacterInfo *chaa, int newval)
+// void (Character *chaa, int newval)
 RuntimeScriptValue Sc_Character_SetX(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(CharacterInfo, Character_SetX);
+    API_OBJCALL_VOID_PINT(Character, Character_SetX);
 }
 
-// int (CharacterInfo *chaa)
+// int (Character *chaa)
 RuntimeScriptValue Sc_Character_GetY(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(CharacterInfo, Character_GetY);
+    API_OBJCALL_INT(Character, Character_GetY);
 }
 
-// void (CharacterInfo *chaa, int newval)
+// void (Character *chaa, int newval)
 RuntimeScriptValue Sc_Character_SetY(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(CharacterInfo, Character_SetY);
+    API_OBJCALL_VOID_PINT(Character, Character_SetY);
 }
 
-// int (CharacterInfo *chaa)
+// int (Character *chaa)
 RuntimeScriptValue Sc_Character_GetZ(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(CharacterInfo, Character_GetZ);
+    API_OBJCALL_INT(Character, Character_GetZ);
 }
 
-// void (CharacterInfo *chaa, int newval)
+// void (Character *chaa, int newval)
 RuntimeScriptValue Sc_Character_SetZ(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(CharacterInfo, Character_SetZ);
+    API_OBJCALL_VOID_PINT(Character, Character_SetZ);
 }
 
 RuntimeScriptValue Sc_Character_GetBlendMode(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_INT(CharacterInfo, Character_GetBlendMode);
+    API_OBJCALL_INT(Character, Character_GetBlendMode);
 }
 
 RuntimeScriptValue Sc_Character_SetBlendMode(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(CharacterInfo, Character_SetBlendMode);
+    API_OBJCALL_VOID_PINT(Character, Character_SetBlendMode);
 }
 
-// bool (CharacterInfo *chaa)
+// bool (Character *chaa)
 RuntimeScriptValue Sc_Character_GetUseRegionTint(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_BOOL(CharacterInfo, Character_GetUseRegionTint);
+    API_OBJCALL_BOOL(Character, Character_GetUseRegionTint);
 }
 
-// void (CharacterInfo *chaa, int yesorno)
+// void (Character *chaa, int yesorno)
 RuntimeScriptValue Sc_Character_SetUseRegionTint(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PINT(CharacterInfo, Character_SetUseRegionTint);
+    API_OBJCALL_VOID_PINT(Character, Character_SetUseRegionTint);
 }
 
 RuntimeScriptValue Sc_Character_GetRotation(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_FLOAT(CharacterInfo, Character_GetRotation);
+    API_OBJCALL_FLOAT(Character, Character_GetRotation);
 }
 
 RuntimeScriptValue Sc_Character_SetRotation(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PFLOAT(CharacterInfo, Character_SetRotation);
+    API_OBJCALL_VOID_PFLOAT(Character, Character_SetRotation);
 }
 
 RuntimeScriptValue Sc_Character_GetFaceDirectionRatio(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_FLOAT(CharacterInfo, Character_GetFaceDirectionRatio);
+    API_OBJCALL_FLOAT(Character, Character_GetFaceDirectionRatio);
 }
 
 RuntimeScriptValue Sc_Character_SetFaceDirectionRatio(void *self, const RuntimeScriptValue *params, int32_t param_count)
 {
-    API_OBJCALL_VOID_PFLOAT(CharacterInfo, Character_SetFaceDirectionRatio);
+    API_OBJCALL_VOID_PFLOAT(Character, Character_SetFaceDirectionRatio);
 }
 
 //=============================================================================
@@ -4216,25 +4216,25 @@ RuntimeScriptValue Sc_Character_SetFaceDirectionRatio(void *self, const RuntimeS
 //
 //=============================================================================
 
-void ScPl_Character_Say(CharacterInfo *chaa, const char *texx, ...)
+void ScPl_Character_Say(Character *chaa, const char *texx, ...)
 {
     API_PLUGIN_SCRIPT_SPRINTF(texx);
     Character_Say(chaa, scsf_buffer);
 }
 
-void ScPl_Character_SayAt(CharacterInfo *chaa, int x, int y, int width, const char *texx, ...)
+void ScPl_Character_SayAt(Character *chaa, int x, int y, int width, const char *texx, ...)
 {
     API_PLUGIN_SCRIPT_SPRINTF(texx);
     Character_SayAt(chaa, x, y, width, scsf_buffer);
 }
 
-ScriptOverlay *ScPl_Character_SayBackground(CharacterInfo *chaa, const char *texx, ...)
+ScriptOverlay *ScPl_Character_SayBackground(Character *chaa, const char *texx, ...)
 {
     API_PLUGIN_SCRIPT_SPRINTF(texx);
     return Character_SayBackground(chaa, scsf_buffer);
 }
 
-void ScPl_Character_Think(CharacterInfo *chaa, const char *texx, ...)
+void ScPl_Character_Think(Character *chaa, const char *texx, ...)
 {
     API_PLUGIN_SCRIPT_SPRINTF(texx);
     Character_Think(chaa, scsf_buffer);

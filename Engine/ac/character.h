@@ -35,132 +35,132 @@ bool    is_valid_character(int char_id);
 // if not then prints a warning to the log; returns assertion result
 bool    AssertCharacter(const char *apiname, int char_id);
 
-void    Character_AddInventory(CharacterInfo *chaa, ScriptInvItem *invi, int addIndex);
-void    Character_AddWaypoint(CharacterInfo *chaa, int x, int y);
-void    Character_Animate(CharacterInfo *chaa, int loop, int delay, int repeat,
+void    Character_AddInventory(Character *chaa, ScriptInvItem *invi, int addIndex);
+void    Character_AddWaypoint(Character *chaa, int x, int y);
+void    Character_Animate(Character *chaa, int loop, int delay, int repeat,
                           int blocking, int direction, int sframe = 0, int volume = 100);
-void    Character_Animate5(CharacterInfo *chaa, int loop, int delay, int repeat, int blocking, int direction);
-void    Character_ChangeRoomAutoPosition(CharacterInfo *chaa, int room, int newPos);
-void    Character_ChangeRoom(CharacterInfo *chaa, int room, int x, int y);
-void    Character_ChangeRoomSetLoop(CharacterInfo *chaa, int room, int x, int y, int direction);
-void    Character_ChangeView(CharacterInfo *chap, int vii);
-void    Character_FaceDirection(CharacterInfo *char1, int direction, int blockingStyle);
-void    Character_FaceCharacter(CharacterInfo *char1, CharacterInfo *char2, int blockingStyle);
-void    Character_FaceLocation(CharacterInfo *char1, int xx, int yy, int blockingStyle);
-void    Character_FaceObject(CharacterInfo *char1, ScriptObject *obj, int blockingStyle);
-void    Character_FollowCharacter(CharacterInfo *chaa, CharacterInfo *tofollow, int distaway, int eagerness);
-int     Character_IsCollidingWithChar(CharacterInfo *char1, CharacterInfo *char2);
-int     Character_IsCollidingWithObject(CharacterInfo *chin, ScriptObject *objid);
-bool    Character_IsInteractionAvailable(CharacterInfo *cchar, int mood);
-void    Character_LockView(CharacterInfo *chap, int vii);
-void    Character_LockViewEx(CharacterInfo *chap, int vii, int stopMoving);
-void    Character_LockViewAlignedEx(CharacterInfo *chap, int vii, int loop, int align, int stopMoving);
-void    Character_LockViewFrameEx(CharacterInfo *chaa, int view, int loop, int frame, int stopMoving);
-void    Character_LockViewOffsetEx(CharacterInfo *chap, int vii, int xoffs, int yoffs, int stopMoving);
-void    Character_LoseInventory(CharacterInfo *chap, ScriptInvItem *invi);
-void    Character_PlaceOnWalkableArea(CharacterInfo *chap);
-void    Character_RemoveTint(CharacterInfo *chaa);
-int     Character_GetHasExplicitTint(CharacterInfo *chaa);
-void    Character_Say(CharacterInfo *chaa, const char *text);
-void    Character_SayAt(CharacterInfo *chaa, int x, int y, int width, const char *texx);
-ScriptOverlay* Character_SayBackground(CharacterInfo *chaa, const char *texx);
-void    Character_SetAsPlayer(CharacterInfo *chaa);
-void    Character_SetIdleView(CharacterInfo *chaa, int iview, int itime);
-void    Character_SetOption(CharacterInfo *chaa, int flag, int yesorno);
-void    Character_SetSpeed(CharacterInfo *chaa, int xspeed, int yspeed);
-void    Character_StopMoving(CharacterInfo *charp);
-void    Character_StopMovingEx(CharacterInfo *charp, bool force_walkable_area);
-void    Character_Tint(CharacterInfo *chaa, int red, int green, int blue, int opacity, int luminance);
-void    Character_Think(CharacterInfo *chaa, const char *text);
-void    Character_UnlockView(CharacterInfo *chaa);
-void    Character_UnlockViewEx(CharacterInfo *chaa, int stopMoving);
-void    Character_Walk(CharacterInfo *chaa, int x, int y, int blocking, int ignwal);
-void    Character_Move(CharacterInfo *chaa, int x, int y, int blocking, int ignwal);
-void    Character_WalkStraight(CharacterInfo *chaa, int xx, int yy, int blocking);
+void    Character_Animate5(Character *chaa, int loop, int delay, int repeat, int blocking, int direction);
+void    Character_ChangeRoomAutoPosition(Character *chaa, int room, int newPos);
+void    Character_ChangeRoom(Character *chaa, int room, int x, int y);
+void    Character_ChangeRoomSetLoop(Character *chaa, int room, int x, int y, int direction);
+void    Character_ChangeView(Character *chap, int vii);
+void    Character_FaceDirection(Character *char1, int direction, int blockingStyle);
+void    Character_FaceCharacter(Character *char1, Character *char2, int blockingStyle);
+void    Character_FaceLocation(Character *char1, int xx, int yy, int blockingStyle);
+void    Character_FaceObject(Character *char1, ScriptObject *obj, int blockingStyle);
+void    Character_FollowCharacter(Character *chaa, Character *tofollow, int distaway, int eagerness);
+int     Character_IsCollidingWithChar(Character *char1, Character *char2);
+int     Character_IsCollidingWithObject(Character *chin, ScriptObject *objid);
+bool    Character_IsInteractionAvailable(Character *cchar, int mood);
+void    Character_LockView(Character *chap, int vii);
+void    Character_LockViewEx(Character *chap, int vii, int stopMoving);
+void    Character_LockViewAlignedEx(Character *chap, int vii, int loop, int align, int stopMoving);
+void    Character_LockViewFrameEx(Character *chaa, int view, int loop, int frame, int stopMoving);
+void    Character_LockViewOffsetEx(Character *chap, int vii, int xoffs, int yoffs, int stopMoving);
+void    Character_LoseInventory(Character *chap, ScriptInvItem *invi);
+void    Character_PlaceOnWalkableArea(Character *chap);
+void    Character_RemoveTint(Character *chaa);
+int     Character_GetHasExplicitTint(Character *chaa);
+void    Character_Say(Character *chaa, const char *text);
+void    Character_SayAt(Character *chaa, int x, int y, int width, const char *texx);
+ScriptOverlay* Character_SayBackground(Character *chaa, const char *texx);
+void    Character_SetAsPlayer(Character *chaa);
+void    Character_SetIdleView(Character *chaa, int iview, int itime);
+void    Character_SetOption(Character *chaa, int flag, int yesorno);
+void    Character_SetSpeed(Character *chaa, int xspeed, int yspeed);
+void    Character_StopMoving(Character *charp);
+void    Character_StopMovingEx(Character *charp, bool force_walkable_area);
+void    Character_Tint(Character *chaa, int red, int green, int blue, int opacity, int luminance);
+void    Character_Think(Character *chaa, const char *text);
+void    Character_UnlockView(Character *chaa);
+void    Character_UnlockViewEx(Character *chaa, int stopMoving);
+void    Character_Walk(Character *chaa, int x, int y, int blocking, int ignwal);
+void    Character_Move(Character *chaa, int x, int y, int blocking, int ignwal);
+void    Character_WalkStraight(Character *chaa, int xx, int yy, int blocking);
 
-void    Character_RunInteraction(CharacterInfo *chaa, int mood);
+void    Character_RunInteraction(Character *chaa, int mood);
 
 // **** CHARACTER: PROPERTIES ****
 
-int Character_GetProperty(CharacterInfo *chaa, const char *property);
-void Character_GetPropertyText(CharacterInfo *chaa, const char *property, char *bufer);
-const char* Character_GetTextProperty(CharacterInfo *chaa, const char *property);
+int Character_GetProperty(Character *chaa, const char *property);
+void Character_GetPropertyText(Character *chaa, const char *property, char *bufer);
+const char* Character_GetTextProperty(Character *chaa, const char *property);
 
-ScriptInvItem* Character_GetActiveInventory(CharacterInfo *chaa);
-void    Character_SetActiveInventory(CharacterInfo *chaa, ScriptInvItem* iit);
+ScriptInvItem* Character_GetActiveInventory(Character *chaa);
+void    Character_SetActiveInventory(Character *chaa, ScriptInvItem* iit);
 void    SetActiveInventory(int iit); //[DEPRECATED] but used from few other functions
-int     Character_GetAnimating(CharacterInfo *chaa);
-int     Character_GetAnimationSpeed(CharacterInfo *chaa);
-void    Character_SetAnimationSpeed(CharacterInfo *chaa, int newval);
-int     Character_GetBaseline(CharacterInfo *chaa);
-void    Character_SetBaseline(CharacterInfo *chaa, int basel);
-int     Character_GetBlinkInterval(CharacterInfo *chaa);
-void    Character_SetBlinkInterval(CharacterInfo *chaa, int interval);
-int     Character_GetBlinkView(CharacterInfo *chaa);
-void    Character_SetBlinkView(CharacterInfo *chaa, int vii);
-int     Character_GetBlinkWhileThinking(CharacterInfo *chaa);
-void    Character_SetBlinkWhileThinking(CharacterInfo *chaa, int yesOrNo);
-int     Character_GetBlockingHeight(CharacterInfo *chaa);
-void    Character_SetBlockingHeight(CharacterInfo *chaa, int hit);
-int     Character_GetBlockingWidth(CharacterInfo *chaa);
-void    Character_SetBlockingWidth(CharacterInfo *chaa, int wid);
-int     Character_GetDiagonalWalking(CharacterInfo *chaa);
-void    Character_SetDiagonalWalking(CharacterInfo *chaa, int yesorno);
-int     Character_GetClickable(CharacterInfo *chaa);
-void    Character_SetClickable(CharacterInfo *chaa, int clik);
-int     Character_GetID(CharacterInfo *chaa);
-int     Character_GetFrame(CharacterInfo *chaa);
-void    Character_SetFrame(CharacterInfo *chaa, int newval);
-int     Character_GetIdleView(CharacterInfo *chaa);
-int     Character_GetIInventoryQuantity(CharacterInfo *chaa, int index);
-int     Character_HasInventory(CharacterInfo *chaa, ScriptInvItem *invi);
-void    Character_SetIInventoryQuantity(CharacterInfo *chaa, int index, int quant);
-int     Character_GetIgnoreLighting(CharacterInfo *chaa);
-void    Character_SetIgnoreLighting(CharacterInfo *chaa, int yesorno);
-void    Character_SetManualScaling(CharacterInfo *chaa, int yesorno);
-int     Character_GetMovementLinkedToAnimation(CharacterInfo *chaa);
-void    Character_SetMovementLinkedToAnimation(CharacterInfo *chaa, int yesorno);
-int     Character_GetLoop(CharacterInfo *chaa);
-void    Character_SetLoop(CharacterInfo *chaa, int newval);
-int     Character_GetMoving(CharacterInfo *chaa);
-const char* Character_GetName(CharacterInfo *chaa);
-void    Character_SetName(CharacterInfo *chaa, const char *newName);
-int     Character_GetNormalView(CharacterInfo *chaa);
-int     Character_GetPreviousRoom(CharacterInfo *chaa);
-int     Character_GetRoom(CharacterInfo *chaa);
-int     Character_GetScaleMoveSpeed(CharacterInfo *chaa);
-void    Character_SetScaleMoveSpeed(CharacterInfo *chaa, int yesorno);
-int     Character_GetScaleVolume(CharacterInfo *chaa);
-void    Character_SetScaleVolume(CharacterInfo *chaa, int yesorno);
-int     Character_GetScaling(CharacterInfo *chaa);
-void    Character_SetScaling(CharacterInfo *chaa, int zoomlevel);
-int     Character_GetSolid(CharacterInfo *chaa);
-void    Character_SetSolid(CharacterInfo *chaa, int yesorno);
-int     Character_GetSpeaking(CharacterInfo *chaa);
-int     Character_GetSpeechColor(CharacterInfo *chaa);
-void    Character_SetSpeechColor(CharacterInfo *chaa, int ncol);
-int     Character_GetSpeechAnimationDelay(CharacterInfo *chaa);
-void    Character_SetSpeechAnimationDelay(CharacterInfo *chaa, int newDelay);
-int     Character_GetSpeechView(CharacterInfo *chaa);
-void    Character_SetSpeechView(CharacterInfo *chaa, int vii);
-int     Character_GetThinkView(CharacterInfo *chaa);
-void    Character_SetThinkView(CharacterInfo *chaa, int vii);
-int     Character_GetTransparency(CharacterInfo *chaa);
-void    Character_SetTransparency(CharacterInfo *chaa, int trans);
-int     Character_GetTurnBeforeWalking(CharacterInfo *chaa);
-void    Character_SetTurnBeforeWalking(CharacterInfo *chaa, int yesorno);
-int     Character_GetView(CharacterInfo *chaa);
-int     Character_GetWalkSpeedX(CharacterInfo *chaa);
-int     Character_GetWalkSpeedY(CharacterInfo *chaa);
-int     Character_GetX(CharacterInfo *chaa);
-void    Character_SetX(CharacterInfo *chaa, int newval);
-int     Character_GetY(CharacterInfo *chaa);
-void    Character_SetY(CharacterInfo *chaa, int newval);
-int     Character_GetZ(CharacterInfo *chaa);
-void    Character_SetZ(CharacterInfo *chaa, int newval);
-int     Character_GetSpeakingFrame(CharacterInfo *chaa);
-int     Character_GetBlendMode(CharacterInfo *chaa);
-void    Character_SetBlendMode(CharacterInfo *chaa, int blendMode);
+int     Character_GetAnimating(Character *chaa);
+int     Character_GetAnimationSpeed(Character *chaa);
+void    Character_SetAnimationSpeed(Character *chaa, int newval);
+int     Character_GetBaseline(Character *chaa);
+void    Character_SetBaseline(Character *chaa, int basel);
+int     Character_GetBlinkInterval(Character *chaa);
+void    Character_SetBlinkInterval(Character *chaa, int interval);
+int     Character_GetBlinkView(Character *chaa);
+void    Character_SetBlinkView(Character *chaa, int vii);
+int     Character_GetBlinkWhileThinking(Character *chaa);
+void    Character_SetBlinkWhileThinking(Character *chaa, int yesOrNo);
+int     Character_GetBlockingHeight(Character *chaa);
+void    Character_SetBlockingHeight(Character *chaa, int hit);
+int     Character_GetBlockingWidth(Character *chaa);
+void    Character_SetBlockingWidth(Character *chaa, int wid);
+int     Character_GetDiagonalWalking(Character *chaa);
+void    Character_SetDiagonalWalking(Character *chaa, int yesorno);
+int     Character_GetClickable(Character *chaa);
+void    Character_SetClickable(Character *chaa, int clik);
+int     Character_GetID(Character *chaa);
+int     Character_GetFrame(Character *chaa);
+void    Character_SetFrame(Character *chaa, int newval);
+int     Character_GetIdleView(Character *chaa);
+int     Character_GetIInventoryQuantity(Character *chaa, int index);
+int     Character_HasInventory(Character *chaa, ScriptInvItem *invi);
+void    Character_SetIInventoryQuantity(Character *chaa, int index, int quant);
+int     Character_GetIgnoreLighting(Character *chaa);
+void    Character_SetIgnoreLighting(Character *chaa, int yesorno);
+void    Character_SetManualScaling(Character *chaa, int yesorno);
+int     Character_GetMovementLinkedToAnimation(Character *chaa);
+void    Character_SetMovementLinkedToAnimation(Character *chaa, int yesorno);
+int     Character_GetLoop(Character *chaa);
+void    Character_SetLoop(Character *chaa, int newval);
+int     Character_GetMoving(Character *chaa);
+const char* Character_GetName(Character *chaa);
+void    Character_SetName(Character *chaa, const char *newName);
+int     Character_GetNormalView(Character *chaa);
+int     Character_GetPreviousRoom(Character *chaa);
+int     Character_GetRoom(Character *chaa);
+int     Character_GetScaleMoveSpeed(Character *chaa);
+void    Character_SetScaleMoveSpeed(Character *chaa, int yesorno);
+int     Character_GetScaleVolume(Character *chaa);
+void    Character_SetScaleVolume(Character *chaa, int yesorno);
+int     Character_GetScaling(Character *chaa);
+void    Character_SetScaling(Character *chaa, int zoomlevel);
+int     Character_GetSolid(Character *chaa);
+void    Character_SetSolid(Character *chaa, int yesorno);
+int     Character_GetSpeaking(Character *chaa);
+int     Character_GetSpeechColor(Character *chaa);
+void    Character_SetSpeechColor(Character *chaa, int ncol);
+int     Character_GetSpeechAnimationDelay(Character *chaa);
+void    Character_SetSpeechAnimationDelay(Character *chaa, int newDelay);
+int     Character_GetSpeechView(Character *chaa);
+void    Character_SetSpeechView(Character *chaa, int vii);
+int     Character_GetThinkView(Character *chaa);
+void    Character_SetThinkView(Character *chaa, int vii);
+int     Character_GetTransparency(Character *chaa);
+void    Character_SetTransparency(Character *chaa, int trans);
+int     Character_GetTurnBeforeWalking(Character *chaa);
+void    Character_SetTurnBeforeWalking(Character *chaa, int yesorno);
+int     Character_GetView(Character *chaa);
+int     Character_GetWalkSpeedX(Character *chaa);
+int     Character_GetWalkSpeedY(Character *chaa);
+int     Character_GetX(Character *chaa);
+void    Character_SetX(Character *chaa, int newval);
+int     Character_GetY(Character *chaa);
+void    Character_SetY(Character *chaa, int newval);
+int     Character_GetZ(Character *chaa);
+void    Character_SetZ(Character *chaa, int newval);
+int     Character_GetSpeakingFrame(Character *chaa);
+int     Character_GetBlendMode(Character *chaa);
+void    Character_SetBlendMode(Character *chaa, int blendMode);
 
 //=============================================================================
 
@@ -169,36 +169,36 @@ namespace AGS { namespace Common { class Bitmap; } }
 using namespace AGS; // FIXME later
 
 // Configures and starts character animation.
-void animate_character(CharacterInfo *chap, int loopn, int sppd, int rept,
+void animate_character(Character *chap, int loopn, int sppd, int rept,
     int direction = 0, int sframe = 0, int volume = 100);
 // Clears up animation parameters
-void stop_character_anim(CharacterInfo *chap);
+void stop_character_anim(Character *chap);
 int  find_looporder_index (int curloop);
 // returns 0 to use diagonal, 1 to not
-int  useDiagonal (CharacterInfo *char1);
+int  useDiagonal (Character *char1);
 // returns 1 normally, or 0 if they only have horizontal animations
-int  hasUpDownLoops(CharacterInfo *char1);
-void start_character_turning (CharacterInfo *chinf, int useloop, int no_diagonal);
-void fix_player_sprite(CharacterInfo *chinf, const MoveList &cmls);
+int  hasUpDownLoops(Character *char1);
+void start_character_turning (Character *chinf, int useloop, int no_diagonal);
+void fix_player_sprite(Character *chinf, const MoveList &cmls);
 // Check whether two characters have walked into each other
 int  has_hit_another_character(int sourceChar);
-int  doNextCharMoveStep(CharacterInfo *chi, CharacterExtras *chex);
+int  doNextCharMoveStep(Character *chi, CharacterExtras *chex);
 // Tells if character is currently moving, in eWalkableAreas mode
-bool is_char_walking_ndirect(CharacterInfo *chi);
+bool is_char_walking_ndirect(Character *chi);
 bool FindNearestWalkableAreaForCharacter(const Point &src, Point &dst);
 // Start character walk or move; calculate path using destination and optionally "ignore walls" flag 
-void move_character(CharacterInfo *chaa, int tox, int toy, bool ignwal, bool walk_anim);
+void move_character(Character *chaa, int tox, int toy, bool ignwal, bool walk_anim);
 // Start character walk or move, using a predefined path
-void move_character(CharacterInfo *chaa, const std::vector<Point> &path, bool walk_anim, const RunPathParams &run_params);
+void move_character(Character *chaa, const std::vector<Point> &path, bool walk_anim, const RunPathParams &run_params);
 // Start character walk or move along the straight line without pathfinding, until any non-passable area is met
-void move_character_straight(CharacterInfo *chaa, int x, int y, bool walk_anim);
+void move_character_straight(Character *chaa, int x, int y, bool walk_anim);
 // Start character walk; calculate path using destination and optionally "ignore walls" flag
-void walk_character(CharacterInfo *chaa, int tox, int toy, bool ignwal);
+void walk_character(Character *chaa, int tox, int toy, bool ignwal);
 // Start character walk the straight line until any non-passable area is met
-void walk_character_straight(CharacterInfo *chaa, int tox, int toy);
+void walk_character_straight(Character *chaa, int tox, int toy);
 void MoveCharacterToHotspot(int chaa, int hotsp);
-void FindReasonableLoopForCharacter(CharacterInfo *chap);
-int  wantMoveNow (CharacterInfo *chi, CharacterExtras *chex);
+void FindReasonableLoopForCharacter(Character *chap);
+int  wantMoveNow (Character *chi, CharacterExtras *chex);
 void setup_player_character(int charid);
 int GetCharacterWidth(int charid);
 int GetCharacterHeight(int charid);
@@ -206,7 +206,7 @@ int GetCharacterHeight(int charid);
 Common::Bitmap *GetCharacterImage(int charid, bool *is_original = nullptr);
 // Gets current source image (untransformed) for the character
 Common::Bitmap *GetCharacterSourceImage(int charid);
-CharacterInfo *GetCharacterAtScreen(int xx, int yy);
+Character *GetCharacterAtScreen(int xx, int yy);
 // Deduces room object's scale, accounting for both manual scaling and the room region effects;
 // calculates resulting sprite size.
 void update_character_scale(int charid);
@@ -241,13 +241,13 @@ PViewport FindNearestViewport(int charid);
 // TODO: move these into a runtime Character class, when there will be a proper one,
 // merging CharacterInfo and CharacterExtras.
 //
-void UpdateCharacterMoveAndAnim(CharacterInfo *chi, CharacterExtras *chex, std::vector<int> &followingAsSheep);
-void UpdateFollowingExactlyCharacter(CharacterInfo *chi);
-bool UpdateCharacterTurning(CharacterInfo *chi, CharacterExtras *chex);
-void UpdateCharacterMoving(CharacterInfo *chi, CharacterExtras *chex, int &doing_nothing);
-bool UpdateCharacterAnimating(CharacterInfo *chi, CharacterExtras *chex, int &doing_nothing);
-void UpdateCharacterIdle(CharacterInfo *chi, CharacterExtras *chex, int &doing_nothing);
-void UpdateCharacterFollower(CharacterInfo *chi, std::vector<int> &followingAsSheep, int &doing_nothing);
+void UpdateCharacterMoveAndAnim(Character *chi, CharacterExtras *chex, std::vector<int> &followingAsSheep);
+void UpdateFollowingExactlyCharacter(Character *chi);
+bool UpdateCharacterTurning(Character *chi, CharacterExtras *chex);
+void UpdateCharacterMoving(Character *chi, CharacterExtras *chex, int &doing_nothing);
+bool UpdateCharacterAnimating(Character *chi, CharacterExtras *chex, int &doing_nothing);
+void UpdateCharacterIdle(Character *chi, CharacterExtras *chex, int &doing_nothing);
+void UpdateCharacterFollower(Character *chi, std::vector<int> &followingAsSheep, int &doing_nothing);
 void UpdateInventory();
 
 extern Character *playerchar;

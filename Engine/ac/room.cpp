@@ -447,7 +447,7 @@ static void reset_temp_room()
 }
 
 // forchar = playerchar on NewRoom, or NULL if restore saved game
-void load_new_room(int newnum, CharacterInfo*forchar) {
+void load_new_room(int newnum, Character *forchar) {
 
     debug_script_log("Loading room %d", newnum);
 
@@ -836,7 +836,7 @@ void load_new_room(int newnum, CharacterInfo*forchar) {
 }
 
 // new_room: changes the current room number, and loads the new room from disk
-void new_room(int newnum,CharacterInfo*forchar) {
+void new_room(int newnum, Character *forchar) {
     EndSkippingUntilCharStops();
 
     debug_script_log("Room change requested to room %d", newnum);
