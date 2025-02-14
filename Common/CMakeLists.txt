@@ -15,6 +15,8 @@ target_include_directories(common PUBLIC .)
 
 target_sources(common 
     PRIVATE
+    ac/audioclipinfo.cpp
+    ac/audioclipinfo.h
     ac/audiocliptype.cpp
     ac/audiocliptype.h
     ac/characterinfo.cpp
@@ -24,11 +26,9 @@ target_sources(common
     ac/common_defines.h
     ac/dialogtopic.cpp
     ac/dialogtopic.h
-    ac/dynobj/scriptaudioclip.cpp
-    ac/dynobj/scriptaudioclip.h
     ac/game_version.h
-    ac/gamesetupstruct.cpp
-    ac/gamesetupstruct.h
+    ac/gamedata.cpp
+    ac/gamedata.h
     ac/gamestructdefines.h
     ac/inventoryiteminfo.cpp
     ac/inventoryiteminfo.h

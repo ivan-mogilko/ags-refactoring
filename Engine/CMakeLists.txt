@@ -105,6 +105,7 @@ target_sources(engine
     ac/dynobj/scriptmouse.cpp
     ac/dynobj/scriptmouse.h
     ac/dynobj/scriptmouse.cpp
+    ac/dynobj/scriptobjects.cpp
     ac/dynobj/scriptobjects.h
     ac/dynobj/scriptoverlay.cpp
     ac/dynobj/scriptoverlay.h
@@ -134,6 +135,7 @@ target_sources(engine
     ac/game.h
     ac/joystick.cpp
     ac/joystick.h
+    ac/gameentity_script.cpp
     ac/gamesetup.h
     ac/gamestate.cpp
     ac/gamestate.h
@@ -257,6 +259,9 @@ target_sources(engine
     device/mousew32.cpp
     device/mousew32.h
     font/fonts_engine.cpp
+    game/characterclass.h
+    game/gameclass.cpp
+    game/gameclass.h
     game/game_init.cpp
     game/game_init.h
     game/savegame.cpp
