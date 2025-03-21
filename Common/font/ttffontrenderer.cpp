@@ -12,26 +12,26 @@
 //
 //=============================================================================
 #include "font/ttffontrenderer.h"
-#include <alfont.h>
+#include <SDL_ttf.h>
 #include "ac/game_version.h"
 #include "core/platform.h"
 #include "core/assetmanager.h"
 #include "font/fonts.h"
 #include "gfx/blender.h"
 #include "util/stream.h"
+#include "util/sdl2_util.h"
 
 using namespace AGS::Common;
 
 TTFFontRenderer::TTFFontRenderer(AssetManager *amgr)
     : _amgr(amgr)
 {
-    alfont_init();
-    alfont_text_mode(-1);
+    TTF_Init();
 }
 
 TTFFontRenderer::~TTFFontRenderer()
 {
-    alfont_exit();
+    TTF_Quit();
 }
 
 void TTFFontRenderer::AdjustYCoordinateForFont(int *ycoord, int /*fontNumber*/)
@@ -51,36 +51,51 @@ void TTFFontRenderer::EnsureTextValidForFont(char * /*text*/, int /*fontNumber*/
 
 int TTFFontRenderer::GetTextWidth(const char *text, int fontNumber)
 {
-  return alfont_text_length(_fontData[fontNumber].AlFont, text);
+    int w = 0;
+    TTF_SizeUTF8(_fontData[fontNumber].Font, text, &w, nullptr);
+    return w;
 }
 
 int TTFFontRenderer::GetTextHeight(const char * /*text*/, int fontNumber)
 {
-  return alfont_get_font_real_height(_fontData[fontNumber].AlFont);
+    return TTF_FontHeight(_fontData[fontNumber].Font);
 }
 
-void TTFFontRenderer::RenderText(const char *text, int fontNumber, BITMAP *destination, int x, int y, int colour)
+void TTFFontRenderer::RenderText(const char *text, int fontNumber, BITMAP *destination, int x, int y, int color)
 {
     if (y > destination->cb)  // optimisation
         return;
 
     // Check if this is a alpha-blending case, and init corresponding draw mode
     const bool alpha_blend = (bitmap_color_depth(destination) == 32) &&
-        ((geta32(colour) != 0xFF) || (_blendMode != kBlend_Normal));
-    if (alpha_blend)
-    {
-        alfont_blend_mode(GetBlenderFunc(_blendMode));
-    }
+        ((geta32(color) != 0xFF) || (_blendMode != kBlend_Normal));
 
-    // Y - 1 because it seems to get drawn down a bit
+    SDL_Surface *surf = nullptr;
+    const SDL_Color fg = { getr32(color), getg32(color), getb32(color), geta32(color) };
     if ((ShouldAntiAliasText()) && (bitmap_color_depth(destination) > 8))
-        alfont_textout_aa(destination, _fontData[fontNumber].AlFont, text, x, y - 1, colour);
+        surf = TTF_RenderUTF8_Blended(_fontData[fontNumber].Font, text, fg);
     else
-        alfont_textout(destination, _fontData[fontNumber].AlFont, text, x, y - 1, colour);
+        surf = TTF_RenderUTF8_Blended(_fontData[fontNumber].Font, text, fg);
+        // FIXME?
+        //TTF_RenderUTF8_Solid(_fontData[fontNumber].Font, text, fg);
+
+    if (!surf)
+        return;
+
+    Bitmap helper(surf, false);
+    Bitmap dest(destination, true);
 
     if (alpha_blend)
     {
-        alfont_blend_mode(nullptr);
+        SetBlender(_blendMode, 255);
+        dest.TransBlendBlt(&helper, x, y);
+    }
+    else
+    {
+        SetBlender(kBlend_Normal, 255);
+        dest.TransBlendBlt(&helper, x, y);
+        // FIXME?
+        //dest.MaskedBlit(&helper, x, y);
     }
 }
 
@@ -94,51 +109,36 @@ bool TTFFontRenderer::IsBitmapFont()
     return false;
 }
 
-static int GetAlfontFlags(int load_mode)
-{
-  int flags = ALFONT_FLG_FORCE_RESIZE | ALFONT_FLG_SELECT_NOMINAL_SZ;
-  // Compatibility: font ascender is always adjusted to the formal font's height
-  if ((load_mode & FFLG_ASCENDERFIXUP) != 0)
-      flags |= ALFONT_FLG_ASCENDER_EQ_HEIGHT;
-  // Precalculate real glyphs extent (will make loading fonts relatively slower)
-  flags |= ALFONT_FLG_PRECALC_MAX_CBOX;
-  return flags;
-}
-
 // Loads a TTF font of a certain size
-static ALFONT_FONT *LoadTTFFromMem(const uint8_t *data, size_t data_len, int font_size, int alfont_flags)
+static TTF_Font *LoadTTF(std::unique_ptr<Stream> &&in, int font_size)
 {
-    ALFONT_FONT *alfptr = alfont_load_font_from_mem(reinterpret_cast<const char*>(data), data_len);
-    if (!alfptr)
-        return nullptr;
-    alfont_set_font_size_ex(alfptr, font_size, alfont_flags);
-    return alfptr;
+    SDL_RWops *rw = SDL2Util::OpenRWops(std::move(in));
+    TTF_Font *font = TTF_OpenFontRW(rw, 1, font_size);
+    return font;
 }
 
 // Fill the FontMetrics struct from the given ALFONT
-static void FillMetrics(ALFONT_FONT *alfptr, FontMetrics *metrics)
+static void FillMetrics(TTF_Font *font, FontMetrics *metrics)
 {
-    metrics->NominalHeight = alfont_get_font_height(alfptr);
-    metrics->RealHeight = alfont_get_font_real_height(alfptr);
+    // FIXME: review what was this doing with ALFONT and decide if we need this distinction still or not
+    // FIXME: also maybe remove CompatHeight in AGS 4
+    metrics->NominalHeight = TTF_FontHeight(font);
+    metrics->RealHeight = TTF_FontHeight(font);
     metrics->CompatHeight = metrics->NominalHeight; // just set to default here
-    alfont_get_font_real_vextent(alfptr, &metrics->VExtent.first, &metrics->VExtent.second);
+    // FIXME: following is not true, we must retrieve actual BBOX info from FT_Face
+    metrics->VExtent = std::make_pair(0, TTF_FontAscent(font) + (-TTF_FontDescent(font)));
     // fixup vextent to be *not less* than realheight
     metrics->VExtent.first = std::min(0, metrics->VExtent.first);
     metrics->VExtent.second = std::max(metrics->RealHeight, metrics->VExtent.second);
 }
 
-ALFONT_FONT *TTFFontRenderer::LoadTTF(const AGS::Common::String &filename, int font_size, int alfont_flags)
+TTF_Font *TTFFontRenderer::LoadTTF(const AGS::Common::String &filename, int font_size)
 {
-    auto reader = _amgr->OpenAsset(filename);
-    if (!reader)
+    auto in = _amgr->OpenAsset(filename);
+    if (!in)
         return nullptr;
 
-    const size_t lenof = reader->GetLength();
-    std::vector<uint8_t> buf(lenof);
-    reader->Read(buf.data(), lenof);
-    reader.reset();
-
-    return LoadTTFFromMem(buf.data(), lenof, font_size, alfont_flags);
+    return ::LoadTTF(std::move(in), font_size);
 }
 
 bool TTFFontRenderer::LoadFromDiskEx(int fontNumber, int fontSize, const String &filename,
@@ -151,31 +151,30 @@ bool TTFFontRenderer::LoadFromDiskEx(int fontNumber, int fontSize, const String 
     if (f_params.SizeMultiplier > 1)
         fontSize *= f_params.SizeMultiplier;
 
-    ALFONT_FONT *alfptr = LoadTTF(filename, fontSize,
-        GetAlfontFlags(f_params.LoadMode));
-    if (!alfptr)
+    TTF_Font *font = LoadTTF(filename, fontSize);
+    if (!font)
         return false;
 
-    _fontData[fontNumber].AlFont = alfptr;
+    _fontData[fontNumber].Font = font;
     _fontData[fontNumber].Params = f_params;
     if (metrics)
-        FillMetrics(alfptr, metrics);
+        FillMetrics(font, metrics);
     return true;
 }
 
 const char *TTFFontRenderer::GetFontName(int fontNumber)
 {
-  return alfont_get_name(_fontData[fontNumber].AlFont);
+    return TTF_FontFaceFamilyName(_fontData[fontNumber].Font);
 }
 
 int TTFFontRenderer::GetFontHeight(int fontNumber)
 {
-  return alfont_get_font_real_height(_fontData[fontNumber].AlFont);
+    return TTF_FontHeight(_fontData[fontNumber].Font);
 }
 
 void TTFFontRenderer::GetFontMetrics(int fontNumber, FontMetrics *metrics)
 {
-    FillMetrics(_fontData[fontNumber].AlFont, metrics);
+    FillMetrics(_fontData[fontNumber].Font, metrics);
 }
 
 void TTFFontRenderer::AdjustFontForAntiAlias(int /*fontNumber*/, bool /*aa_mode*/)
@@ -189,26 +188,28 @@ void TTFFontRenderer::SetBlendMode(BlendMode blend_mode)
 
 void TTFFontRenderer::FreeMemory(int fontNumber)
 {
-  alfont_destroy_font(_fontData[fontNumber].AlFont);
-  _fontData.erase(fontNumber);
+    TTF_CloseFont(_fontData[fontNumber].Font);
+    _fontData.erase(fontNumber);
 }
 
 bool TTFFontRenderer::MeasureFontOfPointSize(const String &filename, int size_pt, FontMetrics *metrics)
 {
-    ALFONT_FONT *alfptr = LoadTTF(filename, size_pt, ALFONT_FLG_FORCE_RESIZE | ALFONT_FLG_SELECT_NOMINAL_SZ);
-    if (!alfptr)
+    TTF_Font *font = LoadTTF(filename, size_pt);
+    if (!font)
         return false;
-    FillMetrics(alfptr, metrics);
-    alfont_destroy_font(alfptr);
+    FillMetrics(font, metrics);
+    TTF_CloseFont(font);
     return true;
 }
 
 bool TTFFontRenderer::MeasureFontOfPixelHeight(const String &filename, int pixel_height, FontMetrics *metrics)
 {
-    ALFONT_FONT *alfptr = LoadTTF(filename, pixel_height, ALFONT_FLG_FORCE_RESIZE);
-    if (!alfptr)
+    // FIXME: pixel_height to size_pt
+    int size_pt = pixel_height;
+    TTF_Font *font = LoadTTF(filename, size_pt);
+    if (!font)
         return false;
-    FillMetrics(alfptr, metrics);
-    alfont_destroy_font(alfptr);
+    FillMetrics(font, metrics);
+    TTF_CloseFont(font);
     return true;
 }
