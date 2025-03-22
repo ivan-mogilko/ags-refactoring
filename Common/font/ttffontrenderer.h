@@ -66,6 +66,7 @@ private:
     struct FontData
     {
         TTF_Font        *Font = nullptr;
+        int              SizePt = 0;
         FontRenderParams Params;
     };
     std::map<int, FontData> _fontData;

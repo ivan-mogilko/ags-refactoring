@@ -117,16 +117,96 @@ static TTF_Font *LoadTTF(std::unique_ptr<Stream> &&in, int font_size)
     return font;
 }
 
-// Fill the FontMetrics struct from the given ALFONT
-static void FillMetrics(TTF_Font *font, FontMetrics *metrics)
+// FIXME: would be best to use SDL_ttf for retrieving FT_Face's BBOX
+#include "libsrc/freetype-2.1.3/include/freetype/freetype.h"
+
+/**/
+
+typedef FT_INT64  FT_Int64;
+
+FT_Long FT_MulDiv(FT_Long  a,
+          FT_Long  b,
+          FT_Long  c)
 {
-    // FIXME: review what was this doing with ALFONT and decide if we need this distinction still or not
-    // FIXME: also maybe remove CompatHeight in AGS 4
-    metrics->NominalHeight = TTF_FontHeight(font);
+    FT_Int   s;
+    FT_Long  d;
+
+
+    s = 1;
+    if (a < 0) { a = -a; s = -1; }
+    if (b < 0) { b = -b; s = -s; }
+    if (c < 0) { c = -c; s = -s; }
+
+    d = (FT_Long)(c > 0 ? ((FT_Int64)a * b + (c >> 1)) / c
+                  : 0x7FFFFFFFL);
+
+    return (s > 0) ? d : -d;
+}
+
+
+/* documentation is in freetype.h */
+
+FT_Long FT_MulFix(FT_Long  a,
+          FT_Long  b)
+{
+    FT_Int   s = 1;
+    FT_Long  c;
+
+
+    if (a < 0) { a = -a; s = -1; }
+    if (b < 0) { b = -b; s = -s; }
+
+    c = (FT_Long)(((FT_Int64)a * b + 0x8000) >> 16);
+    return (s > 0) ? c : -c;
+}
+
+
+/* documentation is in freetype.h */
+
+FT_Long FT_DivFix(FT_Long  a,
+          FT_Long  b)
+{
+    FT_Int32   s;
+    FT_UInt32  q;
+
+    s = 1;
+    if (a < 0) { a = -a; s = -1; }
+    if (b < 0) { b = -b; s = -s; }
+
+    if (b == 0)
+        /* check for division by 0 */
+        q = 0x7FFFFFFFL;
+    else
+        /* compute result directly */
+        q = (FT_UInt32)((((FT_Int64)a << 16) + (b >> 1)) / b);
+
+    return (s < 0 ? -(FT_Long)q : (FT_Long)q);
+}
+
+/**/
+
+// Fill the FontMetrics struct from the given ALFONT
+static void FillMetrics(TTF_Font *font, int nominal_size, FontMetrics *metrics)
+{
+    metrics->NominalHeight = nominal_size;
     metrics->RealHeight = TTF_FontHeight(font);
     metrics->CompatHeight = metrics->NominalHeight; // just set to default here
-    // FIXME: following is not true, we must retrieve actual BBOX info from FT_Face
-    metrics->VExtent = std::make_pair(0, TTF_FontAscent(font) + (-TTF_FontDescent(font)));
+    // FIXME: retrieving actual BBOX info from FT_Face, would be best if SDL_ttf allowed to do this
+    std::pair<int, int> vextent;
+    {
+        const FT_FaceRec_ *ft_face = *(FT_FaceRec_**)font;
+        FT_Long bbox_ymax = FT_MulFix(FT_DivFix(ft_face->bbox.yMax, ft_face->units_per_EM), ft_face->size->metrics.y_ppem);
+        FT_Long bbox_ymin = FT_MulFix(FT_DivFix(ft_face->bbox.yMin, ft_face->units_per_EM), ft_face->size->metrics.y_ppem);
+        int real_face_extent_asc = (int)bbox_ymax;
+        int real_face_extent_desc = -(int)bbox_ymin;
+        int face_ascender = TTF_FontAscent(font);
+        int face_descender = TTF_FontDescent(font);
+        int top = face_ascender - real_face_extent_asc; // may be negative
+        int bottom = face_ascender + real_face_extent_desc;
+        vextent = std::make_pair(top, bottom);
+    }
+    
+    metrics->VExtent = vextent;
     // fixup vextent to be *not less* than realheight
     metrics->VExtent.first = std::min(0, metrics->VExtent.first);
     metrics->VExtent.second = std::max(metrics->RealHeight, metrics->VExtent.second);
@@ -156,9 +236,10 @@ bool TTFFontRenderer::LoadFromDiskEx(int fontNumber, int fontSize, const String 
         return false;
 
     _fontData[fontNumber].Font = font;
+    _fontData[fontNumber].SizePt = fontSize;
     _fontData[fontNumber].Params = f_params;
     if (metrics)
-        FillMetrics(font, metrics);
+        FillMetrics(font, fontSize, metrics);
     return true;
 }
 
@@ -174,7 +255,7 @@ int TTFFontRenderer::GetFontHeight(int fontNumber)
 
 void TTFFontRenderer::GetFontMetrics(int fontNumber, FontMetrics *metrics)
 {
-    FillMetrics(_fontData[fontNumber].Font, metrics);
+    FillMetrics(_fontData[fontNumber].Font, _fontData[fontNumber].SizePt, metrics);
 }
 
 void TTFFontRenderer::AdjustFontForAntiAlias(int /*fontNumber*/, bool /*aa_mode*/)
@@ -197,7 +278,7 @@ bool TTFFontRenderer::MeasureFontOfPointSize(const String &filename, int size_pt
     TTF_Font *font = LoadTTF(filename, size_pt);
     if (!font)
         return false;
-    FillMetrics(font, metrics);
+    FillMetrics(font, size_pt, metrics);
     TTF_CloseFont(font);
     return true;
 }
@@ -209,7 +290,7 @@ bool TTFFontRenderer::MeasureFontOfPixelHeight(const String &filename, int pixel
     TTF_Font *font = LoadTTF(filename, size_pt);
     if (!font)
         return false;
-    FillMetrics(font, metrics);
+    FillMetrics(font, size_pt, metrics);
     TTF_CloseFont(font);
     return true;
 }
