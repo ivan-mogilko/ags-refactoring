@@ -71,19 +71,25 @@ void TTFFontRenderer::RenderText(const char *text, int fontNumber, BITMAP *desti
         ((geta32(color) != 0xFF) || (_blendMode != kBlend_Normal));
 
     SDL_Surface *surf = nullptr;
-    const SDL_Color fg = { getr32(color), getg32(color), getb32(color), geta32(color) };
-    if ((ShouldAntiAliasText()) && (bitmap_color_depth(destination) > 8))
+    const SDL_Color fg = { (Uint8)getr32(color), (Uint8)getg32(color), (Uint8)getb32(color), (Uint8)geta32(color) };
+    const bool text_blended = (ShouldAntiAliasText()) && (bitmap_color_depth(destination) > 8);
+    if (text_blended)
         surf = TTF_RenderUTF8_Blended(_fontData[fontNumber].Font, text, fg);
     else
-        surf = TTF_RenderUTF8_Blended(_fontData[fontNumber].Font, text, fg);
-        // FIXME?
-        //TTF_RenderUTF8_Solid(_fontData[fontNumber].Font, text, fg);
+        surf = TTF_RenderUTF8_Solid(_fontData[fontNumber].Font, text, fg);
 
     if (!surf)
         return;
 
     Bitmap helper(surf, false);
     Bitmap dest(destination, true);
+
+    RGB old_pal_color;
+    get_color(1, &old_pal_color);
+    if (!text_blended)
+    {
+        set_color(1, (RGB *)&fg); // NOTE: SDL_Color and Allegro RGB match fields
+    }
 
     if (alpha_blend)
     {
@@ -92,10 +98,12 @@ void TTFFontRenderer::RenderText(const char *text, int fontNumber, BITMAP *desti
     }
     else
     {
-        SetBlender(kBlend_Normal, 255);
-        dest.TransBlendBlt(&helper, x, y);
-        // FIXME?
-        //dest.MaskedBlit(&helper, x, y);
+        dest.MaskedBlit(&helper, x, y);
+    }
+
+    if (!text_blended)
+    {
+        set_color(1, &old_pal_color);
     }
 }
 
