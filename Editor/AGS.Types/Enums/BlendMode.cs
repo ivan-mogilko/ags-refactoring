@@ -16,6 +16,10 @@ namespace AGS.Types
         Dodge,
         Copy,
         CopyRGB,
-        CopyAlpha
+        CopyAlpha,
+        MinColor,
+        MinAlpha,
+        MaxColor,
+        MaxAlpha
     }
 }

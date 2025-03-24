@@ -653,7 +653,15 @@ enum BlendMode {
     /// copy source rgb to destination (keep destination alpha)
     eBlendCopyRGB,
     /// copy source alpha to destination (keep destination rgb)
-    eBlendCopyAlpha
+    eBlendCopyAlpha,
+    // select minimal color of two
+    eBlendMinColor,
+    // select minimal alpha of two
+    eBlendMinAlpha,
+    // select maximal color of two
+    eBlendMaxColor,
+    // select maximal alpha of two
+    eBlendMaxAlpha
 #endif // #ifdef SCRIPT_API_v400
 };
 #endif // SCRIPT_API_v399
