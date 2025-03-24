@@ -1594,6 +1594,16 @@ void D3DGraphicsDriver::RenderTexture(D3DBitmap *bmpToDraw, int draw_x, int draw
         SetBlendOpAlpha(D3DBLENDOP_ADD, D3DBLEND_ONE, D3DBLEND_ZERO);
         direct3ddevice->SetRenderState(D3DRS_ALPHATESTENABLE, FALSE);
         break;
+        case kBlend_MinColor:
+            SetBlendOpRGB(D3DBLENDOP_MIN, D3DBLEND_ONE, D3DBLEND_ONE);
+            SetBlendOpAlpha(D3DBLENDOP_MIN, D3DBLEND_ONE, D3DBLEND_ONE);
+            // Must disable alpha test here to let zero alpha pixels from source into the blender
+            direct3ddevice->SetRenderState(D3DRS_ALPHATESTENABLE, FALSE);
+            break;
+        case kBlend_MaxColor:
+            SetBlendOpRGB(D3DBLENDOP_MAX, D3DBLEND_ONE, D3DBLEND_ONE);
+            SetBlendOpAlpha(D3DBLENDOP_MAX, D3DBLEND_ONE, D3DBLEND_ONE);
+            break;
     default: break;
     }
 
@@ -1606,6 +1616,7 @@ void D3DGraphicsDriver::RenderTexture(D3DBitmap *bmpToDraw, int draw_x, int draw
     case kBlend_Darken:
     case kBlend_Multiply:
     case kBlend_Burn:
+        // FIXME: burn is imperfect due to blend mode, darker than normal even when transparent
         // fade to white
         // FIXME burn is imperfect due to blend mode, darker than normal even when transparent
         direct3ddevice->SetTextureStageState(0, D3DTSS_COLOROP, D3DTOP_ADDSMOOTH);
@@ -1628,7 +1639,7 @@ void D3DGraphicsDriver::RenderTexture(D3DBitmap *bmpToDraw, int draw_x, int draw
     {
     case kBlend_Dodge:
         // since the dodge is only half strength we can get a closer approx by drawing it twice
-        hr = direct3ddevice->DrawPrimitive(D3DPT_TRIANGLESTRIP, ti * 4, 2);
+        direct3ddevice->DrawPrimitive(D3DPT_TRIANGLESTRIP, ti * 4, 2);
         break;
     default:
         break;

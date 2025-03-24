@@ -1585,6 +1585,12 @@ void OGLGraphicsDriver::RenderTexture(OGLBitmap *bmpToDraw, int draw_x, int draw
         SetBlendOpRGBAlpha(GL_FUNC_ADD, GL_ZERO, GL_SRC_ALPHA,
                             GL_FUNC_ADD, GL_ONE, GL_ZERO);
         break;
+#ifdef GL_MIN
+        case kBlend_MinColor: SetBlendOpUniform(GL_MIN, GL_ONE, GL_ONE); break;
+#endif
+#ifdef GL_MAX
+        case kBlend_MaxColor: SetBlendOpUniform(GL_MAX, GL_ONE, GL_ONE); break;
+#endif
     default: break;
     }
 
@@ -1599,7 +1605,7 @@ void OGLGraphicsDriver::RenderTexture(OGLBitmap *bmpToDraw, int draw_x, int draw
     {
     case kBlend_Darken:
     case kBlend_Multiply:
-    case kBlend_Burn: // burn is imperfect due to blend mode, darker than normal even when trasparent
+    case kBlend_Burn: // burn is imperfect due to blend mode, darker than normal even when transparent
         // fade to white
 #if !AGS_OPENGL_ES2 // glTexEnvi and glColor4f are not available on OpenGL ES2, need to rewrite the code here
         glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_ADD);

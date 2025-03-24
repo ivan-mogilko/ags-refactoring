@@ -200,6 +200,32 @@ uint32_t blender_src_copyalpha(uint32_t x, uint32_t y, uint32_t /*n*/)
     return x & 0xFF000000 | y & 0xFFFFFF;
 }
 
+uint32_t blender_min_color(uint32_t x, uint32_t y, uint32_t /*n*/)
+{
+    const int xr = getr32(x);
+    const int xg = getg32(x);
+    const int xb = getb32(x);
+    const int xa = geta32(x);
+    const int yr = getr32(y);
+    const int yg = getg32(y);
+    const int yb = getb32(y);
+    const int ya = geta32(y);
+    return makeacol32(xr < yr ? xr : yr, xg < yg ? xg : yg, xb < yb ? xb : yb, xa < ya ? xa : ya);
+}
+
+uint32_t blender_max_color(uint32_t x, uint32_t y, uint32_t /*n*/)
+{
+    const int xr = getr32(x);
+    const int xg = getg32(x);
+    const int xb = getb32(x);
+    const int xa = geta32(x);
+    const int yr = getr32(y);
+    const int yg = getg32(y);
+    const int yb = getb32(y);
+    const int ya = geta32(y);
+    return makeacol32(xr >= yr ? xr : yr, xg >= yg ? xg : yg, xb >= yb ? xb : yb, xa >= ya ? xa : ya);
+}
+
 // ===============================
 // [AVD] Custom blenders for software BlendMode implementation
 // If we ditch software rendering we can remove this whole section
@@ -333,6 +359,8 @@ static const PfnBlenderCb BlendModeSets[kNumBlendModes] =
     blender_src_copy,               // kBlend_Copy
     blender_src_copyrgb,            // kBlend_CopyRGB
     blender_src_copyalpha,          // kBlend_CopyAlpha
+    blender_min_color,              // kBlend_MinColor
+    blender_max_color,              // kBlend_MaxColor
 };
 
 bool SetBlender(BlendMode blend_mode, int alpha)
