@@ -1442,6 +1442,9 @@ import int  SaveScreenShot(const string filename);
 import void PauseGame();
 /// Resumes the game after it was paused earlier.
 import void UnPauseGame();
+
+import void WaitAsync(int waitLoops);
+
 /// Blocks the script for the specified number of game loops.
 import void Wait(int waitLoops);
 /// Blocks the script for the specified number of game loops, unless a key is pressed.

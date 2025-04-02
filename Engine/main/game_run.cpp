@@ -1126,6 +1126,17 @@ static void game_loop_update_loop_counter()
 
     if (play.wait_counter > 0) play.wait_counter--;
     if (play.shakesc_length > 0) play.shakesc_length--;
+
+    ///////////////////////////////////////////////////////////
+    // COROUTINE TEST
+    if (play.wait_async_counter > 0)
+    {
+        play.wait_async_counter--;
+        if (play.wait_async_counter == 0)
+        {
+            update_waiting_coroutine();
+        }
+    }
 }
 
 static void game_loop_update_fps()

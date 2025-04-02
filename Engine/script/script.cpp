@@ -85,6 +85,7 @@ size_t numScriptModules = 0;
 std::unique_ptr<ScriptExecutor> scriptExecutor;
 std::unique_ptr<ScriptThread> scriptThreadMain;
 std::unique_ptr<ScriptThread> scriptThreadNonBlocking;
+std::unique_ptr<ScriptThread> scriptThreadCoroutineTest;
 
 // Run a script function on a non-blocking script thread
 static bool DoRunScriptFuncCantBlock(const RuntimeScript *script, NonBlockingScriptFunction* funcToRun, bool hasTheFunc);
@@ -334,13 +335,21 @@ static RunScFuncResult PrepareTextScript(const RuntimeScript *script, const Stri
         cc_error("no such function in script");
         return kScFnRes_NotFound;
     }
-    // TODO: should be IsBusy instead?
-    // need to figure out and possible adjust the script running rules
+    /* FIXME: disabled for COROUTINE TEST, but maybe should not have this at all now,
+              since we allow to run nested scripts even on same thread;
+              may test for IsBusy though?
     if (scriptExecutor->IsRunning())
     {
         cc_error("script is already in execution");
         return kScFnRes_ScriptBusy;
+    }*/
+    if (scriptExecutor->IsBusy())
+    {
+        cc_error("script is already in execution");
+        return kScFnRes_ScriptBusy;
     }
+    /*
+    */
     ExecutingScript exscript;
     exscript.Script = script;
     scripts[num_scripts] = std::move(exscript);
@@ -408,8 +417,7 @@ RunScFuncResult RunScriptFunction(const RuntimeScript *script, const String &tsn
 
     if (result == kScExecErr_Suspended)
     {
-        // TODO: alright, we suspended the active thread here,
-        // but what we do with it after?
+        scriptThreadCoroutineTest->CopyThread(scriptThreadMain.get());
         return kScFnRes_Done;
     }
 
@@ -545,6 +553,7 @@ void InitScriptExec()
     scriptExecutor = std::make_unique<ScriptExecutor>();
     scriptThreadMain = std::make_unique<ScriptThread>("Main");
     scriptThreadNonBlocking = std::make_unique<ScriptThread>("Non-Blocking");
+    scriptThreadCoroutineTest = std::make_unique<ScriptThread>("CoroutineTest");
 
     ccSetScriptAliveTimer(1000 / 60u, 1000u, 150000u);
 }
@@ -554,6 +563,7 @@ void ShutdownScriptExec()
     scriptExecutor = {};
     scriptThreadMain = {};
     scriptThreadNonBlocking = {};
+    scriptThreadCoroutineTest = {};
 }
 
 void AllocScriptModules()
@@ -819,6 +829,23 @@ void run_unhandled_event(const ObjectEvent &obj_evt, int evnt) {
         can_run_delayed_command();
         RuntimeScriptValue params[] = { evtype, evnt };
         QueueScriptFunction(kScTypeGame, "unhandled_event", 2, params);
+    }
+}
+
+void create_waiting_coroutine(int wait_id)
+{
+    scriptExecutor->SuspendThread(); // schedule to suspend when done with the latest instruction
+}
+
+void update_waiting_coroutine()
+{
+    if (scriptThreadCoroutineTest->GetPosition().Script)
+    {
+        ScriptExecError result = scriptExecutor->ResumeThread(scriptThreadCoroutineTest.get());
+        if (result != kScExecErr_Suspended)
+            scriptThreadCoroutineTest->ResetState(); // FIXME: should do this in ScriptExecutor::PopThread?!
+
+        // FIXME: should be doing all the post-script stuff as in RunScriptFunction??
     }
 }
 
