@@ -676,6 +676,11 @@ RuntimeScriptValue Sc_WaitInput(const RuntimeScriptValue *params, int32_t param_
     API_SCALL_INT_PINT2(WaitInput);
 }
 
+RuntimeScriptValue Sc_WaitAsync(const RuntimeScriptValue *params, int32_t param_count)
+{
+    API_SCALL_VOID_PINT(WaitAsync);
+}
+
 RuntimeScriptValue Sc_SkipWait(const RuntimeScriptValue *params, int32_t param_count)
 {
     API_SCALL_VOID(SkipWait);
@@ -826,6 +831,7 @@ void RegisterGlobalAPI(ScriptAPIVersion base_api, ScriptAPIVersion /*compat_api*
         { "WaitMouse",                API_FN_PAIR(WaitMouse) },
         { "WaitMouseKey",             API_FN_PAIR(WaitMouseKey) },
         { "WaitInput",                API_FN_PAIR(WaitInput) },
+        { "WaitAsync",                API_FN_PAIR(WaitAsync) },
         { "SkipWait",                 API_FN_PAIR(SkipWait) },
     };
 

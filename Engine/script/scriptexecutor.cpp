@@ -2154,7 +2154,11 @@ void ScriptExecutor::PopFromFuncCallStack(FunctionCallStack &func_callstack, int
 {
     if (func_callstack.Count == 0)
     {
-        cc_error("function callstack underflow");
+        // FIXME: temp disabled error for coroutine ----
+        // must move func_callstack to the thread! --
+        // and few other "state" things like "was_just_callas"...
+        //
+        //cc_error("function callstack underflow");
         return;
     }
 

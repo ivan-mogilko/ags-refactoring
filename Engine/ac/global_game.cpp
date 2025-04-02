@@ -849,6 +849,13 @@ int WaitInput(int input_flags, int nloops) {
     return WaitImpl((input_flags >> SKIP_RESULT_TYPE_SHIFT) | SKIP_AUTOTIMER, nloops);
 }
 
+int wait_async_counter = 0;
+void WaitAsync(int nloops)
+{
+    play.wait_async_counter = nloops;
+    create_waiting_coroutine(wait_async_counter++);
+}
+
 void SkipWait() {
     play.wait_counter = 0;
 }
