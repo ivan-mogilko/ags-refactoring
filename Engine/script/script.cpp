@@ -387,9 +387,9 @@ RunScFuncResult RunScriptFunction(const RuntimeScript *script, const String &tsn
         return res;
     }
 
-    const ScriptExecError inst_ret = scriptExecutor->Run(scriptThreadMain.get(),
+    const ScriptExecError result = scriptExecutor->Run(scriptThreadMain.get(),
         curscript->Script, tsname, params, numParam);
-    if ((inst_ret != kScExecErr_None) && (inst_ret != kScExecErr_FuncNotFound) && (inst_ret != kScExecErr_Aborted))
+    if ((result != kScExecErr_None) && (result != kScExecErr_FuncNotFound) && (result != kScExecErr_Aborted) && (result != kScExecErr_Suspended))
     {
         quit_with_script_error(tsname);
     }
@@ -406,9 +406,16 @@ RunScFuncResult RunScriptFunction(const RuntimeScript *script, const String &tsn
     if ((oldRestoreCount != gameHasBeenRestored) && (eventClaimed == EVENT_INPROGRESS))
         eventClaimed = EVENT_CLAIMED;
 
+    if (result == kScExecErr_Suspended)
+    {
+        // TODO: alright, we suspended the active thread here,
+        // but what we do with it after?
+        return kScFnRes_Done;
+    }
+
     // Convert any instance exec error into RunScriptFunction result;
     // NOTE: only kScExecErr_FuncNotFound and kScExecErr_Aborted can reach here
-    if (inst_ret == kScExecErr_FuncNotFound)
+    if (result == kScExecErr_FuncNotFound)
         return kScFnRes_NotFound;
     return kScFnRes_Done;
 }
