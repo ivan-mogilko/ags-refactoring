@@ -36,7 +36,8 @@ namespace Engine
 enum ScriptExecError
 {
     kScExecErr_None = 0, // ok
-    kScExecErr_Aborted = 100, // aborted by request
+    kScExecErr_Aborted = 100, // a current thread was aborted by request
+    kScExecErr_Suspended = 200, // a current thread was suspended by request
     kScExecErr_Generic = -1, // any generic exec error; use cc_get_error()
     kScExecErr_FuncNotFound = -2, // requested function is not found in script
     kScExecErr_InvalidArgNum = -3, // invalid number of args (not in supported range)
@@ -46,11 +47,12 @@ enum ScriptExecError
 enum ScriptExecState
 {
     kScExecState_None    = 0x00,
-    kScExecState_Aborted = 0x01, // scheduled to abort
+    kScExecState_Aborted = 0x01, // scheduled to abort the active thread
     kScExecState_Running = 0x02, // has any script loaded and in running state (may be suspended though)
     kScExecState_Busy    = 0x04, // in the bytecode execution loop;
                                  // reset while waiting for the nested engine calls
     kScExecState_Alive   = 0x08, // updated periodically to confirm that script exec isn't stuck
+    kScExecState_Suspended = 0x10, // scheduled to suspend the active thread
 };
 
 // ScriptPosition defines position in the executed script
@@ -95,6 +97,8 @@ public:
         size_t stack_begin, size_t stackdata_begin, size_t stack_off, size_t stackdata_off);
     // Resets execution state; this effectively invalidates the thread
     void ResetState();
+    // Copies all data and exec state
+    void CopyThread(const ScriptThread *thread);
 
 private:
     void Alloc();
@@ -114,6 +118,13 @@ private:
     size_t _stackDataBeginOff = 0u;
     size_t _stackOffset = 0u;
     size_t _stackDataOffset = 0u;
+
+    // TODO: add remaining script state data here,
+    // such as records done in-between script instructions -
+    // these will be needed for supporting suspending a thread in any point.
+    // On another hand that won't be necessary if we somehow manage to
+    // restrict suspension from stopping a thread in the middle of a multi-instruction
+    // sequence (such as a function call with parameters).
 };
 
 
@@ -130,7 +141,12 @@ public:
     // Begin executing the function in the given script, passing an array of parameters;
     // the script will be executed on the provided script thread.
     ScriptExecError Run(ScriptThread *thread, const RuntimeScript *script, const String &funcname, const RuntimeScriptValue *params, size_t param_count);
-    // Schedule abortion of the current script execution;
+    // Resumes the given thread and continues executing the saved script state
+    ScriptExecError ResumeThread(ScriptThread *thread);
+    // Schedule suspension of the current script execution on the active thread;
+    // the actual stop will occur whenever control returns to the ScriptExecutor.
+    void    SuspendThread();
+    // Schedule abortion of the current script execution on the active thread;
     // the actual stop will occur whenever control returns to the ScriptExecutor.
     void    Abort();
 
