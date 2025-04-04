@@ -186,6 +186,18 @@ public:
     // Retrieve shared texture object from the given DDB
     std::shared_ptr<Texture> GetTexture(IDriverDependantBitmap *ddb) override { return nullptr; /* not supported */ }
 
+    ///////////////////////////////////////////////////////
+    // Shader management
+    //
+    // Creates shader program from the source code, registers it under given name;
+    // not supported in software driver, always fails.
+    uint32_t CreateShaderProgram(const String &name, const char *fragment_shader_src) override { return UINT32_MAX; }
+    // Looks up for the shader program using a name;
+    // not supported in software driver, always fails.
+    uint32_t FindShaderProgram(const String &name) override { return UINT32_MAX; }
+    // Deletes particular shader program.
+    void DeleteShaderProgram(const String &name) override { /* do nothing */ }
+
     void DrawSprite(int x, int y, IDriverDependantBitmap* ddb) override
          { DrawSprite(x, y, x, y, ddb); }
     void DrawSprite(int ox, int oy, int ltx, int lty, IDriverDependantBitmap* ddb) override;

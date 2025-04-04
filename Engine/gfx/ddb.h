@@ -81,6 +81,7 @@ public:
   virtual void SetLightLevel(int light_level) = 0;   // 0-255
   virtual void SetTint(int red, int green, int blue, int tintSaturation) = 0;  // 0-255
   virtual void SetBlendMode(Common::BlendMode blendMode) = 0;
+  virtual void SetShader(uint32_t shader_id) = 0;
 
   virtual int GetWidth() const = 0;
   virtual int GetHeight() const = 0;

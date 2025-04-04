@@ -255,6 +255,7 @@ public:
     // Rotation input is in degrees clockwise, but the implementation may store it in radians internally
     void SetRotation(float rotation) override { _rotation = rotation; }
     void SetBlendMode(Common::BlendMode blendMode) override { _blendMode = blendMode; }
+    void SetShader(uint32_t shader_id) override { _shader = shader_id; }
 
     int _width = 0, _height = 0;
     float _originX = 0.f, _originY = 0.f;
@@ -265,6 +266,7 @@ public:
     float _rotation = 0.f; // either in degrees or radians, depending on impl
     int _alpha = 255;
     Common::BlendMode _blendMode = Common::kBlend_Normal;
+    uint32_t _shader = 0u;
     int _red = 0, _green = 0, _blue = 0;
     int _tintSaturation = 0;
     int _lightLevel = 0;
