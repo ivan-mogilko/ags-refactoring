@@ -82,10 +82,9 @@ extern int cur_mode,cur_cursor;
 extern int mouse_hotx, mouse_hoty;
 extern int bg_just_changed;
 
-
+/*
 uint32_t custom_shader_id = 0;
 const char *custom_shader = ""
-/*
 R"EOS(
 #version 100
 
@@ -103,6 +102,7 @@ void main()
 }
 )EOS";
 */
+/*
 R"EOS(
 // MTAT.03.015 Computer Graphics
 // https://courses.cs.ut.ee/2013/cg/
@@ -147,7 +147,7 @@ void main()
     gl_FragColor = texture2D(iTexture, vec2(uv.x, uv.y));
 }
 )EOS";
-
+*/
 
 // TODO: refactor the draw unit into a virtual interface with
 // two implementations: for software and video-texture render,
@@ -708,7 +708,7 @@ void init_draw_method()
 
     // TEST ************************
 
-    custom_shader_id = gfxDriver->CreateShaderProgram("custom", custom_shader);
+    //custom_shader_id = gfxDriver->CreateShaderProgram("custom", custom_shader);
 
     // TEST ************************
 }
@@ -2002,7 +2002,7 @@ void prepare_and_add_object_gfx(
     ObjTexture &actsp, bool actsp_modified,
     const Size &scale_size,
     int atx, int aty, int &usebasel, bool use_walkbehinds,
-    Pointf origin, int transparency, BlendMode blend_mode, bool hw_accel)
+    Pointf origin, int transparency, BlendMode blend_mode, int shader_id, bool hw_accel)
 {
     // Handle the walk-behinds, according to the WalkBehindMethod.
     // This potentially may edit actsp's raw bitmap if actsp_modified is set.
@@ -2043,6 +2043,7 @@ void prepare_and_add_object_gfx(
 
     actsp.Ddb->SetAlpha(GfxDef::LegacyTrans255ToAlpha255(transparency));
     actsp.Ddb->SetBlendMode(blend_mode);
+    actsp.Ddb->SetShader(shader_id);
 }
 
 // Prepares a actsps element for RoomObject; updates object cache.
@@ -2098,7 +2099,7 @@ void prepare_objects_for_drawing()
         prepare_and_add_object_gfx(objsav, actsp, actsp_modified,
             Size(obj.last_width, obj.last_height), imgx, imgy, usebasel,
             (obj.flags & OBJF_NOWALKBEHINDS) == 0,
-            obj.GetOrigin(), obj.transparent, obj.blend_mode, hw_accel);
+            obj.GetOrigin(), obj.transparent, obj.blend_mode, obj.shader_id, hw_accel);
         // Finally, add the texture to the draw list
         add_to_sprite_list(actsp.Ddb, obj.x, obj.y, aabb, usebasel, actsp.DrawIndex);
     }
@@ -2208,7 +2209,7 @@ void prepare_characters_for_drawing()
         prepare_and_add_object_gfx(chsav, actsp, actsp_modified,
             Size(chex.width, chex.height), imgx, imgy, usebasel,
             (chin.flags & CHF_NOWALKBEHINDS) == 0,
-            chex.GetOrigin(), chin.transparency, chex.blend_mode, hw_accel);
+            chex.GetOrigin(), chin.transparency, chex.blend_mode, chex.shader_id, hw_accel);
         // Finally, add the texture to the draw list
         // CHECKME: remind why do we have to recalculate charx/y instead of using GS?
         const int charx = chin.x + chin.pic_xoffs * chex.zoom_offs / 100;
@@ -2489,6 +2490,7 @@ static void draw_gui_controls_batch(int gui_id)
         if (!obj_ddb) continue;
         obj_ddb->SetAlpha(GfxDef::LegacyTrans255ToAlpha255(obj->GetTransparency()));
         obj_ddb->SetBlendMode(obj->GetBlendMode());
+        obj_ddb->SetShader(obj->GetShader());
         gfxDriver->DrawSprite(obj->X + obj_tx.Off.X, obj->Y + obj_tx.Off.Y, obj_ddb);
     }
     gfxDriver->EndSpriteBatch();
@@ -2634,6 +2636,7 @@ void draw_gui_and_overlays()
             }
             gui_ddb->SetAlpha(GfxDef::LegacyTrans255ToAlpha255(gui.Transparency));
             gui_ddb->SetBlendMode(gui.BlendMode);
+            gui_ddb->SetShader(gui.ShaderID);
             gui_ddb->SetOrigin(0.f, 0.f);
             gui_ddb->SetStretch(gui.Width * gui.Scale.X, gui.Height * gui.Scale.Y);
             gui_ddb->SetRotation(gui.Rotation);
@@ -2728,7 +2731,7 @@ static void construct_room_view()
 
             // Now render the camera texture itself, scaling to the viewport size
             cam_data.CamRenderTarget->SetStretch(view_rc.GetWidth(), view_rc.GetHeight());
-            cam_data.CamRenderTarget->SetShader(custom_shader_id);
+            cam_data.CamRenderTarget->SetShader(viewport->GetShaderID());
             gfxDriver->DrawSprite(view_rc.Left, view_rc.Top, cam_data.CamRenderTarget);
 #else   // !RENDER_ROOMS_AS_TEXTURES
             const Rect view_p = view_rc;
@@ -2878,6 +2881,7 @@ static void construct_overlays()
         overtx.Ddb->SetRotation(over.rotation);
         overtx.Ddb->SetAlpha(GfxDef::LegacyTrans255ToAlpha255(over.transparency));
         overtx.Ddb->SetBlendMode(over.blendMode);
+        overtx.Ddb->SetShader(over.shader_id);
         apply_tint_or_light_ddb(overtx, over.tint_light * over.HasLightLevel(), over.tint_level, over.tint_r, over.tint_g, over.tint_b, over.tint_light);
     }
 }
