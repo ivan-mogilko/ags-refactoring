@@ -711,6 +711,7 @@ void OGLGraphicsDriver::AssignBaseShaderArgs(ShaderProgram &prg)
     prg.A_TexCoord = glGetAttribLocation(prg.Program, "a_TexCoord");
     prg.MVPMatrix = glGetUniformLocation(prg.Program, "iMVPMatrix");
     prg.UTime = glGetUniformLocation(prg.Program, "iTime");
+    prg.UFrame = glGetUniformLocation(prg.Program, "iFrame");
     prg.TextureId = glGetUniformLocation(prg.Program, "iTexture");
     prg.Alpha = glGetUniformLocation(prg.Program, "iAlpha");
     glEnableVertexAttribArray(prg.A_Position);
@@ -719,6 +720,7 @@ void OGLGraphicsDriver::AssignBaseShaderArgs(ShaderProgram &prg)
 
 void OGLGraphicsDriver::UpdateGlobalShaderArgValues()
 {
+    static int frame = 0; // FIXME: get this game frame index from the engine
     for (auto &sh : _shaders)
     {
         if (sh.Program == 0u)
@@ -728,8 +730,10 @@ void OGLGraphicsDriver::UpdateGlobalShaderArgValues()
         auto now_ms = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
         glUseProgram(sh.Program);
         glUniform1f(sh.UTime, static_cast<float>(now_ms) / 1000.f);
-        glUseProgram(0);
+        glUniform1i(sh.UFrame, frame);
     }
+    glUseProgram(0);
+    frame++;
 }
 
 void OGLGraphicsDriver::OutputShaderError(GLuint obj_id, const String &obj_name, bool is_shader)

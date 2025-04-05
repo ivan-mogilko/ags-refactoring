@@ -376,7 +376,8 @@ private:
         //---------------------------------------
         // Fragment shader:
         // Standard uniforms
-        GLuint UTime = 0;
+        GLuint UTime = 0;     // real time
+        GLuint UFrame = 0;    // game (?) frame
         GLuint TextureId = 0; // main texture (sprite or render target)
         GLuint Alpha = 0;     // requested global alpha
 
