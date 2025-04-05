@@ -83,6 +83,72 @@ extern int mouse_hotx, mouse_hoty;
 extern int bg_just_changed;
 
 
+uint32_t custom_shader_id = 0;
+const char *custom_shader = ""
+/*
+R"EOS(
+#version 100
+
+precision mediump float;
+
+uniform sampler2D textID;
+uniform float alpha;
+
+varying vec2 v_TexCoord;
+
+void main()
+{
+    vec4 src_col = texture2D(textID, v_TexCoord);
+    gl_FragColor = vec4(src_col.xyz*alpha, src_col.w * alpha);
+}
+)EOS";
+*/
+R"EOS(
+// MTAT.03.015 Computer Graphics
+// https://courses.cs.ut.ee/2013/cg/
+//
+// Basic ripple effect example
+vec2 params = vec2(1.5, 5.0);
+
+// Simple circular wave function
+float wave(vec2 pos, float t, float freq, float numWaves, vec2 center) {
+    float d = length(pos - center);
+    d = log(1.0 + exp(d));
+    return 1.0/(1.0+20.0*d*d) *
+        sin(2.0*3.1415*(-numWaves*d + t*freq));
+}
+
+// This height map combines a couple of waves
+float height(vec2 pos, float t) {
+    float w;
+    w =  wave(pos, t, params.x, params.y, vec2(0.5, -0.5));
+    w += wave(pos, t, params.x, params.y, -vec2(0.5, -0.5));
+    return w;
+}
+
+// Discrete differentiation
+vec2 normal(vec2 pos, float t) {
+    return vec2(height(pos - vec2(0.01, 0), t) - height(pos, t), 
+                height(pos - vec2(0, 0.01), t) - height(pos, t));
+}
+
+uniform float uTime;
+uniform sampler2D textID;
+uniform float alpha;
+
+varying vec2 v_TexCoord;
+
+// Simple ripple effect
+void main()
+{
+    vec2 uv = v_TexCoord.xy;
+    vec2 uvn = 2.0*uv - vec2(1.0);
+    uv += normal(uvn, uTime);
+    gl_FragColor = texture2D(textID, vec2(uv.x, uv.y));
+}
+)EOS";
+
+
 // TODO: refactor the draw unit into a virtual interface with
 // two implementations: for software and video-texture render,
 // instead of checking whether the current method is "software".
@@ -638,6 +704,13 @@ void init_draw_method()
     init_room_drawdata();
     if (gfxDriver->UsesMemoryBackBuffer())
         gfxDriver->GetMemoryBackBuffer()->Clear();
+
+
+    // TEST ************************
+
+    custom_shader_id = gfxDriver->CreateShaderProgram("custom", custom_shader);
+
+    // TEST ************************
 }
 
 void dispose_draw_method()
@@ -2615,7 +2688,8 @@ void GfxDriverOnInitCallback(void *data)
     pl_run_plugin_init_gfx_hooks(gfxDriver->GetDriverID(), data);
 }
 
-#define RENDER_ROOMS_AS_TEXTURES (0)
+// WARNING: rendering rooms as textures currently prevents "render sprites at screen resolution"
+#define RENDER_ROOMS_AS_TEXTURES (1)
 
 // Schedule room rendering: background, objects, characters
 static void construct_room_view()
@@ -2654,6 +2728,7 @@ static void construct_room_view()
 
             // Now render the camera texture itself, scaling to the viewport size
             cam_data.CamRenderTarget->SetStretch(view_rc.GetWidth(), view_rc.GetHeight());
+            cam_data.CamRenderTarget->SetShader(custom_shader_id);
             gfxDriver->DrawSprite(view_rc.Left, view_rc.Top, cam_data.CamRenderTarget);
 #else   // !RENDER_ROOMS_AS_TEXTURES
             const Rect view_p = view_rc;

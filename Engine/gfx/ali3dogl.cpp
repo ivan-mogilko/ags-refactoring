@@ -709,10 +709,26 @@ void OGLGraphicsDriver::AssignBaseShaderArgs(ShaderProgram &prg)
     prg.A_Position = glGetAttribLocation(prg.Program, "a_Position");
     prg.A_TexCoord = glGetAttribLocation(prg.Program, "a_TexCoord");
     prg.MVPMatrix = glGetUniformLocation(prg.Program, "uMVPMatrix");
+    prg.UTime = glGetUniformLocation(prg.Program, "uTime");
     prg.TextureId = glGetUniformLocation(prg.Program, "textID");
     prg.Alpha = glGetUniformLocation(prg.Program, "alpha");
     glEnableVertexAttribArray(prg.A_Position);
     glEnableVertexAttribArray(prg.A_TexCoord);
+}
+
+void OGLGraphicsDriver::UpdateGlobalShaderArgValues()
+{
+    for (auto &sh : _shaders)
+    {
+        if (sh.Program == 0u)
+            continue;
+
+        auto now = AGS_Clock::now();
+        auto now_ms = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()).count();
+        glUseProgram(sh.Program);
+        glUniform1f(sh.UTime, static_cast<float>(now_ms) / 1000.f);
+        glUseProgram(0);
+    }
 }
 
 void OGLGraphicsDriver::OutputShaderError(GLuint obj_id, const String &obj_name, bool is_shader)
@@ -1382,6 +1398,7 @@ void OGLGraphicsDriver::RenderToSurface(BackbufferState *state, bool clearDrawLi
     SetBackbufferState(state, true);
     // Save Projection
     _stageMatrixes.Projection = _currentBackbuffer->Projection;
+    UpdateGlobalShaderArgValues();
     RenderSpriteBatches();
     glFinish();
 
