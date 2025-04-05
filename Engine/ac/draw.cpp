@@ -132,19 +132,19 @@ vec2 normal(vec2 pos, float t) {
                 height(pos - vec2(0, 0.01), t) - height(pos, t));
 }
 
-uniform float uTime;
-uniform sampler2D textID;
-uniform float alpha;
+uniform float iTime;
+uniform sampler2D iTexture;
+uniform float iAlpha;
 
-varying vec2 v_TexCoord;
+varying vec2 vTexCoord;
 
 // Simple ripple effect
 void main()
 {
-    vec2 uv = v_TexCoord.xy;
+    vec2 uv = vTexCoord.xy;
     vec2 uvn = 2.0*uv - vec2(1.0);
-    uv += normal(uvn, uTime);
-    gl_FragColor = texture2D(textID, vec2(uv.x, uv.y));
+    uv += normal(uvn, iTime);
+    gl_FragColor = texture2D(iTexture, vec2(uv.x, uv.y));
 }
 )EOS";
 
