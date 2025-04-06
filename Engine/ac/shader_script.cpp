@@ -29,17 +29,18 @@ extern IGraphicsDriver *gfxDriver;
 
 ScriptShaderProgram *ShaderProgram_CreateFromFile(const char *filename)
 {
+    uint32_t shader_id = 0;
     auto stream = ResolveScriptPathAndOpen(filename, kFile_Open, kStream_Read);
-    if (!stream)
-        return nullptr;
-
-    String shader_src = String::FromStream(stream.get());
-    if (shader_src.IsEmpty())
-        return nullptr;
-
-    uint32_t shader_id = gfxDriver->CreateShaderProgram(filename, shader_src.GetCStr());
-    if (shader_id == UINT32_MAX)
-        return nullptr;
+    if (stream)
+    {
+        String shader_src = String::FromStream(stream.get());
+        if (!shader_src.IsEmpty())
+        {
+            shader_id = gfxDriver->CreateShaderProgram(filename, shader_src.GetCStr());
+            if (shader_id == UINT32_MAX)
+                shader_id = 0; // assign an invalid shader
+        }
+    }
 
     ScriptShaderProgram *shader_prg = new ScriptShaderProgram(filename, shader_id);
     ccRegisterManagedObject(shader_prg, shader_prg);
