@@ -12,10 +12,12 @@
 //
 //=============================================================================
 #include <array>
+#include <cstring>
 #include <memory>
 #include <vector>
 #include "gtest/gtest.h"
 #include "util/bufferedstream.h"
+#include "util/deflatestream.h"
 #include "util/file.h"
 #include "util/filestream.h"
 #include "util/memory_compat.h"
@@ -264,6 +266,50 @@ TEST(Stream, DataStreamSection) {
     ASSERT_EQ(in.GetPosition(), 2 + 3);
     sect_seek.Close();
     in.Close();
+}
+
+void TestDeflateStream(size_t src_buffer_size)
+{
+    std::vector<uint8_t> src_buf;
+    std::vector<uint8_t> zip_buf;
+    std::vector<uint8_t> unzip_buf;
+
+    const size_t InputBufferLength = src_buffer_size;
+    src_buf.resize(InputBufferLength);
+    for (size_t i = 0; i < InputBufferLength; ++i)
+        src_buf[i] = static_cast<uint8_t>(i);
+
+    auto mem_src = std::make_unique<VectorStream>(src_buf);
+    auto deflate_s = std::make_unique<DeflateStream>(
+        std::make_unique<VectorStream>(zip_buf, kStream_Write), kStream_Write);
+    const soff_t deflated_bytes = CopyStream(mem_src.get(), deflate_s.get());
+    deflate_s->Close(); // explicitly finalize and flush deflate stream
+    mem_src = nullptr;
+    deflate_s = nullptr;
+
+    ASSERT_EQ(deflated_bytes, InputBufferLength);
+    ASSERT_TRUE(zip_buf.size() > 0u);
+
+    auto inflate_s = std::make_unique<DeflateStream>(
+        std::make_unique<VectorStream>(zip_buf), kStream_Read);
+    auto mem_unzip = std::make_unique<VectorStream>(unzip_buf, kStream_Write);
+    const soff_t inflated_bytes = CopyStream(inflate_s.get(), mem_unzip.get());
+    inflate_s->Close();  // explicitly finalize and flush inflate stream
+    inflate_s = nullptr;
+    mem_unzip = nullptr;
+
+    ASSERT_EQ(inflated_bytes, InputBufferLength);
+    ASSERT_TRUE(std::equal(src_buf.begin(), src_buf.end(), unzip_buf.begin()));
+}
+
+TEST(Stream, DeflateStream) {
+    // Input is smaller than the DeflateStream's internal buffer
+    TestDeflateStream(DeflateStream::BufferSize / 4);
+}
+
+TEST(Stream, DeflateStream2) {
+    // Input is larger than the DeflateStream's internal buffer
+    TestDeflateStream(DeflateStream::BufferSize * 4);
 }
 
 #if (AGS_PLATFORM_TEST_FILE_IO)

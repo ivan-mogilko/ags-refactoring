@@ -62,23 +62,23 @@ public:
     size_t  Read(void *buffer, size_t size) override;
     int32_t ReadByte() override;
     size_t  Write(const void *buffer, size_t size) override;
-    int32_t WriteByte(uint8_t b) override;
+    int32_t WriteByte(uint8_t val) override;
 
     soff_t  Seek(soff_t offset, StreamSeek origin) override;
 
 private:
     void Open(std::unique_ptr<IStreamBase> &&base_stream);
     void OpenSection(std::unique_ptr<IStreamBase> &&base_stream, soff_t start_pos, soff_t end_pos);
-    // Reads a chunk of file into the buffer, starting from the given offset
+    // Reads a chunk of data into the buffer, starting from the given offset
     void FillBufferFromPosition(soff_t position);
-    // Writes a buffer into the file, and reposition to the new offset
+    // Writes a buffer into the underlying stream impl, and reposition to the new offset
     void FlushBuffer(soff_t position);
 
     std::unique_ptr<IStreamBase> _base;
     soff_t _start = 0; // valid section starting offset
     soff_t _end = 0; // valid section ending offset
     soff_t _position = 0; // absolute read/write offset
-    soff_t _bufferPosition = 0; // buffer's location relative to file
+    soff_t _bufferPosition = 0; // buffer's location relative to base stream
     std::vector<uint8_t> _buffer;
 };
 
