@@ -59,6 +59,7 @@
 #include "script/script.h"
 #include "script/cc_common.h"
 #include "script/script_runtime.h"
+#include "util/deflatestream.h"
 #include "util/file.h"
 #include "util/memory_compat.h"
 #include "util/stream.h"
@@ -166,6 +167,12 @@ String GetSavegameErrorText(SavegameErrorType err)
         return "Saved with the engine running at a different colour depth.";
     case kSvgErr_GameObjectInitFailed:
         return "Game object initialization failed after save restoration.";
+    case kSvgErr_UnpackTempFileFailed:
+        return "Failed to create or open temporary file necessary for unpacking a compressed save.";
+    case kSvgErr_UnpackedSaveSizeMismatch:
+        return "Unpacked save data has a different size.";
+    case kSvgErr_PackTempFileFailed:
+        return "Failed to create or open temporary file necessary for packing a compressed save.";
     default:
         return "Unknown error.";
     }
@@ -208,11 +215,23 @@ HSaveError ReadDescription(Stream *in, SavegameVersion &svg_ver, SavegameDescrip
     if (svg_ver >= kSvgVersion_351)
         desc.LegacyID = in->ReadInt32();
 
-    // If header size field is valid, skip any remaining part
+    // File format
+    soff_t user_desc_off = header_pos + header_size;
+    if (svg_ver >= kSvgVersion_363)
+    {
+        desc.Format.Flags = in->ReadInt32();
+        desc.Format.UserDescOffset = in->ReadInt64();
+        desc.Format.DataOffset = in->ReadInt64();
+        desc.Format.DataSize = in->ReadInt64();
+        desc.Format.DataDecompressedSize = in->ReadInt64();
+        if (desc.Format.UserDescOffset > 0)
+            user_desc_off = desc.Format.UserDescOffset;
+    }
+
+    // If user desc offset is valid, then skip any remaining part
     // (this is in case there is some data that we do not support)
     if (svg_ver >= kSvgVersion_351)
     {
-        soff_t user_desc_off = header_pos + header_size;
         in->Seek(user_desc_off, kSeekBegin);
     }
 
@@ -225,6 +244,23 @@ HSaveError ReadDescription(Stream *in, SavegameVersion &svg_ver, SavegameDescrip
         desc.UserImage.reset(RestoreSaveImage(in));
     else
         SkipSaveImage(in);
+
+    // Assign backward-compatible file format values
+    if (svg_ver < kSvgVersion_363)
+    {
+        desc.Format.Flags = 0u;
+        desc.Format.UserDescOffset = user_desc_off;
+        desc.Format.DataOffset = in->GetPosition();
+        desc.Format.DataSize = in->GetLength() - desc.Format.DataOffset;
+        desc.Format.DataDecompressedSize = desc.Format.DataSize;
+    }
+
+    // Skip directly to the game state data
+    // (this is in case there is some data that we do not support)
+    if (svg_ver >= kSvgVersion_363)
+    {
+        in->Seek(desc.Format.DataOffset, kSeekBegin);
+    }
 
     return HSaveError::None();
 }
@@ -282,6 +318,7 @@ HSaveError OpenSavegameBase(const String &filename, SavegameSource *src, Savegam
         src->Filename = filename;
         src->Version = svg_ver;
         src->InputStream.reset(in.release()); // give the stream away to the caller
+        src->Format = temp_desc.Format;
     }
     if (desc)
     {
@@ -296,6 +333,8 @@ HSaveError OpenSavegameBase(const String &filename, SavegameSource *src, Savegam
             desc->MainDataVersion = temp_desc.MainDataVersion;
             desc->ColorDepth = temp_desc.ColorDepth;
         }
+        if (elems & kSvgDesc_FileFormat)
+            desc->Format = temp_desc.Format;
         if (elems & kSvgDesc_UserText)
             desc->UserText = temp_desc.UserText;
         if (elems & kSvgDesc_UserImage)
@@ -798,7 +837,8 @@ static SaveCmpSelection FixupCmpSelection(SaveCmpSelection select_cmp)
         kSaveCmp_ObjectSprites * ((select_cmp & kSaveCmp_DynamicSprites) == 0));
 }
 
-HSaveError RestoreGameState(Stream *in, const SavegameDescription &desc, const RestoreGameStateOptions &options, SaveRestoreFeedback &feedback)
+HSaveError RestoreGameState(Stream *in, SavegameVersion save_ver, const SavegameDescription &desc,
+                            const RestoreGameStateOptions &options, SaveRestoreFeedback &feedback)
 {
     SaveCmpSelection select_cmp = FixupCmpSelection(options.SelectedComponents);
     const bool has_validate_cb = DoesScriptFunctionExistInModules("validate_restored_save");
@@ -813,14 +853,14 @@ HSaveError RestoreGameState(Stream *in, const SavegameDescription &desc, const R
         | (kSaveRestore_AllowMismatchLess * has_validate_cb) // allow less data in saves
         );
 
-    HSaveError err = SavegameComponents::ReadAll(in, options.SaveVersion, select_cmp, pp, r_data);
+    HSaveError err = SavegameComponents::ReadAll(in, save_ver, select_cmp, pp, r_data);
     feedback = r_data.Result.Feedback;
     if (!err)
         return err;
     return DoAfterRestore(pp, r_data, select_cmp);
 }
 
-HSaveError PrescanSaveState(Stream *in, const SavegameDescription &desc,
+HSaveError PrescanSaveState(Stream *in, SavegameVersion save_ver, const SavegameDescription &desc,
     const RestoreGameStateOptions &options)
 {
     SaveCmpSelection select_cmp = FixupCmpSelection(options.SelectedComponents);
@@ -836,7 +876,7 @@ HSaveError PrescanSaveState(Stream *in, const SavegameDescription &desc,
         | (kSaveRestore_AllowMismatchLess * has_validate_cb) // allow less data in saves
         );
 
-    HSaveError err = SavegameComponents::PrescanAll(in, options.SaveVersion, select_cmp, pp, r_data);
+    HSaveError err = SavegameComponents::PrescanAll(in, save_ver, select_cmp, pp, r_data);
     if (!err)
     {
         return err;
@@ -852,6 +892,58 @@ HSaveError PrescanSaveState(Stream *in, const SavegameDescription &desc,
     return err;
 }
 
+HSaveError ReadSaveDescription(const String &filename, SavegameDescription &desc, SavegameDescElem elems)
+{
+    return OpenSavegame(filename, desc, elems);
+}
+
+HSaveError UnpackSaveDataIntoTempFile(const String &save_file, const SavegameFileFormat &format,
+    std::unique_ptr<IStreamBase> &&in_data_s, String &out_temp_file)
+{
+    // Do not assume that the input file is in a writeable location, use save game directory
+    String temp_file = Path::MakePath(get_save_game_directory(), Path::GetFilename(save_file), "ztmp");
+    auto temp_s = File::CreateFile(temp_file);
+    if (!temp_s)
+        return new SavegameError(kSvgErr_UnpackTempFileFailed, String::FromFormat("Tried filename: %s.", temp_file.GetCStr()));
+
+    auto inflate_s = std::make_unique<DeflateStream>(std::move(in_data_s), kStream_Read);
+    size_t unpack_size = CopyStream(inflate_s.get(), temp_s->GetStreamBase());
+    if (unpack_size != format.DataDecompressedSize)
+        return new SavegameError(kSvgErr_UnpackedSaveSizeMismatch);
+
+    out_temp_file = temp_file;
+    return HSaveError::None();
+}
+
+HSaveError RestoreSavegame(const String &filename, const RestoreGameStateOptions &options, SaveRestoreFeedback &feedback)
+{
+    SavegameSource src;
+    SavegameDescription desc;
+    HSaveError err = OpenSavegame(filename, src, desc, (SavegameDescElem)(kSvgDesc_EnvInfo | kSvgDesc_FileFormat));
+    if (!err)
+        return err;
+
+    String temp_file;
+    if ((desc.Format.Flags & kSvgFmt_CompressionFlags) != 0)
+    {
+        err = UnpackSaveDataIntoTempFile(filename, desc.Format, src.InputStream->ReleaseStreamBase(), temp_file);
+        if (!err)
+            return err;
+
+        src.InputStream = File::OpenFileRead(temp_file);
+        if (!src.InputStream)
+            return new SavegameError(kSvgErr_UnpackTempFileFailed, String::FromFormat("Tried filename: %s.", temp_file.GetCStr()));
+    }
+
+    err = RestoreGameState(src.InputStream.get(), src.Version, desc, options, feedback);
+    src.InputStream = nullptr; // close the input file
+    if (!temp_file.IsEmpty())
+    {
+        File::DeleteFile(temp_file);
+    }
+    return err;
+}
+
 void WriteSaveImage(Stream *out, const Bitmap *screenshot)
 {
     // store the screenshot at the start to make it easily accesible
@@ -861,7 +953,19 @@ void WriteSaveImage(Stream *out, const Bitmap *screenshot)
         serialize_bitmap(screenshot, out);
 }
 
-void WriteDescription(Stream *out, const String &user_text, const Bitmap *user_image)
+void WriteFileFormat(Stream *out, const SavegameFileFormat &format)
+{
+    if (format.FileFormatOffset > 0)
+        out->Seek(format.FileFormatOffset, kSeekBegin);
+
+    out->WriteInt32(format.Flags);
+    out->WriteInt64(format.UserDescOffset);
+    out->WriteInt64(format.DataOffset);
+    out->WriteInt64(format.DataSize);
+    out->WriteInt64(format.DataDecompressedSize);
+}
+
+void WriteDescription(Stream *out, const String &user_text, const Bitmap *user_image, SavegameFileFormat &format)
 {
     // Data format version
     out->WriteInt32(kSvgVersion_Current);
@@ -877,17 +981,26 @@ void WriteDescription(Stream *out, const String &user_text, const Bitmap *user_i
     out->WriteInt32(loaded_game_file_version);
     out->WriteInt32(game.GetColorDepth());
     out->WriteInt32(game.uniqueid);
+    // File format
+    soff_t fileformat_pos = out->GetPosition();
+    WriteFileFormat(out, SavegameFileFormat()); // write placeholder
     // Write header offset field
     soff_t header_end_pos = out->GetPosition();
     out->Seek(header_pos, kSeekBegin);
     out->WriteInt32(header_end_pos - header_pos);
     out->Seek(header_end_pos, kSeekBegin);
     // User description
+    soff_t user_desc_off = out->GetPosition();
     StrUtil::WriteString(user_text, out);
     WriteSaveImage(out, user_image);
+
+    // Fill few known fields for SavegameFileFormat
+    format.FileFormatOffset = fileformat_pos;
+    format.UserDescOffset = user_desc_off;
 }
 
-std::unique_ptr<Stream> StartSavegame(const String &filename, const String &user_text, const Bitmap *user_image)
+std::unique_ptr<Stream> StartSavegame(const String &filename, const String &user_text, const Bitmap *user_image,
+                                      SavegameFileFormat &format)
 {
     auto out = File::CreateFile(filename);
     if (!out)
@@ -895,9 +1008,8 @@ std::unique_ptr<Stream> StartSavegame(const String &filename, const String &user
 
     // Savegame signature
     out->Write(SavegameSource::Signature.GetCStr(), SavegameSource::Signature.GetLength());
-
     // Write descrition block
-    WriteDescription(out.get(), user_text, user_image);
+    WriteDescription(out.get(), user_text, user_image, format);
     return out;
 }
 
@@ -1006,6 +1118,68 @@ void WritePluginSaveData(Stream *out)
     out->Seek(pluginnum_pos, kSeekBegin);
     out->WriteInt32(num_plugins_wrote);
     out->Seek(0, kSeekEnd);
+}
+
+HSaveError PackSaveDataIntoTempFile(const String &save_file, SavegameFileFormat &format, SaveCmpSelection select_cmp,
+                                    std::unique_ptr<IStreamBase> &out_data)
+{
+    String temp_file = Path::MakePath(get_save_game_directory(), Path::GetFilename(save_file), "ztmp");
+    auto temp_s = File::CreateFile(temp_file);
+    if (!temp_s)
+        return new SavegameError(kSvgErr_PackTempFileFailed, String::FromFormat("Tried filename: %s.", temp_file.GetCStr()));
+
+    SaveGameState(temp_s.get(), select_cmp);
+    format.DataDecompressedSize = temp_s->GetLength();
+    temp_s = nullptr;
+
+    temp_s = File::OpenFileRead(temp_file);
+    if (!temp_s)
+        return new SavegameError(kSvgErr_PackTempFileFailed, String::FromFormat("Tried filename: %s.", temp_file.GetCStr()));
+
+    soff_t pack_data_begin = out_data->GetPosition();
+    auto inflate_s = std::make_unique<DeflateStream>(std::move(out_data), kStream_Write);
+    CopyStream(temp_s->GetStreamBase(), inflate_s.get());
+    temp_s = nullptr; // close temp file
+    inflate_s->Finalize(); // ensure we get correct data length
+    out_data = inflate_s->ReleaseStreamBase(); // get output stream back without closing
+    format.DataSize = out_data->GetPosition() - pack_data_begin;
+
+    File::DeleteFile(temp_file);
+    return HSaveError::None();
+}
+
+HSaveError SaveGame(const String &filename, const String &user_text, const Bitmap *user_image,
+                    SaveCmpSelection select_cmp, bool compress_data)
+{
+    SavegameFileFormat format;
+    std::unique_ptr<Stream> out(StartSavegame(filename, user_text, user_image, format));
+    if (!out)
+        return new SavegameError(kSvgErr_FileOpenFailed, String::FromFormat("Requested filename: %s.", filename.GetCStr()));
+
+    format.DataOffset = out->GetPosition();
+    if (compress_data)
+    {
+        format.Flags |= kSvgFmt_Deflate;
+        auto out_base = out->ReleaseStreamBase(); // FIXME: store IStreamBase as shared_ptr to avoid these hacks?!
+        HSaveError err = PackSaveDataIntoTempFile(filename, format, select_cmp, out_base);
+        if (!err)
+            return err;
+
+        out = std::make_unique<Stream>(std::move(out_base));
+        // Finalize the save file, write composed file format
+        WriteFileFormat(out.get(), format);
+    }
+    else
+    {
+        SaveGameState(out.get(), select_cmp);
+
+        // Finalize the save file, write composed file format
+        format.DataSize = out->GetPosition() - format.DataOffset;
+        format.DataDecompressedSize = format.DataSize;
+        WriteFileFormat(out.get(), format);
+    }
+
+    return HSaveError::None();
 }
 
 //=============================================================================

@@ -59,7 +59,8 @@ enum SavegameVersion
     kSvgVersion_361       = 3060115,
     kSvgVersion_361_p8    = 3060130,
     kSvgVersion_362       = 3060200,
-    kSvgVersion_Current   = kSvgVersion_362,
+    kSvgVersion_363       = 3060300,
+    kSvgVersion_Current   = kSvgVersion_363,
     kSvgVersion_LowestSupported = kSvgVersion_Components // change if support dropped
 };
 
@@ -87,6 +88,9 @@ enum SavegameErrorType
     kSvgErr_InconsistentPlugin,
     kSvgErr_DifferentColorDepth,
     kSvgErr_GameObjectInitFailed,
+    kSvgErr_UnpackTempFileFailed,
+    kSvgErr_UnpackedSaveSizeMismatch,
+    kSvgErr_PackTempFileFailed,
     kNumSavegameError
 };
 
@@ -94,6 +98,25 @@ String GetSavegameErrorText(SavegameErrorType err);
 
 typedef TypedCodeError<SavegameErrorType, GetSavegameErrorText> SavegameError;
 typedef ErrorHandle<SavegameError> HSaveError;
+
+enum SavegameFormatFlags
+{
+    kSvgFmt_Deflate = 0x0001, // use deflate compression
+
+    kSvgFmt_CompressionFlags = kSvgFmt_Deflate
+};
+
+struct SavegameFileFormat
+{
+    // File content info
+    uint32_t Flags = 0u; // SavegameFormatFlags
+    soff_t   UserDescOffset = 0; // offset of the user description block
+    soff_t   DataOffset = 0; // offset of the game state data in file
+    soff_t   DataSize = 0; // size of the game state data in file
+    soff_t   DataDecompressedSize = 0; // size of the decompressed data
+
+    soff_t   FileFormatOffset = 0; // offset of the file format in header
+};
 
 // SavegameSource defines a successfully opened savegame stream
 struct SavegameSource
@@ -110,6 +133,8 @@ struct SavegameSource
     // A ponter to the opened stream
     std::unique_ptr<Stream> InputStream;
 
+    SavegameFileFormat  Format;
+
     SavegameSource();
 };
 
@@ -121,7 +146,8 @@ enum SavegameDescElem
     kSvgDesc_EnvInfo    = 0x0001,
     kSvgDesc_UserText   = 0x0002,
     kSvgDesc_UserImage  = 0x0004,
-    kSvgDesc_All        = kSvgDesc_EnvInfo | kSvgDesc_UserText | kSvgDesc_UserImage
+    kSvgDesc_FileFormat = 0x0008,
+    kSvgDesc_All        = 0xFFFF
 };
 
 // SavegameDescription describes savegame with information about the enviroment
@@ -149,6 +175,9 @@ struct SavegameDescription
     // Native color depth of the game; this is required to
     // properly restore dynamic graphics from the save
     int                 ColorDepth = 0;
+
+    // Save file format
+    SavegameFileFormat  Format;
 
     String              UserText;
     std::unique_ptr<Bitmap> UserImage;
@@ -210,13 +239,13 @@ enum SaveCmpSelection
 
 struct RestoreGameStateOptions
 {
-    SavegameVersion SaveVersion = kSvgVersion_Undefined;
+    //SavegameVersion SaveVersion = kSvgVersion_Undefined;
     SaveCmpSelection SelectedComponents = kSaveCmp_All;
     bool            IsGameClear = false;
 
     RestoreGameStateOptions() = default;
-    RestoreGameStateOptions(SavegameVersion svg_ver, SaveCmpSelection select_cmp, bool game_clear)
-        : SaveVersion(svg_ver), SelectedComponents(select_cmp), IsGameClear(game_clear)
+    RestoreGameStateOptions(/*SavegameVersion svg_ver,*/ SaveCmpSelection select_cmp, bool game_clear)
+        : /*SaveVersion(svg_ver),*/ SelectedComponents(select_cmp), IsGameClear(game_clear)
     {}
 };
 
@@ -236,13 +265,26 @@ HSaveError     OpenSavegame(const String &filename, SavegameSource &src,
 HSaveError     OpenSavegame(const String &filename, SavegameDescription &desc, SavegameDescElem elems = kSvgDesc_All);
 // Reads the game data from the save stream and reinitializes game state;
 // fills in SaveRestoreFeedback struct.
-HSaveError     RestoreGameState(Stream *in, const SavegameDescription &desc, const RestoreGameStateOptions &options, SaveRestoreFeedback &feedback);
+HSaveError     RestoreGameState(Stream *in, SavegameVersion save_ver, const SavegameDescription &desc,
+                                const RestoreGameStateOptions &options, SaveRestoreFeedback &feedback);
 // Prescans the game data from the save stream without affecting current runtime data
-HSaveError     PrescanSaveState(Stream *in, const SavegameDescription &desc, const RestoreGameStateOptions &options);
+HSaveError     PrescanSaveState(Stream *in, SavegameVersion save_ver, const SavegameDescription &desc,
+                                const RestoreGameStateOptions &options);
 // Opens savegame for writing and puts in savegame description
-std::unique_ptr<Stream> StartSavegame(const String &filename, const String &user_text, const Bitmap *user_image);
+std::unique_ptr<Stream> StartSavegame(const String &filename, const String &user_text, const Bitmap *user_image,
+                                SavegameFileFormat &file_format);
 // Prepares game for saving state and writes game data into the save stream
 void           SaveGameState(Stream *out, SaveCmpSelection select_cmp);
+
+// Reads savegame's description out of the given file
+HSaveError     ReadSaveDescription(const String &filename, SavegameDescription &desc, SavegameDescElem elems = kSvgDesc_All);
+// Reads the game data from the given file and reinitializes game state;
+// fills in SaveRestoreFeedback struct.
+HSaveError     RestoreSavegame(const String &filename, const RestoreGameStateOptions &options, SaveRestoreFeedback &feedback);
+
+// Write a save file, using user description, and optionally restricting game data to selected components
+HSaveError     SaveGame(const String &filename, const String &user_text, const Bitmap *user_image,
+                        SaveCmpSelection select_cmp, bool compress_data = false);
 
 } // namespace Engine
 } // namespace AGS
