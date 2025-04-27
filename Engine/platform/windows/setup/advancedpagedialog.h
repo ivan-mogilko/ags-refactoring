@@ -113,6 +113,7 @@ private:
     HWND _hCustomAppDataDir = NULL;
     HWND _hCustomAppDataDirBtn = NULL;
     HWND _hCustomAppDataDirCheck = NULL;
+    HWND _hCompressSavesCheck = NULL;
 };
 
 //=============================================================================

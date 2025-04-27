@@ -241,6 +241,7 @@ INT_PTR CustomPathsPageDialog::OnInitDialog()
     _hCustomAppDataDir      = GetDlgItem(_hwnd, IDC_CUSTOMAPPDATADIR);
     _hCustomAppDataDirBtn   = GetDlgItem(_hwnd, IDC_CUSTOMAPPDATADIRBTN);
     _hCustomAppDataDirCheck = GetDlgItem(_hwnd, IDC_CUSTOMAPPDATADIRCHECK);
+    _hCompressSavesCheck    = GetDlgItem(_hwnd, IDC_COMPRESSSAVESCHECK);
 
     ResetSetup(_cfgIn);
 
@@ -326,6 +327,7 @@ void CustomPathsPageDialog::ResetSetup(const ConfigTree & /*cfg_from*/)
         _hCustomSaveDirCheck, _hCustomSaveDir, _hCustomSaveDirBtn);
     SetupCustomDirCtrl(_winCfg.AppDataDir, _winCfg.DataDirectory,
         _hCustomAppDataDirCheck, _hCustomAppDataDir, _hCustomAppDataDirBtn);
+    SetCheck(_hCompressSavesCheck, _winCfg.CompressSaves);
 }
 
 void CustomPathsPageDialog::SaveSetup()
@@ -335,6 +337,7 @@ void CustomPathsPageDialog::SaveSetup()
 
     _winCfg.UserSaveDir = SaveCustomDirSetup(_winCfg.DataDirectory, _hCustomSaveDirCheck, _hCustomSaveDir);
     _winCfg.AppDataDir = SaveCustomDirSetup(_winCfg.DataDirectory, _hCustomAppDataDirCheck, _hCustomAppDataDir);
+    _winCfg.CompressSaves = GetCheck(_hCompressSavesCheck);
 }
 
 //=============================================================================
