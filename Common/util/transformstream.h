@@ -54,9 +54,12 @@ public:
     TransformStream(std::unique_ptr<IStreamBase> &&base_stream, StreamMode mode);
     ~TransformStream();
 
-    const char *GetPath() const override { return _base->GetPath(); }
+    IStreamBase *GetStreamBase() { return _base.get(); }
+    std::unique_ptr<IStreamBase> ReleaseStreamBase();
+
+    const char *GetPath() const override { return _base ? _base->GetPath() : ""; }
     StreamMode GetMode() const override { return _mode; }
-    bool    GetError() const override { return _base->GetError(); }
+    bool    GetError() const override { return _base ? _base->GetError() : false; }
 
     // Is end of stream
     bool    EOS() const override;
@@ -66,6 +69,10 @@ public:
     soff_t  GetPosition() const override { return _totalProcessed; }
 
     void    Close() override;
+    // NOTE: flush does not work reliably in transform streams,
+    // as transformation algorithm might require to know whether the
+    // input is complete in order to write pending result.
+    // Consider using Finalize() instead.
     bool    Flush() override;
 
     size_t  Read(void *buffer, size_t size) override;
@@ -75,6 +82,12 @@ public:
 
     // Seek operation is not supported for transform streams
     soff_t  Seek(soff_t offset, StreamSeek origin) override { return -1; }
+
+    // Finalizes transformation in the write mode.
+    // This is similar to Flush() in regular streams, and guarantees that
+    // any pending transformation will be forced to complete.
+    // No write operation is expected to work after this.
+    void    Finalize();
 
 protected:
     enum class TransformResult
@@ -103,6 +116,7 @@ private:
     void WriteBuffer(bool finalize);
     void CloseOnDisposal();
 
+    // TODO: store IStreamBase as a shader_ptr instead? will let use it after wrapper is disposed
     std::unique_ptr<IStreamBase> _base;
     StreamMode _mode = kStream_None;
     // Input buffer: where the original data is being read to

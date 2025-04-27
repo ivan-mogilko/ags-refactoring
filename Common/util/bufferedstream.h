@@ -42,12 +42,14 @@ public:
     // Constructs a BufferedStream limited by an arbitrary offset range
     BufferedStream(std::unique_ptr<IStreamBase> &&base_stream, soff_t start_pos, soff_t end_pos)
         { OpenSection(std::move(base_stream), start_pos, end_pos); }
-
     ~BufferedStream();
 
-    const char *GetPath() const override { return _base->GetPath(); }
-    StreamMode GetMode() const override { return _base->GetMode(); }
-    bool    GetError() const override { return _base->GetError(); }
+    IStreamBase *GetStreamBase() { return _base.get(); }
+    std::unique_ptr<IStreamBase> ReleaseStreamBase();
+
+    const char *GetPath() const override { return _base ? _base->GetPath() : ""; }
+    StreamMode GetMode() const override { return _base ? _base->GetMode() : kStream_None; }
+    bool    GetError() const override { return _base ? _base->GetError() : false; }
 
     // Is end of stream
     bool    EOS() const override;
@@ -74,6 +76,7 @@ private:
     // Writes a buffer into the underlying stream impl, and reposition to the new offset
     void FlushBuffer(soff_t position);
 
+    // TODO: store IStreamBase as a shader_ptr instead? will let use it after wrapper is disposed
     std::unique_ptr<IStreamBase> _base;
     soff_t _start = 0; // valid section starting offset
     soff_t _end = 0; // valid section ending offset

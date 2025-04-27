@@ -39,6 +39,13 @@ TransformStream::~TransformStream()
     CloseOnDisposal();
 }
 
+std::unique_ptr<IStreamBase> TransformStream::ReleaseStreamBase()
+{
+    if (_base && CanWrite())
+        WriteBuffer(true);
+    return std::move(_base);
+}
+
 bool TransformStream::EOS() const
 {
     // When writing we are always at the end (transform stream does not seek)
@@ -47,25 +54,46 @@ bool TransformStream::EOS() const
     // When reading, transform stream is at the end when:
     // - base stream is at the end
     // - output buffer is fully read out
-    return _base->EOS() && _outBufPos == _outBufEnd;
+    return _base && _base->EOS() && _outBufPos == _outBufEnd;
 }
 
 void TransformStream::Close()
 {
-    if (CanWrite())
-        WriteBuffer(true);
-    _base->Close();
+    if (_base)
+    {
+        if (CanWrite())
+            WriteBuffer(true);
+        _base->Close();
+    }
 }
 
 bool TransformStream::Flush()
 {
-    if (CanWrite())
-        WriteBuffer(false);
-    return _base->Flush();
+    if (_base)
+    {
+        if (CanWrite())
+            WriteBuffer(false);
+        return _base->Flush();
+    }
+    return false;
+}
+
+void TransformStream::Finalize()
+{
+    if (_base)
+    {
+        if (CanWrite())
+            WriteBuffer(true);
+        _base->Flush();
+    }
 }
 
 void TransformStream::ReadBuffer()
 {
+    assert(_base);
+    if (!_base)
+        return;
+
     // Reset the output buffer, and try filling it to the max possible
     // by un-transforming data read from the input stream
     _outBufEnd = 0u;
@@ -108,6 +136,13 @@ void TransformStream::ReadBuffer()
 
 void TransformStream::WriteBuffer(bool finalize)
 {
+    assert(_base);
+    if (!_base)
+        return;
+
+    if (_lastResult != TransformResult::OK && _lastResult != TransformResult::Buffer)
+        return; // writing either complete or there was a error
+
     // Reset the output buffer
     _outBufEnd = 0u;
     _outBufPos = 0u;
@@ -144,9 +179,12 @@ void TransformStream::WriteBuffer(bool finalize)
 
 void TransformStream::CloseOnDisposal()
 {
-    if (CanWrite() && (_base->GetMode() & kStream_Write) == kStream_Write)
-        _base->Write(_outBuffer.data(), _outBufEnd);
-    _base->Close();
+    if (_base)
+    {
+        if (CanWrite() && (_base->GetMode() & kStream_Write) == kStream_Write)
+            _base->Write(_outBuffer.data(), _outBufEnd);
+        _base->Close();
+    }
 }
 
 size_t TransformStream::Read(void *buffer, size_t size)
