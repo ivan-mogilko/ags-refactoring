@@ -325,22 +325,31 @@ static bool DoRunScriptFuncCantBlock(const RuntimeScript *script, NonBlockingScr
     return(hasTheFunc);
 }
 
-static RunScFuncResult PrepareTextScript(const RuntimeScript *script, const String &tsname)
+static RunScFuncResult PrepareTextScript(const ScriptThread *thread, const RuntimeScript *script, const String &tsname)
 {
+    assert(thread);
     assert(script);
+    assert(scriptExecutor);
     cc_clear_error();
-    if (!DoesScriptFunctionExist(script, tsname))
+
+    if (scriptExecutor->IsBusy())
     {
-        cc_error("no such function in script");
-        return kScFnRes_NotFound;
-    }
-    // TODO: should be IsBusy instead?
-    // need to figure out and possible adjust the script running rules
-    if (scriptExecutor->IsRunning())
-    {
-        cc_error("script is already in execution");
+        cc_error("Script is already in execution");
         return kScFnRes_ScriptBusy;
     }
+
+    if (thread->IsLoaded())
+    {
+        cc_error("Script thread '%s' is not free", thread->GetName().GetCStr());
+        return kScFnRes_ScriptBusy;
+    }
+
+    if (!DoesScriptFunctionExist(script, tsname))
+    {
+        cc_error("Function '%s' not found in script '%s'", tsname.GetCStr(), script->GetScriptName().GetCStr());
+        return kScFnRes_NotFound;
+    }
+
     ExecutingScript exscript;
     exscript.Script = script;
     scripts[num_scripts] = std::move(exscript);
@@ -378,7 +387,7 @@ RunScFuncResult RunScriptFunction(const RuntimeScript *script, const String &tsn
     // also abort Script A because ccError is a global variable.
     ScriptError cachedCcError = cc_get_error();
 
-    const RunScFuncResult res = PrepareTextScript(script, tsname);
+    const RunScFuncResult res = PrepareTextScript(scriptThreadMain.get(), script, tsname);
     if (res != kScFnRes_Done)
     {
         if (res != kScFnRes_NotFound)
@@ -394,7 +403,8 @@ RunScFuncResult RunScriptFunction(const RuntimeScript *script, const String &tsn
         quit_with_script_error(tsname);
     }
 
-    if (!scriptThreadMain->IsBusy())
+    // Only do post-script processing if the thread was *not* suspended
+    if (!scriptThreadMain->IsLoaded())
     {
         PostScriptProcessing(tsname);
     }

@@ -94,12 +94,10 @@ String ScriptThread::FormatCallStack(uint32_t max_lines) const
 }
 
 void ScriptThread::SaveState(const ScriptExecPosition &pos, std::deque<ScriptExecPosition> &callstack,
-    size_t stack_begin, size_t stackdata_begin, size_t stack_off, size_t stackdata_off)
+    size_t stack_off, size_t stackdata_off)
 {
     _callstack = callstack;
     _pos = pos;
-    _stackBeginOff = stack_begin;
-    _stackDataBeginOff = stackdata_begin;
     _stackOffset = stack_off;
     _stackDataOffset = stackdata_off;
 }
@@ -108,8 +106,6 @@ void ScriptThread::ResetState()
 {
     _callstack.clear();
     _pos = {};
-    _stackBeginOff = 0u;
-    _stackDataBeginOff = 0u;
     _stackOffset = 0u;
     _stackDataOffset = 0u;
 }
@@ -154,26 +150,32 @@ ScriptExecError ScriptExecutor::Run(ScriptThread *thread, const RuntimeScript *s
 
     if (IsBusy())
     {
-        cc_error("ScriptExecutor is busy");
+        cc_error("ScriptExecutor is busy (executing bytecode)");
         return kScExecErr_Busy;
     }
 
     if (!thread || !script || (param_count > 0) && !params)
     {
-        cc_error("bad input arguments in ScriptExecutor::Run");
+        cc_error("Bad input arguments in ScriptExecutor::Run");
         return kScExecErr_Generic;
+    }
+
+    if (thread->IsLoaded())
+    {
+        cc_error("Script thread '%s' is not free", thread->GetName().GetCStr());
+        return kScExecErr_Busy;
     }
 
     if ((param_count >= FunctionCallStack::MAX_FUNC_PARAMS) || (param_count < 0))
     {
-        cc_error("invalid number of function arguments %d, supported range is %d - %d", param_count, 0, FunctionCallStack::MAX_FUNC_PARAMS - 1);
+        cc_error("Invalid number of function arguments %d, supported range is %d - %d", param_count, 0, FunctionCallStack::MAX_FUNC_PARAMS - 1);
         return kScExecErr_InvalidArgNum;
     }
 
     int start_at, export_args;
     if (!script->FindExportedFunction(funcname, start_at, export_args))
     {
-        cc_error("function '%s' not found", funcname.GetCStr());
+        cc_error("Function '%s' not found in script '%s'", funcname.GetCStr(), script->GetScriptName().GetCStr());
         return kScExecErr_FuncNotFound;
     }
 
@@ -203,7 +205,7 @@ ScriptExecError ScriptExecutor::Run(ScriptThread *thread, const RuntimeScript *s
     // Allow to pass less parameters if script callback has less declared args
     param_count = std::min<size_t>(param_count, export_args);
     // Prepare executor for run
-    _flags = (_flags & ~kScExecState_Aborted) | kScExecState_Running | kScExecState_Busy;
+    _flags = (_flags & ~kScExecState_Aborted) | kScExecState_Loaded | kScExecState_Busy;
     _returnValue = 0;
     currentline = 0; // FIXME: stop using a global variable
 
@@ -216,11 +218,11 @@ ScriptExecError ScriptExecutor::Run(ScriptThread *thread, const RuntimeScript *s
     const bool was_aborted = (_flags & kScExecState_Aborted) != 0;
     const bool has_work = _thread != nullptr;
     // Clear exec state
-    _flags = (kScExecState_Running * has_work);
+    _flags = (kScExecState_Loaded * has_work);
     currentline = 0;
 
 #if DEBUG_CC_EXEC
-    if (!IsRunning())
+    if (!IsLoaded())
     {
         CloseExecLog();
     }
@@ -305,21 +307,25 @@ void ScriptExecutor::SelectThread(ScriptThread *thread)
     if (thread)
     {
         _thread = thread;
+        // Restore data stack state
+        _stack = thread->GetStack();
+        _stackdata = thread->GetStackData();
+        _registers[SREG_SP].RValue = thread->GetStack() + thread->GetStackOffset();
+        _stackdataPtr = thread->GetStackData() + thread->GetStackDataOffset();
         // Restore execution pos
         _callstack = thread->GetCallStack();
         const auto &pos = thread->GetPosition();
         SetCurrentScript(pos.Script);
         _pc = pos.PC;
         _lineNumber = pos.LineNumber;
-        // Restore data stack state
-        _stackBegin = thread->GetStack().data() + thread->GetStackBegin();
-        _stackdataBegin = thread->GetStackData().data() + thread->GetStackDataBegin();
-        _registers[SREG_SP].RValue = _stackBegin + thread->GetStackOffset();
-        _stackdataPtr = _stackdataBegin + thread->GetStackDataOffset();
     }
     else
     {
         _thread = nullptr;
+        _stack = nullptr;
+        _stackdata = nullptr;
+        _registers[SREG_SP].RValue = nullptr;
+        _stackdataPtr = nullptr;
         SetCurrentScript(nullptr);
         _pc = 0;
         _lineNumber = 0;
@@ -328,11 +334,10 @@ void ScriptExecutor::SelectThread(ScriptThread *thread)
 
 void ScriptExecutor::SaveThreadState()
 {
-    _thread->SaveState(ScriptExecPosition(_current, _pc, _lineNumber), _callstack,
-        _stackBegin - _thread->GetStack().data(),
-        _stackdataBegin - _thread->GetStackData().data(),
-        _registers[SREG_SP].RValue - _stackBegin,
-        _stackdataPtr - _stackdataBegin);
+    _thread->SaveState(ScriptExecPosition(_current, _pc, _lineNumber),
+        _callstack,
+        _registers[SREG_SP].RValue - _thread->GetStack(),
+        _stackdataPtr - _thread->GetStackData());
 }
 
 void ScriptExecutor::GetScriptPosition(ScriptPosition &script_pos) const
@@ -435,10 +440,10 @@ void ScriptExecutor::NotifyAlive()
 // A number of stack assertions that are always enabled:
 // ASSERT_STACK_SPACE_AVAILABLE tests that we do not exceed stack limit
 #define ASSERT_STACK_SPACE_AVAILABLE(N_VALS, N_BYTES) \
-    if ((_registers[SREG_SP].RValue + N_VALS - _stackBegin) >= CC_STACK_SIZE || \
-        (_stackdataPtr + N_BYTES - _stackdataBegin) >= CC_STACK_DATA_SIZE) \
+    if ((_registers[SREG_SP].RValue + N_VALS - _stack) >= CC_STACK_SIZE || \
+        (_stackdataPtr + N_BYTES - _stackdata) >= CC_STACK_DATA_SIZE) \
     { \
-        cc_error("stack overflow, attempted to grow from %zu by %zu bytes", (size_t)(_stackdataPtr - _stackdataBegin), (size_t)(N_BYTES)); \
+        cc_error("stack overflow, attempted to grow from %zu by %zu bytes", (size_t)(_stackdataPtr - _stackdata), (size_t)(N_BYTES)); \
         return kScExecErr_Generic; \
     }
 
@@ -452,7 +457,7 @@ void ScriptExecutor::NotifyAlive()
 
 // ASSERT_STACK_SIZE tests that we do not unwind stack past its beginning
 #define ASSERT_STACK_SIZE(N) \
-    if (_registers[SREG_SP].RValue - N < _stackBegin) \
+    if (_registers[SREG_SP].RValue - N < _stack) \
     { \
         cc_error("stack underflow"); \
         return kScExecErr_Generic; \
@@ -492,8 +497,6 @@ ScriptExecError ScriptExecutor::Run(const RuntimeScript *script, int32_t curpc, 
     const RuntimeScript *was_running = _current;
     const int oldpc = _pc;
     const int oldlinenum = _lineNumber;
-    RuntimeScriptValue * const oldstack_begin = _stackBegin;
-    uint8_t * const oldstackdata_begin = _stackdataBegin;
 
     if (is_nested_run)
     {
@@ -505,13 +508,11 @@ ScriptExecError ScriptExecutor::Run(const RuntimeScript *script, int32_t curpc, 
     {
         // On script thread entry we reset stack pointers to the actual beginning
         // of the thread's stack.
-        _registers[SREG_SP].SetStackPtr(_thread->GetStack().data());
-        _stackdataPtr = _thread->GetStackData().data();
+        _registers[SREG_SP].SetStackPtr(_stack);
+        _stackdataPtr = _stackdata;
     }
 
     SetCurrentScript(script);
-    _stackBegin = _registers[SREG_SP].RValue;
-    _stackdataBegin = _stackdataPtr;
     const RuntimeScriptValue oldstack = _registers[SREG_SP];
     const uint8_t * const oldstackdata = _stackdataPtr;
 
@@ -549,8 +550,6 @@ ScriptExecError ScriptExecutor::Run(const RuntimeScript *script, int32_t curpc, 
     SetCurrentScript(was_running); // switch back to the previous script
     _pc = oldpc;
     _lineNumber = oldlinenum;
-    _stackBegin = oldstack_begin;
-    _stackdataBegin = oldstackdata_begin;
 
     return cc_has_error() ? kScExecErr_Generic : kScExecErr_None;
 }
@@ -831,7 +830,7 @@ ScriptExecError ScriptExecutor::Run(int32_t curpc)
             // be only up to 4 bytes large;
             // I guess that's an obsolete way to do WRITE, WRITEW and WRITEB
             const auto arg_size = codeOp.Arg1i();
-            FixupArgument(codeOp.Args[1], _code_fixups[_pc + 2], _code[_pc + 2], _stackBegin, _strings);
+            FixupArgument(codeOp.Args[1], _code_fixups[_pc + 2], _code[_pc + 2], _stack, _strings);
             ASSERT_CC_ERROR();
             const auto &arg_value = codeOp.Arg2();
             switch (arg_size)
@@ -872,7 +871,7 @@ ScriptExecError ScriptExecutor::Run(int32_t curpc)
         case SCMD_LITTOREG:
         {
             auto &reg1 = _registers[codeOp.Arg1i()];
-            FixupArgument(codeOp.Args[1], _code_fixups[_pc + 2], _code[_pc + 2], _stackBegin, _strings);
+            FixupArgument(codeOp.Args[1], _code_fixups[_pc + 2], _code[_pc + 2], _stack, _strings);
             ASSERT_CC_ERROR();
             const auto &arg_value = codeOp.Arg2();
             reg1 = arg_value;
@@ -1998,7 +1997,7 @@ void ScriptExecutor::PopValuesFromStack(const int32_t num_entries = 1)
 void ScriptExecutor::PopDataFromStack(const int32_t num_bytes)
 {
     int32_t total_pop = 0;
-    while (total_pop < num_bytes && _registers[SREG_SP].RValue > _stackBegin)
+    while (total_pop < num_bytes && _registers[SREG_SP].RValue > _stack)
     {
         // rewind stack ptr to the last valid value, decrement stack data ptr if needed and invalidate the stack tail
         _registers[SREG_SP].RValue--;
@@ -2015,7 +2014,7 @@ RuntimeScriptValue ScriptExecutor::GetStackPtrOffsetRw(const int32_t rw_offset)
 {
     int32_t total_off = 0;
     RuntimeScriptValue *stack_entry = _registers[SREG_SP].RValue;
-    while (total_off < rw_offset && stack_entry > _stackBegin)
+    while (total_off < rw_offset && stack_entry > _stack)
     {
         stack_entry--;
         total_off += stack_entry->Size;
@@ -2071,9 +2070,12 @@ void ScriptExecutor::PopFromFuncCallStack(FunctionCallStack &func_callstack, int
 
 void ScriptExecutor::OpenExecLog()
 {
-    // TODO: let configure file path
-    auto s = File::OpenFile("script.log", kFile_Create, kStream_Write);
-    _execWriter.reset(new TextStreamWriter(std::move(s)));
+    if (!_execWriter)
+    {
+        // TODO: let configure file path
+        auto s = File::OpenFile("script.log", kFile_Create, kStream_Write);
+        _execWriter.reset(new TextStreamWriter(std::move(s)));
+    }
 }
 
 void ScriptExecutor::CloseExecLog()

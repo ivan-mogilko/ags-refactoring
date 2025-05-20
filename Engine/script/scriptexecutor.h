@@ -47,7 +47,7 @@ enum ScriptExecState
 {
     kScExecState_None    = 0x00,
     kScExecState_Aborted = 0x01, // scheduled to abort
-    kScExecState_Running = 0x02, // has any script loaded and in running state (may be suspended though)
+    kScExecState_Loaded  = 0x02, // has any script loaded and in running state (may be suspended though)
     kScExecState_Busy    = 0x04, // in the bytecode execution loop;
                                  // reset while waiting for the nested engine calls
     kScExecState_Alive   = 0x08, // updated periodically to confirm that script exec isn't stuck
@@ -63,6 +63,8 @@ struct ScriptExecPosition
     ScriptExecPosition() = default;
     ScriptExecPosition(const RuntimeScript *script, int pc, int linenumber)
         : Script(script), PC(pc), LineNumber(linenumber) {}
+
+    operator bool() const { return Script != nullptr; }
 };
 
 
@@ -73,31 +75,31 @@ public:
     ScriptThread();
     ScriptThread(const String &name);
 
+    // Tells if the thread has scripts loaded on it
+    bool    IsLoaded() const { return _pos || _callstack.size() > 0; }
+
     const String &GetName() const { return _name; }
-    const std::vector<RuntimeScriptValue> &GetStack() const { return _stack; }
-    const std::vector<uint8_t> &GetStackData() const { return _stackdata; }
-    std::vector<RuntimeScriptValue> &GetStack() { return _stack; }
-    std::vector<uint8_t> &GetStackData() { return _stackdata; }
+    const RuntimeScriptValue *GetStack() const { return _stack.data(); }
+    const uint8_t *GetStackData() const { return _stackdata.data(); }
+    RuntimeScriptValue *GetStack() { return _stack.data(); }
+    uint8_t *GetStackData() { return _stackdata.data(); }
     const std::deque<ScriptExecPosition> &GetCallStack() const { return _callstack; }
-    // Tells if the thread is busy, that is - has anything in its callstack
-    bool   IsBusy() const { return _callstack.size() > 0; }
     const ScriptExecPosition &GetPosition() const { return _pos; }
-    size_t GetStackBegin() const { return _stackBeginOff; }
-    size_t GetStackDataBegin() const { return _stackDataBeginOff; }
-    size_t GetStackOffset() const { return _stackOffset; }
-    size_t GetStackDataOffset() const { return _stackDataOffset; }
+    size_t  GetStackOffset() const { return _stackOffset; }
+    size_t  GetStackDataOffset() const { return _stackDataOffset; }
 
     // Get the script's execution position and callstack as human-readable text
-    String FormatCallStack(uint32_t max_lines = UINT32_MAX) const;
+    String  FormatCallStack(uint32_t max_lines = UINT32_MAX) const;
 
     // Save script execution state in the thread object
-    void SaveState(const ScriptExecPosition &pos, std::deque<ScriptExecPosition> &callstack,
-        size_t stack_begin, size_t stackdata_begin, size_t stack_off, size_t stackdata_off);
+    void    SaveState(const ScriptExecPosition &pos, std::deque<ScriptExecPosition> &callstack,
+        size_t stack_off, size_t stackdata_off);
     // Resets execution state; this effectively invalidates the thread
-    void ResetState();
+    void    ResetState();
 
 private:
-    void Alloc();
+    // Allocates internal buffers (stack etc)
+    void    Alloc();
 
     // An arbitrary name for this script thread
     String _name;
@@ -110,8 +112,6 @@ private:
     // Latest recorded script position, used when thread gets suspended
     ScriptExecPosition _pos;
     // Stack state
-    size_t _stackBeginOff = 0u;
-    size_t _stackDataBeginOff = 0u;
     size_t _stackOffset = 0u;
     size_t _stackDataOffset = 0u;
 };
@@ -136,7 +136,7 @@ public:
 
     // Tells whether any script is loaded into and being executed;
     // note that this returns positive even when executor is suspended
-    bool    IsRunning() const { return (_flags & kScExecState_Running) != 0; }
+    bool    IsLoaded() const { return (_flags & kScExecState_Loaded) != 0; }
     // Tells if the executor is busy running bytecode, and cannot start a nested run right now
     bool    IsBusy() const { return (_flags & kScExecState_Busy) != 0; }
     // Get the currently used script thread
@@ -221,8 +221,8 @@ private:
     std::deque<ScriptThread*> _threadStack;
 
     // Thread stack pointers for faster access to the current thread
-    RuntimeScriptValue *_stackBegin = nullptr; // ptr to beginning of stack (or stack's section)
-    uint8_t    *_stackdataBegin = nullptr; // ptr to beginning of stackdata (or stackdata's section)
+    RuntimeScriptValue *_stack = nullptr; // ptr to the head of the thread's stack
+    uint8_t    *_stackdata = nullptr; // ptr to the the head of the of thread's stackdata
     uint8_t    *_stackdataPtr = nullptr; // points to the next unused byte in stack data array
 
     // Current executed script
