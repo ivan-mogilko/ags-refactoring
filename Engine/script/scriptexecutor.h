@@ -59,10 +59,14 @@ struct ScriptExecPosition
     const RuntimeScript *Script = nullptr;
     int32_t PC = 0;
     int32_t LineNumber = 0;
+    size_t  StackPos = 0u;
+    size_t  StackDataPos = 0u;
 
     ScriptExecPosition() = default;
     ScriptExecPosition(const RuntimeScript *script, int pc, int linenumber)
         : Script(script), PC(pc), LineNumber(linenumber) {}
+    ScriptExecPosition(const RuntimeScript *script, int pc, int linenumber, size_t stack_pos, size_t stack_data_pos)
+        : Script(script), PC(pc), LineNumber(linenumber), StackPos(stack_pos), StackDataPos(stack_data_pos) {}
 
     operator bool() const { return Script != nullptr; }
 };
@@ -85,15 +89,14 @@ public:
     uint8_t *GetStackData() { return _stackdata.data(); }
     const std::deque<ScriptExecPosition> &GetCallStack() const { return _callstack; }
     const ScriptExecPosition &GetPosition() const { return _pos; }
-    size_t  GetStackOffset() const { return _stackOffset; }
-    size_t  GetStackDataOffset() const { return _stackDataOffset; }
+    size_t  GetStackOffset() const { return _pos.StackPos; }
+    size_t  GetStackDataOffset() const { return _pos.StackDataPos; }
 
     // Get the script's execution position and callstack as human-readable text
     String  FormatCallStack(uint32_t max_lines = UINT32_MAX) const;
 
     // Save script execution state in the thread object
-    void    SaveState(const ScriptExecPosition &pos, std::deque<ScriptExecPosition> &callstack,
-        size_t stack_off, size_t stackdata_off);
+    void    SaveState(const ScriptExecPosition &pos, std::deque<ScriptExecPosition> &callstack);
     // Resets execution state; this effectively invalidates the thread
     void    ResetState();
 
@@ -109,11 +112,9 @@ private:
     std::vector<uint8_t> _stackdata;
     // Executed script callstack, contains *previous* script positions
     std::deque<ScriptExecPosition> _callstack; // deque for easier iterating over
-    // Latest recorded script position, used when thread gets suspended
+    // Latest recorded script position, used when thread gets suspended;
+    // also contains stack state (offsets)
     ScriptExecPosition _pos;
-    // Stack state
-    size_t _stackOffset = 0u;
-    size_t _stackDataOffset = 0u;
 };
 
 
