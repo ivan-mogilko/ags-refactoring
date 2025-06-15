@@ -18,6 +18,7 @@
 #ifndef __AGS_EE_GFX__GRAPHICSDRIVER_H
 #define __AGS_EE_GFX__GRAPHICSDRIVER_H
 #include <memory>
+#include <mutex>
 #include <allegro.h> // RGB, PALETTE
 #include <glm/mat4x4.hpp>
 #include "gfx/ddb.h"
@@ -138,6 +139,13 @@ public:
   virtual int  GetCompatibleBitmapFormat(int color_depth) = 0;
   // Returns available texture memory in bytes, or 0 if this query is not supported
   virtual uint64_t GetAvailableTextureMemory() = 0;
+
+  // Locks the factory settings of this renderer and returns a RAII lock object,
+  // that will be automatically unlocked on disposal. This method must be used whenever
+  // you want to create textures or other resources in a background thread, because
+  // certain operations may require reading renderer-wide settings, which could also
+  // be changed on the main thread at runtime.
+  virtual std::unique_lock<std::mutex> AcquireFactorySettingsLock() = 0;
 
   // Creates a "raw" DDB, without pixel initialization.
   virtual IDriverDependantBitmap *CreateDDB(int width, int height, int color_depth, bool opaque = false) = 0;

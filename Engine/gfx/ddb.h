@@ -38,8 +38,10 @@ namespace Engine
 // pixel fmt, but rather a requested one, corresponding to the source bitmap.
 // This is used to safety test bitmap->texture sync, but may be confusing.
 // Need to think this over, and adjust; e.g. store both src and texture fmt.
-struct Texture
+class Texture
 {
+public:
+    // FIXME: make these fields private
     uint32_t ID = UINT32_MAX; // optional ID, may refer to sprite ID
     const GraphicResolution Res;
     const bool RenderTarget = false; // TODO: replace with flags later
@@ -85,8 +87,9 @@ public:
   // be applied to the shared texture data. Currently it's possible to share same
   // texture data, but update it with different "opaque" values, which breaks logic.
   virtual void AttachData(std::shared_ptr<Texture> txdata, bool opaque) = 0;
-  // Detach any internal texture data from this DDB, make this an empty object.
-  virtual void DetachData() = 0;
+  // Detach any internal texture data from this DDB, make this an empty object;
+  // returns detached texture, or null if there was not anything attached.
+  virtual std::shared_ptr<Texture> DetachData() = 0;
 
 protected:
   IDriverDependantBitmap() = default;

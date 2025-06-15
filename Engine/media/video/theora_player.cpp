@@ -167,9 +167,13 @@ bool TheoraPlayer::RewindImpl()
     return _apegStream != nullptr;
 }
 
-bool TheoraPlayer::NextVideoFrame(Bitmap *dst, float &ts)
+bool TheoraPlayer::NextVideoFrame(const Common::Bitmap **out_frame, float *ts)
 {
-    ts = -1.f; // reset in case of error
+    // reset in case of no frame or error
+    if (out_frame)
+        *out_frame = nullptr;
+    if (ts)
+        *ts = -1.f;
 
     assert(_apegStream);
     assert((_apegStream->flags & APEG_HAS_VIDEO) != 0);
@@ -188,11 +192,10 @@ bool TheoraPlayer::NextVideoFrame(Bitmap *dst, float &ts)
 
     _videoFramesDecoded++;
     _videoFramesDecodedTotal++;
-    // TODO: investigate if it's possible to optimize this by providing our own src bitmap directly;
-    // but in theory the frame image may be composed of multiple frames which contain partial image,
-    // in which case we probably cannot do this...
-    dst->Blit(_theoraSrcFrame.get());
-    ts = _nextFrameTs;
+    if (out_frame)
+        *out_frame = _theoraSrcFrame.get();
+    if (ts)
+        *ts = _nextFrameTs;
     _nextFrameTs = _apegStream->pos * 1000.f; // to milliseconds (FIXME: should we keep ours in seconds?)
     return true;
 }

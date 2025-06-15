@@ -89,6 +89,11 @@ bool GraphicsDriverBase::GetVsync() const
     return _mode.Vsync;
 }
 
+std::unique_lock<std::mutex> GraphicsDriverBase::AcquireFactorySettingsLock()
+{
+    return std::unique_lock<std::mutex>(_factoryMutex);
+}
+
 void GraphicsDriverBase::BeginSpriteBatch(const Rect &viewport, const SpriteTransform &transform, uint32_t filter_flags)
 {
     BeginSpriteBatch(SpriteBatchDesc(_actSpriteBatch, viewport, transform, kFlip_None, nullptr, filter_flags));

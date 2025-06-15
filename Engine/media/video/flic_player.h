@@ -37,8 +37,8 @@ private:
     Common::HError OpenImpl(std::unique_ptr<Common::Stream> data_stream,
         const String &name, int &flags, int target_depth) override;
     void CloseImpl() override;
-    // Retrieves next video frame, implementation-specific
-    bool NextVideoFrame(Common::Bitmap *dst, float &ts) override;
+    // Retrieves next video frame placed in a readonly Bitmap
+    bool NextVideoFrame(const Common::Bitmap **out_frame, float *ts) override;
     // Checks the next video frame in stream and returns its timestamp.
     float PeekVideoFrame() override;
     // Drop next video frame from stream.
@@ -46,6 +46,9 @@ private:
 
     PACKFILE *_pf = nullptr;
     RGB _oldpal[256]{};
+    // FLIC frames contain only changes since the last frame,
+    // hence we have to compose actual image on this buffer bitmap
+    Common::Bitmap _compositeBmp;
     uint64_t _videoFramesDecoded = 0u; // how many frames loaded and decoded
 };
 

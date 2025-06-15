@@ -122,6 +122,10 @@ public:
     bool        SetVsync(bool enabled) override;
     bool        GetVsync() const override;
 
+    // Locks the factory settings of this renderer and returns a RAII lock object,
+    // that will be automatically unlocked on disposal.
+    std::unique_lock<std::mutex> AcquireFactorySettingsLock() override;
+
     void        BeginSpriteBatch(const Rect &viewport, const SpriteTransform &transform, uint32_t filter_flags = 0) override;
     void        BeginSpriteBatch(const Rect &viewport, const SpriteTransform &transform,
                     Common::GraphicFlip flip, PBitmap surface = nullptr, uint32_t filter_flags = 0) override;
@@ -182,6 +186,11 @@ protected:
     // Callbacks
     GFXDRV_CLIENTCALLBACKEVT _spriteEvtCallback;
     GFXDRV_CLIENTCALLBACKINITGFX _initGfxCallback;
+
+    // Factory settings mutex, for creating resources on background thread;
+    // must be locked whenever graphics renderer modifies any of its settings
+    // used when creating any public resources (such as textures).
+    std::mutex _factoryMutex;
 
     // Sprite batch parameters
     SpriteBatchDescs _spriteBatchDesc;

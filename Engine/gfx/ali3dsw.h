@@ -41,6 +41,20 @@ namespace ALSW
 class SDLRendererGfxFilter;
 using AGS::Common::Bitmap;
 
+// Full OpenGL texture data
+class SoftwareTexture final : public Texture
+{
+    SoftwareTexture() = default;
+    SoftwareTexture(Bitmap *bmp)
+        : Texture(GraphicResolution(bmp->GetSize(), bmp->GetColorDepth()), false) {}
+    ~SoftwareTexture() = default;
+    size_t GetMemSize() const override { return _bitmap ? _bitmap->GetDataSize() : 0u; }
+
+private:
+    // TODO: use shader ptr, but that will require to refactor alot of places
+    Bitmap *_bitmap = nullptr;
+};
+
 class ALSoftwareBitmap : public BaseDDB
 {
 public:
@@ -62,9 +76,18 @@ public:
     // Tells if this DDB has an actual render data assigned to it.
     bool IsValid() override { return _bmp != nullptr; }
     // Attaches new texture data, sets basic render rules
-    void AttachData(std::shared_ptr<Texture> txdata, bool opaque) override { /* not supported */ }
+    void AttachData(std::shared_ptr<Texture> txdata, bool opaque) override
+    {
+        /* FIXME!! */
+        /* not supported */
+    }
     // Detach any internal texture data from this DDB, make this an empty object
-    void DetachData() override { _bmp = nullptr; }
+    std::shared_ptr<Texture> DetachData() override
+    {
+        // FIXME!!
+        _bmp = nullptr;
+        return nullptr;
+    }
 
     Bitmap *_bmp = nullptr;
     bool _flipped = false;

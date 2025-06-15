@@ -14,10 +14,13 @@
 #ifndef AGS_NO_VIDEO_PLAYER
 #include "media/video/videoplayer.h"
 #include "debug/out.h"
+#include "gfx/graphicsdriver.h"
 #include "util/memory_compat.h"
 
 #define VIDEO_DEBUG_VERBOSE     (0)
 #define VIDEO_TEST_DESYNC       (0)
+
+extern AGS::Engine::IGraphicsDriver *gfxDriver;
 
 namespace AGS
 {
@@ -77,10 +80,10 @@ void VideoPlayer::SetTargetFrame(const Size &target_sz)
     _targetSize = target_sz.IsNull() ? _frameSize : target_sz;
 
     // Create helper bitmaps in case of stretching or color depth conversion
-    if ((_targetSize != _frameSize) || (_targetDepth != _frameDepth)
-        || ((_flags & kVideo_AccumFrame) != 0))
+    if ((_targetSize != _frameSize) || (_targetDepth != _frameDepth))
     {
         _vframeBuf.reset(new Bitmap(_frameSize.Width, _frameSize.Height, _frameDepth));
+        _finalSizeBuf.reset(new Bitmap(_targetSize.Width, _targetSize.Height, _targetDepth));
     }
     else
     {
@@ -117,7 +120,7 @@ void VideoPlayer::Stop()
 
     _vframeBuf = nullptr;
     _hicolBuf = nullptr;
-    _videoFramePool = std::stack<std::unique_ptr<Bitmap>>();
+    _videoFramePool = std::stack<std::shared_ptr<Texture>>();
     _videoFrameQueue = std::deque<std::unique_ptr<VideoFrame>>();
 
     PrintStats(true);
@@ -185,14 +188,15 @@ uint32_t VideoPlayer::SeekFrame(uint32_t frame)
     return UINT32_MAX; // TODO
 }
 
-std::unique_ptr<Bitmap> VideoPlayer::NextFrame()
+std::shared_ptr<Texture> VideoPlayer::NextFrame()
 {
     if (!IsPlaybackReady(_playState) || !HasVideo())
         return nullptr;
     if (_playState != PlaybackState::PlayStatePaused)
         Pause();
 
-    BufferVideo();
+    if (_videoFrameQueue.empty())
+        BufferVideo();
 
     auto frame = NextFrameFromQueue();
     if (!frame)
@@ -210,7 +214,7 @@ std::unique_ptr<Bitmap> VideoPlayer::NextFrame()
         }
     }
     _posMs = std::max(_videoPosMs, _audioPosMs);
-    return frame ? frame->Retrieve() : nullptr;
+    return frame ? frame->GetImage() : nullptr;
 }
 
 void VideoPlayer::SetSpeed(float speed)
@@ -259,7 +263,7 @@ void VideoPlayer::SetVolume(float volume)
         _audioOut->SetVolume(volume);
 }
 
-std::unique_ptr<Common::Bitmap> VideoPlayer::GetReadyFrame()
+std::shared_ptr<Texture> VideoPlayer::GetReadyFrame()
 {
 #if (VIDEO_DEBUG_VERBOSE)
     Debug::Printf("VIDEO READY FRAME: playdur = %.2f, queue: %u, head frame timestamp: %.2f",
@@ -286,12 +290,16 @@ std::unique_ptr<Common::Bitmap> VideoPlayer::GetReadyFrame()
 #endif // VIDEO_TEST_DESYNC
 
     auto frame = NextFrameFromQueue();
-    return frame ? frame->Retrieve() : nullptr;
+    return frame ? frame->GetImage() : nullptr;
 }
 
-void VideoPlayer::ReleaseFrame(std::unique_ptr<Common::Bitmap> frame)
+void VideoPlayer::ReleaseFrame(std::shared_ptr<Texture> frame)
 {
-    _videoFramePool.push(std::move(frame));
+    assert(frame);
+    if (!frame)
+        return;
+
+    _videoFramePool.push(frame);
 }
 
 bool VideoPlayer::Poll()
@@ -404,32 +412,45 @@ void VideoPlayer::BufferVideo()
     }
 
     // Get one frame from the pool, if present, otherwise allocate a new one
-    std::unique_ptr<Bitmap> target_frame;
+    std::shared_ptr<Texture> target_frame;
     if (_videoFramePool.empty())
     {
-        target_frame.reset(new Bitmap(_targetSize.Width, _targetSize.Height, _targetDepth));
+        auto lock = gfxDriver->AcquireFactorySettingsLock();
+        target_frame.reset(
+            gfxDriver->CreateTexture(_targetSize.Width, _targetSize.Height, _targetDepth, true /* opaque */));
     }
     else
     {
-        target_frame = std::move(_videoFramePool.top());
+        target_frame = _videoFramePool.top();
         _videoFramePool.pop();
     }
 
     const auto input_start = Clock::now();
 
     // Try to retrieve one video frame from decoder
-    const bool must_conv = (_targetSize != _frameSize || _targetDepth != _frameDepth
-        || ((_flags & kVideo_AccumFrame) != 0));
-    Bitmap *usebuf = must_conv ? _vframeBuf.get() : target_frame.get();
+    const bool must_conv = (_targetSize != _frameSize || _targetDepth != _frameDepth);
+    const Bitmap *out_frame = nullptr;
     float frame_ts = -1.f;
-    if (!NextVideoFrame(usebuf, frame_ts))
+    if (NextVideoFrame(&out_frame, &frame_ts) && out_frame)
+    {
+        if (must_conv)
+        {
+            _vframeBuf->Blit(out_frame);
+        }
+        else
+        {
+            auto lock = gfxDriver->AcquireFactorySettingsLock();
+            gfxDriver->UpdateTexture(target_frame.get(), out_frame, false /* no alpha */, true /* opaque */);
+        }
+    }
+    else
     {
         // failed to get frame, so move prepared target frame into the pool for now
         _videoFramePool.push(std::move(target_frame));
         return;
     }
 
-    const auto decoded_frame_sz = usebuf->GetDataSize();
+    const auto decoded_frame_sz = out_frame->GetDataSize();
     // Convert frame_ts to our playback speed
     frame_ts = frame_ts * _targetFrameTime / _frameTime;
 #if (VIDEO_DEBUG_VERBOSE)
@@ -441,6 +462,7 @@ void VideoPlayer::BufferVideo()
     // Convert frame if necessary
     if (must_conv)
     {
+        Bitmap *usebuf = _vframeBuf.get();
         // Use intermediate hi-color buffer if necessary
         if (_hicolBuf)
         {
@@ -448,10 +470,15 @@ void VideoPlayer::BufferVideo()
             usebuf = _hicolBuf.get();
         }
         
-        if (_targetSize == _frameSize)
-            target_frame->Blit(usebuf);
-        else
-            target_frame->StretchBlt(usebuf, RectWH(_targetSize));
+        // FIXME: review this, and use texture scaling for GPU renderers instead
+        if (_targetSize != _frameSize)
+        {
+            _finalSizeBuf->StretchBlt(usebuf, RectWH(_targetSize));
+            usebuf = _finalSizeBuf.get();
+        }
+
+        auto lock = gfxDriver->AcquireFactorySettingsLock();
+        gfxDriver->UpdateTexture(target_frame.get(), usebuf, false /* no alpha */, true /* opaque */);
     }
 
     const auto input_dur_ms = ToMillisecondsF(Clock::now() - input_start);
@@ -459,11 +486,11 @@ void VideoPlayer::BufferVideo()
     // Stats
     assert(target_frame);
     _stats.VideoIn.Frames++;
-    _stats.VideoIn.TotalDataSz += target_frame->GetDataSize();
+    //_stats.VideoIn.TotalDataSz += target_frame->GetDataSize(); // FIXME!!
     _stats.VideoIn.TotalDurMs += _frameTime;
     _stats.VideoIn.TotalTime += static_cast<uint64_t>(input_dur_ms);
     _stats.VideoIn.RawDecodedDataSz = decoded_frame_sz;
-    _stats.VideoIn.RawDecodedConvDataSz = target_frame->GetDataSize();
+    //_stats.VideoIn.RawDecodedConvDataSz = target_frame->GetDataSize(); // FIXME!!
     _stats.VideoIn.AvgTimePerFrame = static_cast<double>(_stats.VideoIn.TotalTime) / _stats.VideoIn.Frames;
     _stats.VideoIn.MaxTimePerFrame = std::max(_stats.VideoIn.MaxTimePerFrame, input_dur_ms);
     _stats.MaxBufferedVideo = std::max<uint32_t>(_stats.MaxBufferedVideo, _videoFrameQueue.size());
@@ -625,7 +652,7 @@ std::unique_ptr<VideoPlayer::VideoFrame> VideoPlayer::NextFrameFromQueue()
 
     // Stats
     _stats.VideoOut.Frames++;
-    _stats.VideoOut.TotalDataSz += frame->Bitmap()->GetDataSize();
+    //_stats.VideoOut.TotalDataSz += frame->GetImage()->GetDataSize(); // FIXME!!
     _stats.VideoOut.TotalDurMs += _frameTime;
     _stats.VideoTimingDiffAccum += video_diff;
     _stats.VideoTimingDiffs.first = std::min<int32_t>(_stats.VideoTimingDiffs.first, video_diff);
@@ -649,7 +676,7 @@ bool VideoPlayer::ProcessVideo()
             Debug::Printf("DROPPED LATE FRAME, ts: %.2f, drop time: %.2f, queue size now: %u",
                           frame->Timestamp(), drop_time, _videoFrameQueue.size());
 #endif
-            _videoFramePool.push(std::move(frame->Retrieve()));
+            _videoFramePool.push(frame->GetImage());
             _stats.VideoOut.Dropped++;
         }
     }

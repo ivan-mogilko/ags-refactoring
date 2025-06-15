@@ -62,9 +62,11 @@ struct D3DTextureTile : public TextureTile
     D3DTexturePtr texture;
 };
 
-// Full Direct3D texture data
-struct D3DTexture : Texture
+// Direct3D texture data
+class D3DTexture final : public Texture
 {
+public:
+    // FIXME: make fields private
     D3DVertexBufferPtr _vertex;
     std::vector<D3DTextureTile> _tiles;
 
@@ -113,9 +115,11 @@ public:
         _opaque = opaque;
     }
     // Detach any internal texture data from this DDB, make this an empty object
-    void DetachData() override
+    std::shared_ptr<Texture> DetachData() override
     {
+        auto old_tex = _data;
         _data = nullptr;
+        return old_tex;
     }
 
     // Direct3D texture data
@@ -258,10 +262,10 @@ public:
     bool GetCopyOfScreenIntoBitmap(Bitmap *destination, const Rect *src_rect, bool at_native_res,
         GraphicResolution *want_fmt, uint32_t batch_skip_filter = 0u) override;
     bool DoesSupportVsyncToggle() override { return _capsVsync; }
-    void RenderSpritesAtScreenResolution(bool enabled) override { _renderAtScreenRes = enabled; };
+    void RenderSpritesAtScreenResolution(bool enabled) override;
     bool SupportsGammaControl() override;
     void SetGamma(int newGamma) override;
-    void UseSmoothScaling(bool enabled) override { _smoothScaling = enabled; }
+    void UseSmoothScaling(bool enabled) override;
 
     typedef std::shared_ptr<D3DGfxFilter> PD3DFilter;
 

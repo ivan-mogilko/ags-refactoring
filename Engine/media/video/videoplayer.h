@@ -18,14 +18,6 @@
 // Renders audio frames using OpenAlSource output.
 //
 // TODO: separate Video Decoder class, would be useful e.g. for plugins.
-// TODO:
-//     - allow skip frames if late (add to settings);
-//     - a video-audio sync mechanism; perhaps rely on audio,
-//       because it's more time-sensitive in human perception;
-//       drop video frames if video is lagging, but this also has to
-//       be done in decoder to avoid converting vframe to a bitmap.
-//     - other options: slow down playback speed until video-audio
-//       relation stabilizes.
 //
 //=============================================================================
 #ifndef __AGS_EE_MEDIA__VIDEOPLAYER_H
@@ -36,6 +28,7 @@
 #include <stack>
 #include "ac/timer.h"
 #include "gfx/bitmap.h"
+#include "gfx/ddb.h"
 #include "media/audio/audiodefines.h"
 #include "media/audio/openalsource.h"
 #include "util/error.h"
@@ -63,10 +56,7 @@ enum VideoFlags
     // or fell back too much (this may halt or fastforward video
     // frames, but audio is never touched, as gaps in audio are
     // far more noticeable to human perception compared to video.
-    kVideo_SyncAudioVideo = 0x0040,
-    // Must accumulate decoded frames, when format's frames
-    // do not have a full image, but diff from the previous frame
-    kVideo_AccumFrame     = 0x0080,
+    kVideo_SyncAudioVideo = 0x0040
 };
 
 // Parent video player class, provides basic playback logic,
@@ -101,7 +91,7 @@ public:
     // Seek to the given frame; returns new pos or -1 (UINT32_MAX) on error
     uint32_t SeekFrame(uint32_t frame);
     // Steps one frame forward, returns a prepared video frame on success
-    std::unique_ptr<Common::Bitmap> NextFrame();
+    std::shared_ptr<Texture> NextFrame();
 
     const String &GetName() const { return _name; }
     int GetFrameDepth() const { return _frameDepth; }
@@ -126,10 +116,10 @@ public:
     void  SetLooping(bool loop) { _flags = (_flags & ~kVideo_Loop) | (kVideo_Loop * loop); }
 
     // Retrieve the currently prepared video frame
-    std::unique_ptr<Common::Bitmap> GetReadyFrame();
+    std::shared_ptr<Texture> GetReadyFrame();
     // Tell VideoPlayer that this frame is not used anymore, and may be recycled
     // TODO: redo this part later, by introducing some kind of a RAII lock wrapper.
-    void ReleaseFrame(std::unique_ptr<Common::Bitmap> frame);
+    void ReleaseFrame(std::shared_ptr<Texture> frame);
 
     // Updates the video playback, prepares next video & audio frames for the render
     bool Poll();
@@ -146,8 +136,8 @@ protected:
     virtual void CloseImpl() {};
     // Rewind to the start
     virtual bool RewindImpl() { return false; }
-    // Retrieves next video frame, implementation-specific
-    virtual bool NextVideoFrame(Common::Bitmap *dst, float &ts) { return false; };
+    // Retrieves next video frame placed in a readonly Bitmap
+    virtual bool NextVideoFrame(const Common::Bitmap **out_frame, float *ts) { return false; };
     // Retrieves next audio frame, implementation-specific
     // TODO: change return type to a proper allocated buffer
     // when we support a proper audio queue here.
@@ -183,20 +173,15 @@ private:
     struct VideoFrame
     {
         VideoFrame() = default;
-        VideoFrame(std::unique_ptr<Common::Bitmap> &&bmp, float ts = -1.f)
-            : _bmp(std::move(bmp)), _ts(ts) {}
+        VideoFrame(std::shared_ptr<Texture> &&tex, float ts = -1.f)
+            : _tex(std::move(tex)), _ts(ts) {}
 
-        const Common::Bitmap *Bitmap() const { return _bmp.get(); }
+        std::shared_ptr<Texture> GetImage() const { return _tex; }
         float Timestamp() const { return _ts; }
-        void SetTimestamp(float ts) { _ts = ts; }
-
-        std::unique_ptr<Common::Bitmap> Retrieve()
-        {
-            return std::move(_bmp);
-        }
+        void  SetTimestamp(float ts) { _ts = ts; }
 
     private:
-        std::unique_ptr<Common::Bitmap> _bmp;
+        std::shared_ptr<Texture> _tex;
         float _ts = -1.f; // negative means undefined
     };
 
@@ -281,8 +266,10 @@ private:
     std::unique_ptr<Common::Bitmap> _vframeBuf;
     // Helper buffer for copying 8-bit frames to the final frame
     std::unique_ptr<Common::Bitmap> _hicolBuf;
+    // FIXME: review this, and use texture scaling for GPU renderers instead
+    std::unique_ptr<Common::Bitmap> _finalSizeBuf;
     // Buffered frame queue and pool
-    std::stack<std::unique_ptr<Common::Bitmap>> _videoFramePool;
+    std::stack<std::shared_ptr<Texture>> _videoFramePool;
     std::deque<std::unique_ptr<VideoFrame>> _videoFrameQueue;
 
     // Statistics

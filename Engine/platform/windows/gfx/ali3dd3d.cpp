@@ -443,6 +443,18 @@ void D3DGraphicsDriver::SetGamma(int newGamma)
   direct3ddevice->SetGammaRamp(0, D3DSGR_NO_CALIBRATION, &currentgammaramp);
 }
 
+void D3DGraphicsDriver::RenderSpritesAtScreenResolution(bool enabled)
+{
+  std::lock_guard<std::mutex> lk(_factoryMutex);
+  _renderAtScreenRes = enabled;
+}
+
+void D3DGraphicsDriver::UseSmoothScaling(bool enabled)
+{
+  std::lock_guard<std::mutex> lk(_factoryMutex);
+  _smoothScaling = enabled;
+}
+
 void D3DGraphicsDriver::ResetDeviceIfNecessary()
 {
     HRESULT hr = direct3ddevice->TestCooperativeLevel();
@@ -542,7 +554,8 @@ bool D3DGraphicsDriver::CreateDisplayMode(const DisplayMode &mode)
   {
     const UINT use_adapter = SDL_Direct3D9GetAdapterIndex(use_display);
     hr = direct3d->CreateDevice(use_adapter, D3DDEVTYPE_HAL, hwnd,
-                      D3DCREATE_MIXED_VERTEXPROCESSING | D3DCREATE_MULTITHREADED,  // multithreaded required for AVI player
+                      // D3DCREATE_MULTITHREADED is required for texture buffering / caching in a background thread
+                      D3DCREATE_MIXED_VERTEXPROCESSING | D3DCREATE_MULTITHREADED,
                       &d3dpp, direct3ddevice.Acquire());
   }
   if (hr != D3D_OK)
@@ -694,6 +707,7 @@ void D3DGraphicsDriver::SetupViewport()
 
 void D3DGraphicsDriver::SetGraphicsFilter(PD3DFilter filter)
 {
+  std::lock_guard<std::mutex> lk(_factoryMutex);
   _filter = filter;
   _screenBackbuffer.Filter = _filter->GetSamplerStateForStandardSprite();
   OnSetFilter();

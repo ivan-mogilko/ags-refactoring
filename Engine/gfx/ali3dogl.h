@@ -62,9 +62,11 @@ struct OGLTextureTile : public TextureTile
     unsigned int texture = 0;
 };
 
-// Full OpenGL texture data
-struct OGLTexture : Texture
+// OpenGL texture data
+class OGLTexture final : public Texture
 {
+public:
+    // FIXME: make fields private
     OGLCUSTOMVERTEX *_vertex = nullptr;
     OGLTextureTile *_tiles = nullptr;
     size_t _numTiles = 0;
@@ -111,9 +113,11 @@ public:
         _colDepth = _data->Res.ColorDepth;
     }
     // Detach any internal texture data from this DDB, make this an empty object
-    void DetachData() override
+    std::shared_ptr<Texture> DetachData() override
     {
+        auto old_tex = _data;
         _data = nullptr;
+        return old_tex;
     }
 
     // OpenGL texture data
@@ -276,7 +280,7 @@ public:
     void RenderSpritesAtScreenResolution(bool enabled) override;
     bool SupportsGammaControl() override;
     void SetGamma(int newGamma) override;
-    void UseSmoothScaling(bool enabled) override { _smoothScaling = enabled; }
+    void UseSmoothScaling(bool enabled) override;
 
     typedef std::shared_ptr<OGLGfxFilter> POGLFilter;
 

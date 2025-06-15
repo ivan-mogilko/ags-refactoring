@@ -153,6 +153,7 @@ void OGLGraphicsDriver::UpdateDeviceScreen(const Size &/*screen_size*/)
 
 void OGLGraphicsDriver::RenderSpritesAtScreenResolution(bool enabled)
 {
+  std::lock_guard<std::mutex> lk(_factoryMutex);
   if (_canRenderToTexture)
   {
     _doRenderToTexture = !enabled;
@@ -160,6 +161,12 @@ void OGLGraphicsDriver::RenderSpritesAtScreenResolution(bool enabled)
 
   if (_doRenderToTexture)
     glDisable(GL_SCISSOR_TEST);
+}
+
+void OGLGraphicsDriver::UseSmoothScaling(bool enabled)
+{
+  std::lock_guard<std::mutex> lk(_factoryMutex);
+  _smoothScaling = enabled;
 }
 
 bool OGLGraphicsDriver::IsModeSupported(const DisplayMode &mode)
@@ -187,6 +194,7 @@ void OGLGraphicsDriver::SetGamma(int /*newGamma*/)
 
 void OGLGraphicsDriver::SetGraphicsFilter(POGLFilter filter)
 {
+  std::lock_guard<std::mutex> lk(_factoryMutex);
   _filter = filter;
   OnSetFilter();
 }

@@ -33,6 +33,8 @@
 #include "media/video/theora_player.h"
 #include "util/memory_compat.h"
 
+#define VIDEO_TEST_MAX_FPS      (1)
+
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
@@ -274,12 +276,17 @@ bool BlockingVideoPlayer::Run()
 #endif
 
     // update/render next frame
-    std::unique_ptr<Bitmap> frame;
+    std::shared_ptr<Texture> frame;
     {
         std::lock_guard<std::mutex> lk(_videoMutex);
         _playbackState = _player->GetPlayState();
         if ((_videoFlags & kVideo_EnableVideo) != 0)
+        {
             frame = _player->GetReadyFrame();
+            // If received a new frame, then release the previous one back to the VideoPlayer
+            if (frame && _videoDDB->IsValid())
+                _player->ReleaseFrame(_videoDDB->DetachData());
+        }
     }
 
     if ((_videoFlags & kVideo_EnableVideo) != 0)
@@ -287,14 +294,9 @@ bool BlockingVideoPlayer::Run()
         if (frame)
         {
             const auto start_tp = Clock::now();
-            gfxDriver->UpdateDDBFromBitmap(_videoDDB, frame.get(), false);
+            _videoDDB->AttachData(frame, true /* opaque */);
             _videoDDB->SetStretch(_dstRect.GetWidth(), _dstRect.GetHeight(), false);
             const auto end_tp = Clock::now();
-
-            {
-                std::lock_guard<std::mutex> lk(_videoMutex);
-                _player->ReleaseFrame(std::move(frame));
-            }
 
             // Stats
             const float dur_ms = ToMillisecondsF(end_tp - start_tp);

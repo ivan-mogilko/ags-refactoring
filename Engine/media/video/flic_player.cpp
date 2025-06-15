@@ -57,9 +57,8 @@ HError FlicPlayer::OpenImpl(std::unique_ptr<Common::Stream> data_stream,
     _frameTime = fli_speed;
     _frameCount = static_cast<uint32_t>(fli_frame_count);
     _durationMs = fli_frame_count * fli_speed;
-    // FLIC must accumulate frame image because its frames contain diff since the last frame
-    flags |= kVideo_AccumFrame;
     _videoFramesDecoded = 0u;
+    _compositeBmp.Create(_frameSize.Width, _frameSize.Height, _frameDepth);
     return HError::None();
 }
 
@@ -79,9 +78,13 @@ void FlicPlayer::CloseImpl()
     set_palette_range(_oldpal, 0, 255, 0);
 }
 
-bool FlicPlayer::NextVideoFrame(Bitmap *dst, float &ts)
+bool FlicPlayer::NextVideoFrame(const Common::Bitmap **out_frame, float *ts)
 {
-    ts = -1.f; // reset in case of error
+    // reset in case of no frame or error
+    if (out_frame)
+        *out_frame = nullptr;
+    if (ts)
+        *ts = -1.f;
 
     // actual FLI playback state, base on original Allegro 4's do_play_fli
 
@@ -95,11 +98,14 @@ bool FlicPlayer::NextVideoFrame(Bitmap *dst, float &ts)
 
     /* blit the changed portion of the frame */
     if (fli_bmp_dirty_from <= fli_bmp_dirty_to) {
-        blit(fli_bitmap, dst->GetAllegroBitmap(), 0, fli_bmp_dirty_from, 0, fli_bmp_dirty_from,
+        blit(fli_bitmap, _compositeBmp.GetAllegroBitmap(), 0, fli_bmp_dirty_from, 0, fli_bmp_dirty_from,
             fli_bitmap->w, 1 + fli_bmp_dirty_to - fli_bmp_dirty_from);
     }
 
-    ts = _videoFramesDecoded * _frameTime;
+    if (out_frame)
+        *out_frame = &_compositeBmp;
+    if (ts)
+        *ts = _videoFramesDecoded * _frameTime;
     _videoFramesDecoded++;
     reset_fli_variables();
     return true;

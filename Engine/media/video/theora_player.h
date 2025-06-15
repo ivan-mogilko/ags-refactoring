@@ -39,8 +39,8 @@ private:
         const String &name, int &flags, int target_depth) override;
     void CloseImpl() override;
     bool RewindImpl() override;
-    // Retrieves next video frame, implementation-specific
-    bool NextVideoFrame(Common::Bitmap *dst, float &ts) override;
+    // Retrieves next video frame placed in a readonly Bitmap
+    bool NextVideoFrame(const Common::Bitmap **out_frame, float *ts) override;
     // Retrieves next audio frame, implementation-specific
     bool NextAudioFrame(SoundBuffer &abuf) override;
     // Checks the next video frame in stream and returns its timestamp.
