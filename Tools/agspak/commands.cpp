@@ -118,10 +118,16 @@ int Command_Pack(const String &src_dir, const String &dst_pak, const String &pat
     return 0;
 }
 
-int Command_Unpack(const String &src_pak, const String &dst_dir)
+int Command_Unpack(const String &src_pak, const String &dst_dir, const std::vector<String> *asset_files)
 {
     printf("Input pack file: %s\n", src_pak.GetCStr());
     printf("Output directory: %s\n", dst_dir.GetCStr());
+    if (asset_files)
+    {
+        printf("Requested assets:\n");
+        for (const auto &a : *asset_files)
+            printf("* %s\n", a.GetCStr());
+    }
 
     if (!File::IsDirectory(dst_dir))
     {
@@ -154,7 +160,10 @@ int Command_Unpack(const String &src_pak, const String &dst_dir)
     // file we just opened, because it may be different from the name
     // saved in lib; e.g. if the lib was attached to *.exe.
     lib.LibFileNames[0] = lib_basefile;
-    err = UnpackLibrary(lib, lib_dir, dst_dir);
+    if (asset_files)
+        err = ExportFromLibrary(lib, lib_dir, dst_dir, *asset_files);
+    else
+        err = UnpackLibrary(lib, lib_dir, dst_dir);
     if (!err)
     {
         printf("Failed unpacking the library\n%s", err->FullMessage().GetCStr());
@@ -164,9 +173,45 @@ int Command_Unpack(const String &src_pak, const String &dst_dir)
     return 0;
 }
 
+int Command_Unpack(const String &src_pak, const String &dst_dir)
+{
+    return Command_Unpack(src_pak, dst_dir, nullptr);
+}
+
+int Command_Unpack(const String &src_pak, const String &dst_dir, const std::vector<String> &asset_files)
+{
+    return Command_Unpack(src_pak, dst_dir, &asset_files);
+}
+
 int Command_List(const String &src_pak)
 {
     printf("Input pack file: %s\n", src_pak.GetCStr());
+
+    //-----------------------------------------------------------------------//
+    // Read and print the library TOC
+    //-----------------------------------------------------------------------//
+    AssetLibInfo lib;
+    HError err = OpenAssetLib(src_pak, lib);
+    if (lib.AssetInfos.size() == 0)
+    {
+        printf("Pack file has no assets.\nDone.\n");
+        return 0;
+    }
+
+    printf("Pack file assets (%zu total):\n", lib.AssetInfos.size());
+    // TODO: print more info, but perhaps require cmd arguments for that? (because it's not always useful)
+    for (const auto &asset : lib.AssetInfos)
+    {
+        printf("* %s\n", asset.FileName.GetCStr());
+    }
+    printf("Done.\n");
+    return 0;
+}
+
+int Command_Export(const String &src_pak, const String &asset_file)
+{
+    printf("Input pack file: %s\n", src_pak.GetCStr());
+    printf("Requested asset file: %s\n", src_pak.GetCStr());
 
     //-----------------------------------------------------------------------//
     // Read and print the library TOC

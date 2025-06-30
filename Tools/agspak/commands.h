@@ -23,6 +23,7 @@ namespace AGSPak
     int Command_Pack(const String &src_dir, const String &dst_pak, const String &pattern_file,
                      bool do_subdirs, size_t part_size_mb, bool verbose);
     int Command_Unpack(const String &src_pak, const String &dst_dir);
+    int Command_Unpack(const String &src_pak, const String &dst_dir, const std::vector<String> &asset_files);
     int Command_List(const String &src_pak);
 }
 

@@ -35,6 +35,8 @@ namespace DataUtil
     // if the asset name contains directories, they will be created as sub-
     // directories inside dst_dir.
     HError UnpackLibrary(const AssetLibInfo &lib, const String &lib_dir, const String &dst_dir);
+    // Exports only particular assets from the library.
+    HError ExportFromLibrary(const AssetLibInfo &lib, const String &lib_dir, const String &dst_dir, const std::vector<String> &assets);
     // Gather a list of files from a given directory as a vector of strings
     HError MakeListOfFiles(std::vector<String> &files, const String &asset_dir, bool do_subdirs);
     // Prepare list of assets from a list of filenames
@@ -55,6 +57,14 @@ namespace DataUtil
     HError WriteLibrary(AssetLibInfo &lib, const String &asset_dir, const String &dst_dir,
                         Common::MFLUtil::MFLVersion lib_version,
                         bool verbose);
+
+    // A custom comparator used to search for AssetInfos by a name
+    struct AssetInfoComparator
+    {
+        const String Name;
+        AssetInfoComparator(const String &name) : Name(name) {}
+        bool operator() (const AssetInfo &info) const { return info.FileName.CompareNoCase(Name) == 0; }
+    };
 
 } // namespace DataUtil
 } // namespace AGS

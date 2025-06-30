@@ -44,10 +44,13 @@ const char *HELP_STRING = "Usage:\n"
     "  -r                     recursive mode: include all subdirectories too\n"
     "\n"
     "Commands:\n"
+    "  -e, --export <pak-file> <out_dir> <asset_files>\n"
+    "          export particular asset(s) into the dir;\n"
+    "          multiple assets should be comma-separated\n"
     "  -l, --list <pak-file>\n"
-    "                         print pak file's contents\n"
+    "          print pak file's contents\n"
     "  -u, --unpack <pak-file> <out-dir>\n"
-    "                         unpackage all the pak file's contents into the dir\n"
+    "          unpackage all the pak file's contents into the dir\n"
     "\n"
 //  "Command options:\n"
 //  "\n"
@@ -65,7 +68,12 @@ int DoPakCommand(const CmdLineOpts::ParseResult &cmdargs, bool verbose)
     char command = 0;
     for (const auto &opt : cmdargs.Opt)
     {
-        if (opt == "-l" || opt == "--list")
+        if (opt == "-e" || opt == "--export")
+        {
+            command = 'e'; // export
+            break;
+        }
+        else if (opt == "-l" || opt == "--list")
         {
             command = 'l'; // list
             break;
@@ -80,20 +88,30 @@ int DoPakCommand(const CmdLineOpts::ParseResult &cmdargs, bool verbose)
     // Run supported commands
     switch (command)
     {
+    case 'e': // export
+        {
+            if (cmdargs.PosArgs.size() < 3)
+                break; // not enough args
+            const String &src = cmdargs.PosArgs[0];
+            const String &dst = cmdargs.PosArgs[1];
+            const String &assets = cmdargs.PosArgs[2];
+            std::vector<String> asset_files = assets.Split(',');
+            return AGSPak::Command_Unpack(src, dst, asset_files);
+        }
     case 'l': // list
         {
+            if (cmdargs.PosArgs.size() < 1)
+                break; // not enough args
             const String &src = cmdargs.PosArgs[0];
-            if (!src.IsEmpty())
-                return AGSPak::Command_List(src);
-            break; // not enough args
+            return AGSPak::Command_List(src);
         }
     case 'u': // unpack
         {
+            if (cmdargs.PosArgs.size() < 2)
+                break; // not enough args
             const String &src = cmdargs.PosArgs[0];
             const String &dst = cmdargs.PosArgs[1];
-            if (!src.IsEmpty() && !dst.IsEmpty())
-                return AGSPak::Command_Unpack(src, dst);
-            break; // not enough args
+            return AGSPak::Command_Unpack(src, dst);
         }
     default:
         printf("Error: command not specified\n");
@@ -162,8 +180,9 @@ int main(int argc, char *argv[])
     // a limitation of this implementation, or a general convention on parsing args;
     // figure out a better way of handling this (is there?).
     const bool is_explicit_command =
-           cmdargs.Opt.count("-u") > 0 || cmdargs.Opt.count("--unpack") > 0
-        || cmdargs.Opt.count("-l") > 0 || cmdargs.Opt.count("--list") > 0;
+           cmdargs.Opt.count("-e") > 0 || cmdargs.Opt.count("--export") > 0
+        || cmdargs.Opt.count("-l") > 0 || cmdargs.Opt.count("--list") > 0
+        || cmdargs.Opt.count("-u") > 0 || cmdargs.Opt.count("--unpack") > 0;
     const bool verbose = cmdargs.Opt.count("-v") || cmdargs.Opt.count("--verbose");
 
     if (is_explicit_command)

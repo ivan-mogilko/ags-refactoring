@@ -28,6 +28,31 @@ namespace DataUtil
 // TODO: might replace "printf" with the logging functions,
 // but then we'd also need to make sure they are initialized in tools
 
+static void ExportAsset(Stream *lib_in, const AssetInfo &asset, const String &dst_dir)
+{
+    String dst_f = Path::ConcatPaths(dst_dir, asset.FileName);
+    String sub_dir = Path::GetParent(asset.FileName);
+    if (!sub_dir.IsEmpty() && sub_dir != "." &&
+        !Directory::CreateAllDirectories(dst_dir, sub_dir))
+    {
+        printf("Error: unable to create a subdirectory: %s\n", sub_dir.GetCStr());
+        return;
+    }
+    std::unique_ptr<Stream> out(File::CreateFile(dst_f));
+    if (!out)
+    {
+        printf("Error: unable to open a file for writing: %s\n", asset.FileName.GetCStr());
+        return;
+    }
+    lib_in->Seek(asset.Offset, kSeekBegin);
+    soff_t wrote = CopyStream(lib_in, out.get(), asset.Size);
+    if (wrote == asset.Size)
+        printf("+ %s\n", asset.FileName.GetCStr());
+    else
+        printf("Error: file was not written correctly: %s\n Expected: %jd, wrote: %jd bytes\n",
+               asset.FileName.GetCStr(), static_cast<intmax_t>(asset.Size), static_cast<intmax_t>(wrote));
+}
+
 HError UnpackLibrary(const AssetLibInfo &lib, const String &lib_dir, const String &dst_dir)
 {
     for (size_t i = 0; i < lib.LibFileNames.size(); ++i)
@@ -43,28 +68,57 @@ HError UnpackLibrary(const AssetLibInfo &lib, const String &lib_dir, const Strin
         printf("Extracting %s:\n", lib_f.GetCStr());
         for (const auto &asset : lib.AssetInfos)
         {
-            if (asset.LibUid != i) continue;
-            String dst_f = Path::ConcatPaths(dst_dir, asset.FileName);
-            String sub_dir = Path::GetParent(asset.FileName);
-            if (!sub_dir.IsEmpty() && sub_dir != "." &&
-                !Directory::CreateAllDirectories(dst_dir, sub_dir))
-            {
-                printf("Error: unable to create a subdirectory: %s\n", sub_dir.GetCStr());
+            if (asset.LibUid != i)
                 continue;
-            }
-            std::unique_ptr<Stream> out(File::CreateFile(dst_f));
-            if (!out)
-            {
-                printf("Error: unable to open a file for writing: %s\n", asset.FileName.GetCStr());
-                continue;
-            }
-            lib_in->Seek(asset.Offset, kSeekBegin);
-            soff_t wrote = CopyStream(lib_in.get(), out.get(), asset.Size);
-            if (wrote == asset.Size)
-                printf("+ %s\n", asset.FileName.GetCStr());
-            else
-                printf("Error: file was not written correctly: %s\n Expected: %jd, wrote: %jd bytes\n",
-                    asset.FileName.GetCStr(), static_cast<intmax_t>(asset.Size), static_cast<intmax_t>(wrote));
+            ExportAsset(lib_in.get(), asset, dst_dir);
+        }
+    }
+    return HError::None();
+}
+
+HError ExportFromLibrary(const AssetLibInfo &lib, const String &lib_dir, const String &dst_dir, const std::vector<String> &assets)
+{
+    // Sort requests assets by lib files, in case we have a multi-file library,
+    // so to not reopen same lib file multiple times.
+    std::vector<std::vector<AssetInfo>> asset_by_lib(lib.LibFileNames.size());
+    for (const String &asset : assets)
+    {
+        auto it_found = std::find_if(lib.AssetInfos.begin(), lib.AssetInfos.end(), AssetInfoComparator(asset));
+        if (it_found == lib.AssetInfos.end())
+        {
+            printf("Warning: asset not found: %s\n", asset.GetCStr());
+            continue;
+        }
+        if (it_found->LibUid < 0 || static_cast<size_t>(it_found->LibUid) >= lib.LibFileNames.size())
+        {
+            printf("Warning: asset %s is found, but references library partition index %d which is not present\n",
+                   asset.GetCStr(), it_found->LibUid);
+            continue;
+        }
+
+        asset_by_lib[it_found->LibUid].push_back(*it_found);
+    }
+
+    if (asset_by_lib.empty())
+    {
+        return HError::None();
+    }
+
+    printf("Extracting...\n");
+    for (size_t i = 0; i < asset_by_lib.size(); ++i)
+    {
+        String lib_f = lib.LibFileNames[i];
+        String path = Path::ConcatPaths(lib_dir, lib_f);
+        std::unique_ptr<Stream> lib_in(File::OpenFileRead(path));
+        if (!lib_in)
+        {
+            return new Error(String::FromFormat("Failed to open a library file for reading: %s",
+                lib_f.GetCStr()));
+        }
+
+        for (const auto &asset : asset_by_lib[i])
+        {
+            ExportAsset(lib_in.get(), asset, dst_dir);
         }
     }
     return HError::None();
