@@ -24,6 +24,18 @@ using namespace AGS::DataUtil;
 namespace AGSPak
 {
 
+static HError OpenAssetLib(const String &pak_file, AssetLibInfo &lib)
+{
+    auto in = File::OpenFileRead(pak_file);
+    if (!in)
+        return new Error("Failed to open pack file for reading.");
+
+    MFLUtil::MFLError mfl_err = MFLUtil::ReadHeader(lib, in.get());
+    if (mfl_err != MFLUtil::kMFLNoError)
+        return new Error("Failed to parse pack file.\n%s", MFLUtil::GetMFLErrorText(mfl_err).GetCStr());
+    return HError::None();
+}
+
 int Command_Pack(const String &src_dir, const String &dst_pak, const String &pattern_file, bool do_subdirs, size_t part_size_mb, bool verbose)
 {
     printf("Input directory: %s\n", src_dir.GetCStr());
@@ -120,20 +132,11 @@ int Command_Unpack(const String &src_pak, const String &dst_dir)
     //-----------------------------------------------------------------------//
     // Read the library TOC
     //-----------------------------------------------------------------------//
-    auto in = File::OpenFileRead(src_pak);
-    if (!in)
-    {
-        printf("Error: failed to open pack file for reading.\n");
-        return -1;
-    }
-
-    // TODO: pick this out into a utility function that inits the lib fully
     AssetLibInfo lib;
-    MFLUtil::MFLError mfl_err = MFLUtil::ReadHeader(lib, in.get());
-    if (mfl_err != MFLUtil::kMFLNoError)
+    HError err = OpenAssetLib(src_pak, lib);
+    if (!err)
     {
-        printf("Error: failed to parse pack file:\n");
-        printf("%s\n", MFLUtil::GetMFLErrorText(mfl_err).GetCStr());
+        printf("Error: %s\n", err->FullMessage().GetCStr());
         return -1;
     }
     if (lib.AssetInfos.size() == 0)
@@ -151,11 +154,36 @@ int Command_Unpack(const String &src_pak, const String &dst_dir)
     // file we just opened, because it may be different from the name
     // saved in lib; e.g. if the lib was attached to *.exe.
     lib.LibFileNames[0] = lib_basefile;
-    HError err = UnpackLibrary(lib, lib_dir, dst_dir);
+    err = UnpackLibrary(lib, lib_dir, dst_dir);
     if (!err)
     {
         printf("Failed unpacking the library\n%s", err->FullMessage().GetCStr());
         return -1;
+    }
+    printf("Done.\n");
+    return 0;
+}
+
+int Command_List(const String &src_pak)
+{
+    printf("Input pack file: %s\n", src_pak.GetCStr());
+
+    //-----------------------------------------------------------------------//
+    // Read and print the library TOC
+    //-----------------------------------------------------------------------//
+    AssetLibInfo lib;
+    HError err = OpenAssetLib(src_pak, lib);
+    if (lib.AssetInfos.size() == 0)
+    {
+        printf("Pack file has no assets.\nDone.\n");
+        return 0;
+    }
+
+    printf("Pack file assets (%zu total):\n", lib.AssetInfos.size());
+    // TODO: print more info, but perhaps require cmd arguments for that? (because it's not always useful)
+    for (const auto &asset : lib.AssetInfos)
+    {
+        printf("* %s\n", asset.FileName.GetCStr());
     }
     printf("Done.\n");
     return 0;

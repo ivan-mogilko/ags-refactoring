@@ -44,6 +44,8 @@ const char *HELP_STRING = "Usage:\n"
     "  -r                     recursive mode: include all subdirectories too\n"
     "\n"
     "Commands:\n"
+    "  -l, --list <pak-file>\n"
+    "                         print pak file's contents\n"
     "  -u, --unpack <pak-file> <out-dir>\n"
     "                         unpackage all the pak file's contents into the dir\n"
     "\n"
@@ -63,7 +65,12 @@ int DoPakCommand(const CmdLineOpts::ParseResult &cmdargs, bool verbose)
     char command = 0;
     for (const auto &opt : cmdargs.Opt)
     {
-        if (opt == "-u" || opt == "--unpack")
+        if (opt == "-l" || opt == "--list")
+        {
+            command = 'l'; // list
+            break;
+        }
+        else if (opt == "-u" || opt == "--unpack")
         {
             command = 'u'; // unpack
             break;
@@ -73,6 +80,13 @@ int DoPakCommand(const CmdLineOpts::ParseResult &cmdargs, bool verbose)
     // Run supported commands
     switch (command)
     {
+    case 'l': // list
+        {
+            const String &src = cmdargs.PosArgs[0];
+            if (!src.IsEmpty())
+                return AGSPak::Command_List(src);
+            break; // not enough args
+        }
     case 'u': // unpack
         {
             const String &src = cmdargs.PosArgs[0];
@@ -148,7 +162,8 @@ int main(int argc, char *argv[])
     // a limitation of this implementation, or a general convention on parsing args;
     // figure out a better way of handling this (is there?).
     const bool is_explicit_command =
-        cmdargs.Opt.count("-u") > 0 || cmdargs.Opt.count("--unpack") > 0;
+           cmdargs.Opt.count("-u") > 0 || cmdargs.Opt.count("--unpack") > 0
+        || cmdargs.Opt.count("-l") > 0 || cmdargs.Opt.count("--list") > 0;
     const bool verbose = cmdargs.Opt.count("-v") || cmdargs.Opt.count("--verbose");
 
     if (is_explicit_command)
