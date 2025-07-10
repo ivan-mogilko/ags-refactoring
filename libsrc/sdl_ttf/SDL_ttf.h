@@ -2330,6 +2330,8 @@ extern SDL_DEPRECATED DECLSPEC int SDLCALL TTF_SetScript(int script); /* hb_scri
  */
 extern DECLSPEC int SDLCALL TTF_SetFontDirection(TTF_Font *font, TTF_Direction direction);
 
+extern DECLSPEC int SDLCALL TTF_SetFontCharSpacing(TTF_Font *font, int char_spacing);
+
 /**
  * Set script to be used for text shaping by a font.
  *

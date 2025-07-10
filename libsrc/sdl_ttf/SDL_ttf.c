@@ -263,6 +263,8 @@ struct TTF_Font {
 #if !TTF_USE_HARFBUZZ
     int use_kerning;
 #endif
+    /* EXPERIMENT: Additional character spacing */
+    int char_spacing;
 
     /* Extra width in glyph bounds for text styles */
     int glyph_overhang;
@@ -3149,6 +3151,13 @@ int TTF_SetFontDirection(TTF_Font *font, TTF_Direction direction)
 #endif
 }
 
+int TTF_SetFontCharSpacing(TTF_Font *font, int char_spacing)
+{
+    /* Convert pixels to font units */
+    const FT_Face face = font->face;
+    font->char_spacing = FT_MulFix(FT_DivFix(char_spacing, face->size->metrics.x_ppem), face->units_per_EM);
+}
+
 int TTF_SetFontScriptName(TTF_Font *font, const char *script)
 {
 #if TTF_USE_HARFBUZZ
@@ -3325,11 +3334,11 @@ static int TTF_Size_Internal(TTF_Font *font,
         /* Compute positions */
         pos_x  = x                     + x_offset;
         pos_y  = y + F26Dot6(font->ascent) - y_offset;
-        x     += x_advance + advance_if_bold;
+        x     += x_advance + advance_if_bold + font->char_spacing;
         y     += y_advance;
 #else
         /* Compute positions */
-        x += prev_advance;
+        x += prev_advance + font->char_spacing;
         prev_advance = glyph->advance;
         if (font->use_kerning) {
             if (prev_index && glyph->index) {

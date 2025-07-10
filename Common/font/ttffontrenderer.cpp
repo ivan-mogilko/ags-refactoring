@@ -234,7 +234,7 @@ void TTFFontRenderer::SetCharacterSpacing(int fontNumber, int spacing)
 {
     if (_fontData.find(fontNumber) != _fontData.end())
     {
-        alfont_set_char_extra_spacing(_fontData[fontNumber].AlFont, spacing);
+        TTF_SetFontCharSpacing(_fontData[fontNumber].Font, spacing);
     }
 }
 
