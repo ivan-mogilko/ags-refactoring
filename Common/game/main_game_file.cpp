@@ -748,6 +748,13 @@ HError GameDataExtReader::ReadBlock(Stream *in, int /*block_id*/, const String &
         // Read a dictionary of strings
         StrUtil::ReadStringMap(_ents.Game.GameInfo, in);
     }
+    else if (ext_id.CompareNoCase("v363_charspacing") == 0)
+    {
+        for (FontInfo &finfo : _ents.Game.fonts)
+        {
+            finfo.CharacterSpacing = in->ReadInt32();
+        }
+    }
     // Early development version of "ags4"
     else if (ext_id.CompareNoCase("ext_ags399") == 0)
     {

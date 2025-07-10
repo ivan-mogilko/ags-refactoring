@@ -37,12 +37,20 @@ int WFNFontRenderer::GetTextWidth(const char *text, int fontNumber)
 {
     const WFNFont* font = _fontData[fontNumber].Font;
     const FontRenderParams &params = _fontData[fontNumber].Params;
+    const int charSpacing = _fontData[fontNumber].CharacterSpacing;
     int text_width = 0;
+    int char_count = 0;
 
     for (int code = ugetxc(&text); code; code = ugetxc(&text))
     {
         text_width += font->GetChar(code).Width;
+        char_count++;
     }
+    
+    // Add character spacing between characters (but not after the last character)
+    if (char_count > 1)
+        text_width += charSpacing * (char_count - 1);
+        
     return text_width * params.SizeMultiplier;
 }
 
@@ -67,6 +75,7 @@ void WFNFontRenderer::RenderText(const char *text, int fontNumber, BITMAP *desti
 {
     const WFNFont* font = _fontData[fontNumber].Font;
     const FontRenderParams &params = _fontData[fontNumber].Params;
+  const int charSpacing = _fontData[fontNumber].CharacterSpacing * params.SizeMultiplier;
     Bitmap ds(destination, true);
 
     // Check if this is a alpha-blending case, and init corresponding draw mode
@@ -82,7 +91,9 @@ void WFNFontRenderer::RenderText(const char *text, int fontNumber, BITMAP *desti
     // so we'll have to accomodate for that ourselves
     Rect clip = ds.GetClip();
     for (int code = ugetxc(&text); code; code = ugetxc(&text))
-        x += RenderChar(&ds, x, y, clip, font->GetChar(code), params.SizeMultiplier, colour, alpha_blend);
+    {
+        x += charSpacing + RenderChar(&ds, x, y, clip, font->GetChar(code), params.SizeMultiplier, colour, alpha_blend);
+    }
 
     if (alpha_blend)
     {
@@ -157,6 +168,7 @@ bool WFNFontRenderer::LoadFromDiskEx(int fontNumber, int /*fontSize*/, const Str
   }
   _fontData[fontNumber].Font = font;
   _fontData[fontNumber].Params = params ? *params : FontRenderParams();
+  _fontData[fontNumber].CharacterSpacing = 0;
   if (metrics)
     *metrics = FontMetrics();
   return true;
@@ -176,4 +188,12 @@ void WFNFontRenderer::FreeMemory(int fontNumber)
 bool WFNFontRenderer::SupportsExtendedCharacters(int fontNumber)
 {
   return _fontData[fontNumber].Font->GetCharCount() > 128;
+}
+
+void WFNFontRenderer::SetCharacterSpacing(int fontNumber, int spacing)
+{
+    if (_fontData.find(fontNumber) != _fontData.end())
+    {
+        _fontData[fontNumber].CharacterSpacing = spacing;
+    }
 }

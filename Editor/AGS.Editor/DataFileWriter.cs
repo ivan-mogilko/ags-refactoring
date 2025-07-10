@@ -384,7 +384,7 @@ namespace AGS.Editor
             {
                 if (makeFileNameAssumptions)
                 {
-                    ourlib.DataFilenames.Add(baseFileName + "." + 
+                    ourlib.DataFilenames.Add(baseFileName + "." +
                         (i == 0 ? "ags" : i.ToString("D3")));
                 }
                 else
@@ -1798,6 +1798,7 @@ namespace AGS.Editor
             WriteExtension("v362_interevent2", WriteExt_362InteractionEvents, writer, gameEnts, errors);
             WriteExtension("v362_guictrls", WriteExt_362GUIControls, writer, gameEnts, errors);
             WriteExtension("v363_gameinfo", WriteExt_363GameInfo, writer, gameEnts, errors);
+            WriteExtension("v363_charspacing", WriteExt_363CharSpacing, writer, gameEnts, errors);
             WriteExtension("ext_ags399", WriteExt_Ags399, writer, gameEnts, errors);
             WriteExtension("v400_gameopts", WriteExt_400GameOpts, writer, gameEnts, errors);
             WriteExtension("v400_customprops", WriteExt_400CustomProps, writer, gameEnts, errors);
@@ -1925,6 +1926,14 @@ namespace AGS.Editor
                 writer.Write(button.TextPaddingVertical);
                 writer.Write((int)0);
                 writer.Write((int)0);
+            }
+        }
+        
+        private static void WriteExt_363CharSpacing(BinaryWriter writer, WriteExtEntities ents, CompileMessages errors)
+        {
+            foreach (var font in ents.Game.Fonts)
+            {
+                writer.Write(font.CharacterSpacing);
             }
         }
 

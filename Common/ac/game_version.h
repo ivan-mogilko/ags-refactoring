@@ -128,7 +128,7 @@ Script module names are written in the game data.
 Incremented for safety fallback purposes, few very old text alignment mistakes fixed in the engine.
 3.6.3:
 OPT_GUICONTROLMOUSEBUT, game info properties
-
+Font.CharacterSpacing
 3.9.9 :
 BlendModes
 4.0.0 :

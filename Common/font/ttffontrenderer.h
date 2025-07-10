@@ -47,6 +47,7 @@ public:
   void GetFontMetrics(int fontNumber, FontMetrics *metrics) override;
   void AdjustFontForAntiAlias(int fontNumber, bool aa_mode) override;
   void SetBlendMode(AGS::Common::BlendMode blend_mode) override;
+  void SetCharacterSpacing(int fontNumber, int spacing);
 
   TTFFontRenderer(AGS::Common::AssetManager *amgr);
   virtual ~TTFFontRenderer();
