@@ -210,7 +210,15 @@ uint32_t blender_min_color(uint32_t x, uint32_t y, uint32_t /*n*/)
     const int yg = getg32(y);
     const int yb = getb32(y);
     const int ya = geta32(y);
-    return makeacol32(xr < yr ? xr : yr, xg < yg ? xg : yg, xb < yb ? xb : yb, xa < ya ? xa : ya);
+    return makeacol32(std::min(xr, yr), std::min(xg, yg), std::min(xg, yg), std::min(xa, ya));
+}
+
+uint32_t blender_min_alpha(uint32_t x, uint32_t y, uint32_t n)
+{
+    const int xa = geta32(x);
+    const int ya = geta32(y);
+    const int blend_res = _argb2argb_blender(x, y, n);
+    return makeacol32(getr32(blend_res), getg32(blend_res), getb32(blend_res), std::min(xa, ya));
 }
 
 uint32_t blender_max_color(uint32_t x, uint32_t y, uint32_t /*n*/)
@@ -223,7 +231,15 @@ uint32_t blender_max_color(uint32_t x, uint32_t y, uint32_t /*n*/)
     const int yg = getg32(y);
     const int yb = getb32(y);
     const int ya = geta32(y);
-    return makeacol32(xr >= yr ? xr : yr, xg >= yg ? xg : yg, xb >= yb ? xb : yb, xa >= ya ? xa : ya);
+    return makeacol32(std::max(xr, yr), std::max(xg, yg), std::max(xg, yg), std::max(xa, ya));
+}
+
+uint32_t blender_max_alpha(uint32_t x, uint32_t y, uint32_t n)
+{
+    const int xa = geta32(x);
+    const int ya = geta32(y);
+    const int blend_res = _argb2argb_blender(x, y, n);
+    return makeacol32(getr32(blend_res), getg32(blend_res), getb32(blend_res), std::max(xa, ya));
 }
 
 // ===============================
@@ -360,7 +376,9 @@ static const PfnBlenderCb BlendModeSets[kNumBlendModes] =
     blender_src_copyrgb,            // kBlend_CopyRGB
     blender_src_copyalpha,          // kBlend_CopyAlpha
     blender_min_color,              // kBlend_MinColor
+    blender_min_alpha,              // kBlend_MinAlpha
     blender_max_color,              // kBlend_MaxColor
+    blender_max_alpha,              // kBlend_MaxAlpha
 };
 
 bool SetBlender(BlendMode blend_mode, int alpha)

@@ -57,7 +57,9 @@ enum BlendMode
     kBlend_CopyRGB,
     kBlend_CopyAlpha,
     kBlend_MinColor,
+    kBlend_MinAlpha,
     kBlend_MaxColor,
+    kBlend_MaxAlpha,
     kNumBlendModes
 };
 

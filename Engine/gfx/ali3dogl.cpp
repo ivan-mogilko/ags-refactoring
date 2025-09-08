@@ -1586,10 +1586,21 @@ void OGLGraphicsDriver::RenderTexture(OGLBitmap *bmpToDraw, int draw_x, int draw
                             GL_FUNC_ADD, GL_ONE, GL_ZERO);
         break;
 #ifdef GL_MIN
-        case kBlend_MinColor: SetBlendOpUniform(GL_MIN, GL_ONE, GL_ONE); break;
+    case kBlend_MinColor: SetBlendOpUniform(GL_MIN, GL_ONE, GL_ONE); break;
+    case kBlend_MinAlpha:
+        //SetBlendOpRGBAlpha(GL_FUNC_ADD, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA,
+        //                   GL_MIN, GL_ONE, GL_ONE);
+        //SetBlendOpRGBAlpha(GL_FUNC_ADD, GL_ZERO, GL_SRC_ALPHA,
+        SetBlendOpRGBAlpha(GL_FUNC_ADD, GL_ZERO, GL_SRC_ALPHA,
+                           GL_MIN, GL_ONE, GL_ONE);
+        break;
 #endif
 #ifdef GL_MAX
-        case kBlend_MaxColor: SetBlendOpUniform(GL_MAX, GL_ONE, GL_ONE); break;
+    case kBlend_MaxColor: SetBlendOpUniform(GL_MAX, GL_ONE, GL_ONE); break;
+    case kBlend_MaxAlpha:
+        SetBlendOpRGBAlpha(GL_FUNC_ADD, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA,
+                           GL_MAX, GL_ONE, GL_ONE);
+        break;
 #endif
     default: break;
     }

@@ -1594,16 +1594,26 @@ void D3DGraphicsDriver::RenderTexture(D3DBitmap *bmpToDraw, int draw_x, int draw
         SetBlendOpAlpha(D3DBLENDOP_ADD, D3DBLEND_ONE, D3DBLEND_ZERO);
         direct3ddevice->SetRenderState(D3DRS_ALPHATESTENABLE, FALSE);
         break;
-        case kBlend_MinColor:
-            SetBlendOpRGB(D3DBLENDOP_MIN, D3DBLEND_ONE, D3DBLEND_ONE);
-            SetBlendOpAlpha(D3DBLENDOP_MIN, D3DBLEND_ONE, D3DBLEND_ONE);
-            // Must disable alpha test here to let zero alpha pixels from source into the blender
-            direct3ddevice->SetRenderState(D3DRS_ALPHATESTENABLE, FALSE);
-            break;
-        case kBlend_MaxColor:
-            SetBlendOpRGB(D3DBLENDOP_MAX, D3DBLEND_ONE, D3DBLEND_ONE);
-            SetBlendOpAlpha(D3DBLENDOP_MAX, D3DBLEND_ONE, D3DBLEND_ONE);
-            break;
+    case kBlend_MinColor:
+        SetBlendOpRGB(D3DBLENDOP_MIN, D3DBLEND_ONE, D3DBLEND_ONE);
+        SetBlendOpAlpha(D3DBLENDOP_MIN, D3DBLEND_ONE, D3DBLEND_ONE);
+        // Must disable alpha test here to let zero alpha pixels from source into the blender
+        direct3ddevice->SetRenderState(D3DRS_ALPHATESTENABLE, FALSE);
+        break;
+    case kBlend_MinAlpha:
+        SetBlendOpRGB(D3DBLENDOP_ADD, D3DBLEND_SRCALPHA, D3DBLEND_INVSRCALPHA);
+        SetBlendOpAlpha(D3DBLENDOP_MIN, D3DBLEND_ONE, D3DBLEND_ONE);
+        // Must disable alpha test here to let zero alpha pixels from source into the blender
+        direct3ddevice->SetRenderState(D3DRS_ALPHATESTENABLE, FALSE);
+        break;
+    case kBlend_MaxColor:
+        SetBlendOpRGB(D3DBLENDOP_MAX, D3DBLEND_ONE, D3DBLEND_ONE);
+        SetBlendOpAlpha(D3DBLENDOP_MAX, D3DBLEND_ONE, D3DBLEND_ONE);
+        break;
+    case kBlend_MaxAlpha:
+        SetBlendOpRGB(D3DBLENDOP_ADD, D3DBLEND_SRCALPHA, D3DBLEND_INVSRCALPHA);
+        SetBlendOpAlpha(D3DBLENDOP_MAX, D3DBLEND_ONE, D3DBLEND_ONE);
+        break;
     default: break;
     }
 
