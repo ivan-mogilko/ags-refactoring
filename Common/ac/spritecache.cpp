@@ -47,6 +47,7 @@ namespace Common
 SpriteCache::SpriteCache(std::vector<SpriteInfo>& sprInfos)
     : ResourceCache(DEFAULTCACHESIZE_KB * 1024u)
     , _sprInfos(sprInfos)
+    , _freePool(static_cast<size_t>(MIN_SPRITE_INDEX))
 {
     // Generate a placeholder sprite: 1x1 transparent bitmap
     _placeholder.reset(BitmapHelper::CreateTransparentBitmap(1, 1));
@@ -55,6 +56,7 @@ SpriteCache::SpriteCache(std::vector<SpriteInfo>& sprInfos)
 SpriteCache::SpriteCache(std::vector<SpriteInfo> &sprInfos, const Callbacks &callbacks)
     : ResourceCache(DEFAULTCACHESIZE_KB * 1024u)
     , _sprInfos(sprInfos)
+    , _freePool(static_cast<size_t>(MIN_SPRITE_INDEX))
 {
     _callbacks.AdjustSize = (callbacks.AdjustSize) ? callbacks.AdjustSize : DummyAdjustSize;
     _callbacks.InitSprite = (callbacks.InitSprite) ? callbacks.InitSprite : DummyInitSprite;
@@ -75,13 +77,10 @@ sprkey_t SpriteCache::GetTopmostSprite() const
     return _topmostSprite;
 }
 
-/* // FIXME: this method is not implemented properly, dont use until its fixed.
 bool SpriteCache::HasFreeSlots() const
 {
-    // FIXME: this is entirely wrong!! this does not account for empty slots!!
-    return !((_spriteData.size() == SIZE_MAX) || (_spriteData.size() > MAX_SPRITE_INDEX));
+    return _freePool.PeekFreeIndex() != NO_SPRITE_INDEX;
 }
-*/
 
 bool SpriteCache::IsAssetSprite(sprkey_t index) const
 {
@@ -107,6 +106,7 @@ void SpriteCache::Reset()
     ResourceCache::Clear();
     _spriteData.clear();
     _topmostSprite = -1;
+    _freePool.Clear();
 }
 
 bool SpriteCache::SetSprite(sprkey_t index, std::unique_ptr<Bitmap> image, int flags)
@@ -132,6 +132,7 @@ bool SpriteCache::SetSprite(sprkey_t index, std::unique_ptr<Bitmap> image, int f
     _sprInfos[index] = SpriteInfo(image->GetWidth(), image->GetHeight(), spf_flags);
     _spriteData[index].Flags = SPRCACHEFLAG_EXTERNAL | SPRCACHEFLAG_LOCKED; // NOT from asset file
     Put(index, std::move(image), kCacheItem_External | kCacheItem_Locked);
+    _freePool.Set(index);
     _topmostSprite = std::max(_topmostSprite, index);
     SprCacheLog("SetSprite: (external) %d", index);
     return true;
@@ -149,6 +150,7 @@ void SpriteCache::SetEmptySprite(sprkey_t index, bool as_asset)
     if (as_asset)
         _spriteData[index].Flags = SPRCACHEFLAG_ISASSET;
     RemapSpriteToPlaceholder(index);
+    _freePool.Set(index);
     _topmostSprite = std::max(_topmostSprite, index);
     SprCacheLog("SetEmptySprite: %d", index);
 }
@@ -160,6 +162,7 @@ std::unique_ptr<Bitmap> SpriteCache::RemoveSprite(sprkey_t index)
         return nullptr;
     std::unique_ptr<Bitmap> image = ResourceCache::Remove(index);
     InitNullSprite(index);
+    _freePool.Free(index);
     if (_topmostSprite == index)
         _topmostSprite = TraceTopmostSpriteBack(index);
     SprCacheLog("RemoveSprite: %d", index);
@@ -173,6 +176,7 @@ void SpriteCache::DeleteSprite(sprkey_t index)
         return;
     ResourceCache::Dispose(index);
     InitNullSprite(index);
+    _freePool.Free(index);
     if (_topmostSprite == index)
         _topmostSprite = TraceTopmostSpriteBack(index);
     SprCacheLog("RemoveAndDispose: %d", index);
@@ -186,29 +190,26 @@ sprkey_t SpriteCache::EnlargeTo(sprkey_t topmost)
     if ((size_t)topmost < _spriteData.size())
         return topmost;
 
+    size_t oldsize = _spriteData.size();
     size_t newsize = topmost + 1;
     _sprInfos.resize(newsize);
     _spriteData.resize(newsize);
+    _freePool.AllocateFreeIndexes(newsize - oldsize);
     return topmost;
 }
 
 sprkey_t SpriteCache::GetFreeIndex()
 {
-    // FIXME: inefficient if large number of sprites were created in game;
-    // use "available ids" stack, see managed pool for an example;
-    // IMPORTANT: must keep in mind that SpriteCache's interface allows
-    // to set any arbitrary sprite ID with SetSprite and SetEmptySprite!
-    for (size_t i = MIN_SPRITE_INDEX; i < _spriteData.size(); ++i)
+    sprkey_t free_idx = _freePool.PeekFreeIndex();
+    if (free_idx == NO_SPRITE_INDEX)
+        return NO_SPRITE_INDEX;
+    if (static_cast<size_t>(free_idx) < _spriteData.size())
     {
-        // slot empty
-        if (!DoesSpriteExist(i))
-        {
-            _sprInfos[i] = SpriteInfo();
-            _spriteData[i] = SpriteData();
-            return i;
-        }
+        _sprInfos[free_idx] = SpriteInfo();
+        _spriteData[free_idx] = SpriteData();
+        return free_idx;
     }
-    // enlarge the sprite bank to find a free slot and return the first new free slot
+    // enlarge the sprite bank and return the first new free slot
     return EnlargeTo(_spriteData.size());
 }
 
@@ -243,7 +244,7 @@ Size SpriteCache::GetSpriteResolution(sprkey_t index) const
     return DoesSpriteExist(index) ? _sprInfos[index].GetResolution() : Size();
 }
 
-Bitmap *SpriteCache::operator [] (sprkey_t index)
+Bitmap *SpriteCache::operator [](sprkey_t index)
 {
     // invalid sprite slot
     assert(index >= 0); // out of positive range indexes are valid to fail
@@ -489,6 +490,8 @@ HError SpriteCache::InitFile(std::unique_ptr<Stream> &&sprite_file,
     size_t newsize = metrics.size();
     _sprInfos.resize(newsize);
     _spriteData.resize(newsize);
+    std::vector<bool> is_used;
+    is_used.resize(newsize);
     for (size_t i = 0; i < metrics.size(); ++i)
     {
         if (!metrics[i].IsNull())
@@ -498,14 +501,17 @@ HError SpriteCache::InitFile(std::unique_ptr<Stream> &&sprite_file,
             Size newsz = _callbacks.AdjustSize(Size(metrics[i].Width, metrics[i].Height), _sprInfos[i].Flags);
             _sprInfos[i].Width = newsz.Width;
             _sprInfos[i].Height = newsz.Height;
+            is_used[i] = true;
         }
         else
         {
             // Mark as empty slot
             InitNullSprite(i);
+            is_used[i] = false;
         }
     }
 
+    _freePool.Set(newsize, is_used);
     _topmostSprite = TraceTopmostSpriteBack();
     return HError::None();
 }

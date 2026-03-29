@@ -43,6 +43,7 @@
 #include "ac/spritefile.h"
 #include "gfx/bitmap.h"
 #include "platform/platform.h"
+#include "util/indexedobjectpool.h"
 #include "util/resourcecache.h"
 
 // Max size of the sprite cache, in bytes
@@ -126,8 +127,7 @@ public:
     // Returns the topmost valid sprite number
     sprkey_t    GetTopmostSprite() const;
     // Tells if the sprite storage still has unoccupied slots to put new sprites in
-    // FIXME: this method is not implemented properly, dont use until its fixed.
-    // bool     HasFreeSlots() const;
+    bool        HasFreeSlots() const;
     // Tells if the given slot is reserved for the asset sprite, that is a "static"
     // sprite cached from the game assets
     bool        IsAssetSprite(sprkey_t index) const;
@@ -251,6 +251,8 @@ private:
     std::unique_ptr<Bitmap> _placeholder;
     // Topmost known occupied sprite slot
     sprkey_t _topmostSprite = -1;
+    // Free indexes pool
+    FreeIndexPool<sprkey_t, NO_SPRITE_INDEX> _freePool;
 
     Callbacks  _callbacks;
     SpriteFile _file;

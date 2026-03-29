@@ -70,6 +70,34 @@ public:
         return AcquireFreeSlot();
     }
 
+    // Allocates extra amount of free indexes at once
+    void AllocateFreeIndexes(size_t free_count)
+    {
+        const size_t old_size = _isFree.size();
+        const size_t new_size = std::min(static_cast<size_t>(std::numeric_limits<TIndex>::max()) + 1u, _isFree.size() + free_count);
+        _isFree.resize(new_size, true);
+        for (size_t idx = old_size; idx < _isFree.size(); ++idx)
+        {
+            _isFree[idx] = true;
+            _freeIds.push(idx);
+        }
+    }
+
+    // Finds any free index, without marking or allocating anything
+    TIndex PeekFreeIndex() const
+    {
+        if (_freeIds.empty())
+        {
+            if ((_isFree.size() != SIZE_MAX) && (static_cast<TIndex>(_isFree.size()) < std::numeric_limits<TIndex>::max()))
+                return static_cast<TIndex>(_isFree.size());
+            return NoIndexValue;
+        }
+        else
+        {
+            return _freeIds.top();
+        }
+    }
+
     // Requests particular index to be marked as "in use"
     void Set(const TIndex &index)
     {
@@ -223,6 +251,19 @@ protected:
     std::stack<TIndex> _freeIds;
     size_t _count = 0u;
     const size_t _fixedCount = 0u;
+};
+
+//
+// FreeIndexPool is an sealed variant of IndexedPoolBase that is meant purely
+// for storing free indexes, and not actual elements.
+//
+template <typename TIndex, TIndex NoIndexValue = 0>
+class FreeIndexPool sealed : public IndexedPoolBase<TIndex>
+{
+public:
+    FreeIndexPool() = default;
+    FreeIndexPool(size_t fixed_count)
+        : IndexedPoolBase<TIndex>(fixed_count) {}
 };
 
 //
