@@ -28,9 +28,8 @@ extern IGraphicsDriver *gfxDriver;
 
 int LoadImageFile(const char *filename)
 {
-    // FIXME: disabled HasFreeSlots check because it's not implemented right
-    //if (!spriteset.HasFreeSlots())
-    //    return 0;
+    if (!spriteset.HasFreeSlots())
+        return 0;
 
     std::unique_ptr<Stream> in(
         ResolveScriptPathAndOpen(filename, FileOpenMode::kFile_Open, StreamMode::kStream_Read));

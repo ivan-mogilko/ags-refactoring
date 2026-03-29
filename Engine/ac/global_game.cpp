@@ -240,9 +240,8 @@ int GetSaveSlotDescription(int slnum, char *desbuf) {
 
 int LoadSaveSlotScreenshot(int slnum, int width, int height) {
     
-    // FIXME: disabled HasFreeSlots check because it's not implemented right
-    //if (!spriteset.HasFreeSlots())
-    //    return 0;
+    if (!spriteset.HasFreeSlots())
+        return 0;
 
     auto screenshot = read_savedgame_screenshot(get_save_game_path(slnum));
     if (!screenshot)
