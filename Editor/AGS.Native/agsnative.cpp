@@ -186,6 +186,12 @@ Common::Bitmap *get_sprite (int spnr) {
   return spriteset[spnr];
 }
 
+int AddNewSprite(AGSBitmap *sprit, int flags) {
+    int slot = spriteset.AddSprite(std::unique_ptr<AGSBitmap>(sprit), flags);
+    spritesModified = true;
+    return slot;
+}
+
 void SetNewSprite(int slot, AGSBitmap *sprit, int flags) {
   spriteset.SetSprite(slot, std::unique_ptr<AGSBitmap>(sprit), flags);
   spritesModified = true;
@@ -233,10 +239,6 @@ int GetSpriteColorDepth(int slot) {
 
 int GetPaletteAsHPalette() {
   return (int)convert_palette_to_hpalette(palette);
-}
-
-int find_free_sprite_slot() {
-  return spriteset.GetFreeIndex();
 }
 
 void update_sprite_resolution(int spriteNum, bool isVarRes, bool isHighRes)
@@ -2755,7 +2757,18 @@ Common::Bitmap *CreateNativeBitmap(System::Drawing::Bitmap^ bmp, int spriteImpor
     return tempsprite;
 }
 
-AGS::Types::SpriteImportResolution SetNewSpriteFromBitmap(int slot, System::Drawing::Bitmap^ bmp, int spriteImportMethod,
+SpriteImportResult AddNewSpriteFromBitmap(System::Drawing::Bitmap^ bmp, int spriteImportMethod,
+    int transColour, bool remapColours, bool useRoomBackgroundColours, bool alphaChannel)
+{
+    int flags;
+    Common::Bitmap *tempsprite = CreateNativeBitmap(bmp, spriteImportMethod, transColour,
+        remapColours, useRoomBackgroundColours, alphaChannel, &flags);
+
+    int slot = AddNewSprite(tempsprite, flags);
+    return SpriteImportResult(slot, AGS::Types::SpriteImportResolution::Real);
+}
+
+SpriteImportResult SetNewSpriteFromBitmap(int slot, System::Drawing::Bitmap^ bmp, int spriteImportMethod,
     int transColour, bool remapColours, bool useRoomBackgroundColours, bool alphaChannel)
 {
     int flags;
@@ -2764,7 +2777,7 @@ AGS::Types::SpriteImportResolution SetNewSpriteFromBitmap(int slot, System::Draw
 
 	SetNewSprite(slot, tempsprite, flags);
 
-	return AGS::Types::SpriteImportResolution::Real;
+	return SpriteImportResult(slot, AGS::Types::SpriteImportResolution::Real);
 }
 
 void SetBitmapPaletteFromGlobalPalette(System::Drawing::Bitmap ^bmp)

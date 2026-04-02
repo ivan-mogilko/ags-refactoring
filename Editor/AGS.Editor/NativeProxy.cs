@@ -162,10 +162,9 @@ namespace AGS.Editor
 
         public Sprite CreateSpriteFromBitmap(Bitmap bmp, SpriteImportTransparency transparency, int transColour, bool remapColours, bool useRoomBackgroundColours, bool alphaChannel)
         {
-            int spriteSlot = _native.GetFreeSpriteSlot();
             lock (_spriteSetLock)
             {
-                return _native.SetSpriteFromBitmap(spriteSlot, bmp, (int)transparency, transColour, remapColours, useRoomBackgroundColours, alphaChannel);
+                return _native.AddSpriteFromBitmap(bmp, (int)transparency, transColour, remapColours, useRoomBackgroundColours, alphaChannel);
             }
         }
 

@@ -73,13 +73,14 @@ extern void drawSprite(HDC hdc, int x,int y, int spriteNum, bool flipImage);
 extern void drawSpriteStretch(HDC hdc, int x,int y, int width, int height, int spriteNum, bool flipImage);
 extern void drawBlockOfColour(HDC hdc, int x,int y, int width, int height, int colNum);
 extern void drawViewLoop (HDC hdc, ViewLoop^ loopToDraw, int x, int y, int size, List<int>^ cursel);
-extern AGS::Types::SpriteImportResolution SetNewSpriteFromBitmap(int slot, Bitmap^ bmp, int spriteImportMethod,
+extern SpriteImportResult AddNewSpriteFromBitmap(Bitmap^ bmp, int spriteImportMethod,
+    int transColour, bool remapColours, bool useRoomBackgroundColours, bool alphaChannel);
+extern SpriteImportResult SetNewSpriteFromBitmap(int slot, Bitmap^ bmp, int spriteImportMethod,
     int transColour, bool remapColours, bool useRoomBackgroundColours, bool alphaChannel);
 extern Bitmap^ getSpriteAsBitmap(int spriteNum);
 extern Bitmap^ getSpriteAsBitmap32bit(int spriteNum, int width, int height);
 extern Bitmap^ getBackgroundAsBitmap(Room ^room, int backgroundNumber);
 extern Bitmap^ getBackgroundAsBitmap32(Room ^room, int backgroundNumber);
-extern int find_free_sprite_slot();
 extern int crop_sprite_edges(const std::vector<int> &sprites, bool symmetric, Rect *crop_rect = nullptr);
 extern void deleteSprite(int sprslot);
 extern void GetSpriteInfo(int slot, ::SpriteInfo &info);
@@ -217,6 +218,11 @@ AGSString TextHelper::Convert(System::String^ clr_str, System::Text::Encoding^ e
 TextConverter^ TextHelper::GetGameTextConverter()
 {
     return AGS::Native::NativeMethods::GetGameTextConverter();
+}
+
+SpriteImportResult::SpriteImportResult(int slot, AGS::Types::SpriteImportResolution res)
+    : Slot(slot), Resolution(res)
+{
 }
 
 AGSString WinAPIHelper::GetErrorUTF8(uint32_t errcode)
@@ -486,11 +492,13 @@ namespace AGS
 			}
 		}
 
-        Sprite^ NativeMethods::SetSpriteFromBitmap(int spriteSlot, Bitmap^ bmp, int spriteImportMethod, int transColour, bool remapColours, bool useRoomBackgroundColours, bool alphaChannel)
+        Sprite^ NativeMethods::AddSpriteFromBitmap(Bitmap^ bmp, int spriteImportMethod, int transColour, bool remapColours, bool useRoomBackgroundColours, bool alphaChannel)
         {
-            SpriteImportResolution spriteRes = SetNewSpriteFromBitmap(spriteSlot, bmp, spriteImportMethod, transColour, remapColours, useRoomBackgroundColours, alphaChannel);
-            int colDepth = GetSpriteColorDepth(spriteSlot);
-            Sprite^ newSprite = gcnew Sprite(spriteSlot, bmp->Width, bmp->Height, colDepth, spriteRes, alphaChannel);
+            auto importRes = AddNewSpriteFromBitmap(bmp, spriteImportMethod, transColour, remapColours, useRoomBackgroundColours, alphaChannel);
+            if (importRes.Slot < 0)
+                return nullptr;
+            int colDepth = GetSpriteColorDepth(importRes.Slot);
+            Sprite^ newSprite = gcnew Sprite(importRes.Slot, bmp->Width, bmp->Height, colDepth, importRes.Resolution, alphaChannel);
             int roomNumber = GetCurrentlyLoadedRoomNumber();
             if ((colDepth == 8) && (useRoomBackgroundColours) && (roomNumber >= 0))
             {
@@ -501,8 +509,8 @@ namespace AGS
 
         void NativeMethods::ReplaceSpriteWithBitmap(Sprite ^spr, Bitmap^ bmp, int spriteImportMethod, int transColour, bool remapColours, bool useRoomBackgroundColours, bool alphaChannel)
         {
-            SpriteImportResolution spriteRes = SetNewSpriteFromBitmap(spr->Number, bmp, spriteImportMethod, transColour, remapColours, useRoomBackgroundColours, alphaChannel);
-            spr->Resolution = spriteRes;
+            auto importRes = SetNewSpriteFromBitmap(spr->Number, bmp, spriteImportMethod, transColour, remapColours, useRoomBackgroundColours, alphaChannel);
+            spr->Resolution = importRes.Resolution;
             spr->ColorDepth = GetSpriteColorDepth(spr->Number);
             spr->Width = bmp->Width;
             spr->Height = bmp->Height;
@@ -528,11 +536,6 @@ namespace AGS
 		void NativeMethods::DeleteSprite(int spriteSlot)
 		{
 			deleteSprite(spriteSlot);
-		}
-
-		int NativeMethods::GetFreeSpriteSlot()
-		{
-			return find_free_sprite_slot();
 		}
 
 		bool NativeMethods::CropSpriteEdges(System::Collections::Generic::IList<Sprite^>^ sprites, bool symmetric)

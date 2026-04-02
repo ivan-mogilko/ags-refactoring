@@ -73,6 +73,15 @@ namespace TextHelper
     AGSString Convert(System::String^ clr_str, System::Text::Encoding^ enc);
 };
 
+struct SpriteImportResult
+{
+    int Slot = -1;
+    AGS::Types::SpriteImportResolution Resolution = AGS::Types::SpriteImportResolution::Real;
+
+    SpriteImportResult() = default;
+    SpriteImportResult(int slot, AGS::Types::SpriteImportResolution res);
+};
+
 namespace WinAPIHelper
 {
     // Returns a message describing given WinAPI error code.
