@@ -13,6 +13,7 @@
 //=============================================================================
 #include <stdio.h>
 #include "ac/common.h"
+#include "ac/draw.h"
 #include "ac/event.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/gamestate.h"
@@ -48,6 +49,16 @@ bool ValidateInventoryItem(const char *api_name, int invitem)
     return true;
 }
 
+class InvItemDynamicSpriteListener : public ISpriteUser
+{
+public:
+    virtual void OnSpriteUpdate(int sprite_num)
+    {
+        // NOTE: we currently don't distinguish whether the item is displayed anywhere or not
+        AGS::Engine::GUIE::MarkInventoryForUpdate(-1, false);
+    }
+} gl_InvItemSpriteListener;
+
 void set_inv_item_pic(int invi, int piccy)
 {
     if (!ValidateInventoryItem("SetInvItemPic", invi))
@@ -64,7 +75,11 @@ void set_inv_item_pic(int invi, int piccy)
         set_inv_item_cursorpic(invi, piccy);
     }
 
+    if (game.invinfo[invi].pic > 0)
+        remove_sprite_changed_callback(game.invinfo[invi].pic, &gl_InvItemSpriteListener);
     game.invinfo[invi].pic = piccy;
+    add_sprite_changed_callback(piccy, &gl_InvItemSpriteListener);
+    
     GUIE::MarkInventoryForUpdate(-1, false);
 }
 

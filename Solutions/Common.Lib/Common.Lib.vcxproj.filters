@@ -916,5 +916,8 @@
     <ClInclude Include="..\..\Common\data\tra_file.h">
       <Filter>Header Files\data</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Common\util\delegate.h">
+      <Filter>Header Files\util</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
