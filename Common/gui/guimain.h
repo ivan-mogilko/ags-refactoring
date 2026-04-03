@@ -88,7 +88,7 @@ struct GUIRefCollection
 class Bitmap;
 
 
-class GUIMain
+class GUIMain : public ISpriteUser
 {
 public:
     // ControlRef describes a child control type and its index in an external list
@@ -159,6 +159,9 @@ public:
     void    SetScriptModule(const String &scmodule);
     const String &GetOnClickHandler() const { return _onClickHandler; }
     void    SetOnClickHandler(const String &handler);
+
+    // Notifies this object about a sprite being modified
+    void    OnSpriteUpdate(int sprite_num) override;
 
     // Tells if GUI has graphically changed recently
     bool    HasChanged() const { return _hasChanged; }

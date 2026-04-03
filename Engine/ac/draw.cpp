@@ -1144,6 +1144,17 @@ void remove_sprite_changed_callback(int sprnum, ISpriteUser *user)
     }
 }
 
+void replace_sprite_changed_callback(int old_sprnum, int new_sprnum, ISpriteUser *user)
+{
+    if (old_sprnum != new_sprnum)
+    {
+        if (old_sprnum > 0)
+            remove_sprite_changed_callback(old_sprnum, user);
+        if (new_sprnum > 0)
+            add_sprite_changed_callback(new_sprnum, user);
+    }
+}
+
 void notify_sprite_changed(int sprnum, bool deleted)
 {
     assert(sprnum >= 0 && static_cast<uint32_t>(sprnum) < game.SpriteInfos.size());

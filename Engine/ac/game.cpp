@@ -1772,36 +1772,6 @@ void game_sprite_updated(int sprnum, bool deleted)
 {
     // Notify draw system about dynamic sprite change
     notify_sprite_changed(sprnum, deleted);
-
-    // GUI still have a special draw route, so cannot rely on object caches;
-    // will have to do a per-GUI and per-control check.
-    // TODO: devise a way to speed this iteration up, perhaps link GUI objects
-    // to the sprite notification block somehow, etc...?
-    //
-    // gui backgrounds
-    for (auto &gui : guis)
-    {
-        if (gui.GetBgImage() == sprnum)
-        {
-            gui.MarkChanged();
-        }
-    }
-    // gui buttons
-    for (auto &but : guibuts)
-    {
-        if (but.GetCurrentImage() == sprnum)
-        {
-            but.MarkChanged();
-        }
-    }
-    // gui sliders
-    for (auto &slider : guislider)
-    {
-        if ((slider.GetBgImage() == sprnum) || (slider.GetHandleImage() == sprnum))
-        {
-            slider.MarkChanged();
-        }
-    }
 }
 
 void precache_view(int view, int first_loop, int last_loop, bool with_sounds)

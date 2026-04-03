@@ -26,6 +26,7 @@ namespace AGS
     namespace Common
     {
         typedef std::shared_ptr<Common::Bitmap> PBitmap;
+        class ISpriteUser;
     }
     namespace Engine { class IDriverDependantBitmap; }
 }
@@ -41,18 +42,6 @@ using namespace AGS; // FIXME later
 #define RENDER_BATCH_ROOM_LAYER      0x00000008
 #define RENDER_BATCH_ALL             0xFFFFFFFF
 #define RENDER_SHOT_SKIP_ON_FADE     (RENDER_BATCH_ENGINE_OVERLAY | RENDER_BATCH_MOUSE_CURSOR)
-
-// ISpriteUser is an interface for objects that require a notification when
-// a dynamic sprite changes, so that they could update themselves on screen.
-class ISpriteUser
-{
-public:
-    virtual void OnSpriteUpdate(int sprite_num) = 0;
-
-protected:
-    ISpriteUser() = default;
-    virtual ~ISpriteUser() = default;
-};
 
 // Converts AGS color index to the actual bitmap color using game's color depth
 int MakeColor(int color_index);
@@ -101,9 +90,11 @@ void add_drawobj_for_overlay(int objnum);
 void reset_drawobj_for_overlay(int objnum);
 
 // Add a callback to be run when a dynamic sprite is changed
-uint32_t add_sprite_changed_callback(int sprnum, ISpriteUser *user);
+uint32_t add_sprite_changed_callback(int sprnum, AGS::Common::ISpriteUser *user);
 // Remove a previously registered sprite changed callback
-void remove_sprite_changed_callback(int sprnum, ISpriteUser *user);
+void remove_sprite_changed_callback(int sprnum, AGS::Common::ISpriteUser *user);
+// Replace one sprite callback with another for the given ISpriteUser object
+void replace_sprite_changed_callback(int old_sprnum, int new_sprnum, AGS::Common::ISpriteUser *user);
 // Marks all game objects which reference this sprite for redraw
 void notify_sprite_changed(int sprnum, bool deleted);
 

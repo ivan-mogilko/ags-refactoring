@@ -15,6 +15,7 @@
 #include <stdio.h>
 #include "ac/button.h"
 #include "ac/common.h"
+#include "ac/draw.h"
 #include "ac/gui.h"
 #include "ac/view.h"
 #include "ac/gamesetupstruct.h"
@@ -238,7 +239,12 @@ void Button_SetMouseOverGraphic(GUIButton *butt, int slotn)
     slotn = std::max(0, slotn);
     if (butt->GetMouseOverImage() != slotn)
         debug_script_log("GUI %d Button %d mouseover set to slot %d", butt->GetParentID(), butt->GetID(), slotn);
+
+    const int old_slotn = butt->GetMouseOverImage();
     butt->SetMouseOverImage(slotn);
+    // NOTE: GUIs currently cannot react to a dynamic sprite change without a direct notification
+    replace_sprite_changed_callback(old_slotn, slotn, butt);
+
     FindAndRemoveButtonAnimation(butt->GetParentID(), butt->GetID());
 }
 
@@ -251,6 +257,8 @@ void Button_SetNormalGraphic(GUIButton *butt, int slotn)
     slotn = std::max(0, slotn);
     if (butt->GetNormalImage() != slotn)
         debug_script_log("GUI %d Button %d normal set to slot %d", butt->GetParentID(), butt->GetID(), slotn);
+
+    const int old_slotn = butt->GetNormalImage();
     // NormalGraphic = 0 will turn the Button into a standard colored button
     if (slotn == 0)
     {
@@ -265,6 +273,9 @@ void Button_SetNormalGraphic(GUIButton *butt, int slotn)
         butt->SetSize(width, height);
     }
 
+    // NOTE: GUIs currently cannot react to a dynamic sprite change without a direct notification
+    replace_sprite_changed_callback(old_slotn, slotn, butt);
+
     FindAndRemoveButtonAnimation(butt->GetParentID(), butt->GetID());
 }
 
@@ -277,7 +288,12 @@ void Button_SetPushedGraphic(GUIButton *butt, int slotn)
     slotn = std::max(0, slotn);
     if (butt->GetPushedImage() != slotn)
         debug_script_log("GUI %d Button %d pushed set to slot %d", butt->GetParentID(), butt->GetID(), slotn);
+
+    const int old_slotn = butt->GetPushedImage();
     butt->SetPushedImage(slotn);
+    // NOTE: GUIs currently cannot react to a dynamic sprite change without a direct notification
+    replace_sprite_changed_callback(old_slotn, slotn, butt);
+
     FindAndRemoveButtonAnimation(butt->GetParentID(), butt->GetID());
 }
 

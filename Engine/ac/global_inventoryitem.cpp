@@ -67,18 +67,18 @@ void set_inv_item_pic(int invi, int piccy)
     if (game.invinfo[invi].pic == piccy)
         return;
 
+    const int old_pic = game.invinfo[invi].pic;
+    game.invinfo[invi].pic = piccy;
+    // NOTE: GUIs currently cannot react to a dynamic sprite change without a direct notification
+    replace_sprite_changed_callback(old_pic, piccy, &gl_InvItemSpriteListener);
+
     if ((loaded_game_file_version < kGameVersion_362) &&
-        game.invinfo[invi].pic == game.invinfo[invi].cursorPic)
+        (old_pic == game.invinfo[invi].cursorPic))
     {
         // Backwards compatibility -- there didn't used to be a cursorPic,
         // so if they're the same update both.
         set_inv_item_cursorpic(invi, piccy);
     }
-
-    if (game.invinfo[invi].pic > 0)
-        remove_sprite_changed_callback(game.invinfo[invi].pic, &gl_InvItemSpriteListener);
-    game.invinfo[invi].pic = piccy;
-    add_sprite_changed_callback(piccy, &gl_InvItemSpriteListener);
     
     GUIE::MarkInventoryForUpdate(-1, false);
 }

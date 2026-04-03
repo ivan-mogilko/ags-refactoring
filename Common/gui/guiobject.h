@@ -28,6 +28,21 @@ namespace AGS
 namespace Common
 {
 
+// ISpriteUser is an interface for objects that require a notification when
+// a dynamic sprite changes, so that they could update themselves on screen.
+// TODO: normally this should be a runtime interface, not in Common lib,
+// but the GUI classes are currently all in Common. Revise this when there's
+// a clear separation between data structs and runtime classes.
+class ISpriteUser
+{
+public:
+    virtual void OnSpriteUpdate(int sprite_num) = 0;
+
+protected:
+    ISpriteUser() = default;
+    virtual ~ISpriteUser() = default;
+};
+
 enum LegacyGUIAlignment
 {
     kLegacyGUIAlign_Left   = 0,
@@ -35,7 +50,7 @@ enum LegacyGUIAlignment
     kLegacyGUIAlign_Center = 2
 };
 
-class GUIObject
+class GUIObject : public ISpriteUser
 {
 public:
     GUIObject();
@@ -147,6 +162,9 @@ public:
 
     // Upgrades the GUI control to default looks for 3.6.3
     virtual void    SetDefaultLooksFor363() { /* do nothing */ }
+
+    // Notifies this object about a sprite being modified
+    void            OnSpriteUpdate(int sprite_num) override { /* do nothing */ }
 
     // Manually marks GUIObject as graphically changed
     // NOTE: this only matters if control's own graphic changes, but not its
