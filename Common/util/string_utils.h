@@ -37,6 +37,16 @@ namespace StrUtil
         kOutOfRange // the resulting value is out of range
     };
 
+    // Compares two strings lexographically, by the meaning of their characters
+    // rather than their code values. For example, 'À' follows 'A' and 'Č'
+    // follows 'C', as opposed to common char code-based comparison, where 'À'
+    // is positioned after 'Z'.
+    int             LexographicalCompare(const String &s1, const String &s2);
+    // Compares two strings lexographically and case-insensitively.
+    // For example, 'À' follows 'A' and 'Č' follows 'C', as opposed to common
+    // char code-based comparison, where 'À' is positioned after 'Z'.
+    int             LexographicalCompareNoCase(const String &s1, const String &s2);
+
     // Convert integer to string, by printing its value
     String          IntToString(int val);
     // Tries to convert whole string into integer value;

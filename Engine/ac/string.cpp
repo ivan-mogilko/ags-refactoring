@@ -131,13 +131,29 @@ const char* String_Substring(const char *thisString, int index, int length) {
     return CreateNewScriptString(std::move(buf));
 }
 
-int String_CompareTo(const char *thisString, const char *otherString, bool caseSensitive) {
-
-    if (caseSensitive) {
-        return strcmp(thisString, otherString);
+int String_CompareTo(const char *thisString, const char *otherString, bool caseSensitive)
+{
+    if (get_uformat() == U_UTF8)
+    {
+        if (caseSensitive)
+        {
+            return StrUtil::LexographicalCompare(thisString, otherString);
+        }
+        else
+        {
+            return StrUtil::LexographicalCompareNoCase(thisString, otherString);
+        }
     }
-    else {
-        return ustricmp(thisString, otherString);
+    else
+    {
+        if (caseSensitive)
+        {
+            return strcmp(thisString, otherString);
+        }
+        else
+        {
+            return ags_stricmp(thisString, otherString);
+        }
     }
 }
 

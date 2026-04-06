@@ -28,6 +28,22 @@ namespace AGS
 namespace Common
 {
 
+int StrUtil::LexographicalCompare(const String &s1, const String &s2)
+{
+    const auto loc = std::locale("en_US.utf8");
+    const auto &fac_c = std::use_facet<std::collate<char>>(loc);
+    return fac_c.compare(s1.GetCStr(), s1.GetCStr() + s1.GetLength(), s2.GetCStr(), s2.GetCStr() + s2.GetLength());
+}
+
+int StrUtil::LexographicalCompareNoCase(const String &s1, const String &s2)
+{
+    String s1lower = s1.LowerUTF8();
+    String s2lower = s2.LowerUTF8();
+    const auto loc = std::locale("en_US.utf8");
+    const auto &fac_c = std::use_facet<std::collate<char>>(loc);
+    return fac_c.compare(s1lower.GetCStr(), s1lower.GetCStr() + s1lower.GetLength(), s2lower.GetCStr(), s2lower.GetCStr() + s2lower.GetLength());
+}
+
 String StrUtil::IntToString(int d)
 {
     return String::FromFormat("%d", d);

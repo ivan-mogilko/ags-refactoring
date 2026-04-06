@@ -144,6 +144,8 @@ private:
 
 typedef ScriptSetImpl< std::set<String>, true, true > ScriptSet;
 typedef ScriptSetImpl< std::set<String, StrLessNoCase>, true, false > ScriptSetCI;
+typedef ScriptSetImpl< std::set<String, LexographicalStrLess>, true, true > ScriptSetUnicode;
+typedef ScriptSetImpl< std::set<String, LexographicalStrLessNoCase>, true, false > ScriptSetUnicodeCI;
 typedef ScriptSetImpl< std::unordered_set<String>, false, true > ScriptHashSet;
 typedef ScriptSetImpl< std::unordered_set<String, HashStrNoCase, StrEqNoCase>, false, false > ScriptHashSetCI;
 
