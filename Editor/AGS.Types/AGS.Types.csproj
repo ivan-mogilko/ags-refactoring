@@ -253,6 +253,7 @@
     <Compile Include="ScriptsAndHeaders.cs" />
     <Compile Include="Translation.cs" />
     <Compile Include="TranslationEntryOptions.cs" />
+    <Compile Include="TranslationSource.cs" />
     <Compile Include="TypesHelper.cs" />
     <Compile Include="UnloadedRoom.cs" />
     <Compile Include="TextParser.cs" />

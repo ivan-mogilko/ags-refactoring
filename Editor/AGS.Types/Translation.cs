@@ -12,44 +12,24 @@ namespace AGS.Types
         public const string TRANSLATION_SOURCE_FILE_EXTENSION = ".trs";
         public const string TRANSLATION_COMPILED_FILE_EXTENSION = ".tra";
 
-        private const string NORMAL_FONT_TAG = "NormalFont";
-        private const string SPEECH_FONT_TAG = "SpeechFont";
-        private const string TEXT_DIRECTION_TAG = "TextDirection";
-        private const string AUTO_PARSERSAID_TAG = "AutoTranslateParserSaid";
-        private const string ENCODING_TAG = "Encoding";
-        private const string LANGUAGE_TAG = "Language";
-        private const string FONT_OVERRIDE_TAG = "Font";
-        private const string TAG_DEFAULT = "DEFAULT";
-        private const string TAG_DIRECTION_LEFT = "LEFT";
-        private const string TAG_DIRECTION_RIGHT = "RIGHT";
-        private const string TAG_ON = "ON";
-        private const string TAG_OFF = "OFF";
-        private const string ANNOTATE_OBSOLETE = "OBSOLETE";
-        private const string ANNOTATE_PARSERWORD = "PARSERWORD";
-
         private string _name;
         private string _fileName;
         private bool _modified;
-        private int? _normalFont;
-        private int? _speechFont;
-        private bool? _rightToLeftText;
+        private int? _normalFont = null;
+        private int? _speechFont = null;
+        private bool? _rightToLeftText = null;
         private bool _autoTranslateParserSaid = false;
         private string _encodingHint;
         private Encoding _encoding;
-        private string _language;
+        private string _language = string.Empty;
         private Dictionary<int, Font> _fontOverrides = new Dictionary<int, Font>();
         private Dictionary<string, string> _translatedLines;
         private Dictionary<string, TranslationEntryOptions> _entryOptions;
 
         public Translation(string name)
         {
-            this.Name = name;
-            _modified = false;
-            _normalFont = null;
-            _speechFont = null;
-            _rightToLeftText = null;
+            Name = name;
             EncodingHint = "UTF-8";
-            _language = "en_US";
         }
 
         public string Name
@@ -83,21 +63,35 @@ namespace AGS.Types
         public int? NormalFont
         {
             get { return _normalFont; }
+            set { _normalFont = value; }
         }
 
         public int? SpeechFont
         {
             get { return _speechFont; }
+            set { _speechFont = value; }
         }
 
         public bool? RightToLeftText
         {
             get { return _rightToLeftText; }
+            set { _rightToLeftText = value; }
         }
 
         public bool AutoTranslateParserSaid
         {
             get { return _autoTranslateParserSaid; }
+            set { _autoTranslateParserSaid = value; }
+        }
+
+        public Encoding Encoding
+        {
+            get { return _encoding; }
+            set
+            {
+                _encoding = value;
+                _encodingHint = _encoding.WebName;
+            }
         }
 
         public string EncodingHint
@@ -113,11 +107,6 @@ namespace AGS.Types
                         _encoding = new UTF8Encoding(false); // UTF-8 w/o BOM
                 }
             }
-        }
-
-        public Encoding Encoding
-        {
-            get { return _encoding; }
         }
 
         public string TextLanguage
@@ -165,6 +154,19 @@ namespace AGS.Types
             }
         }
 
+        public void ResetContents()
+        {
+            _modified = true;
+            _normalFont = null;
+            _speechFont = null;
+            _rightToLeftText = null;
+            _autoTranslateParserSaid = false;
+            _language = string.Empty;
+            _fontOverrides.Clear();
+            _translatedLines.Clear();
+            _entryOptions.Clear();
+        }
+
         public void ToXml(XmlTextWriter writer)
         {
             writer.WriteStartElement("Translation");
@@ -174,50 +176,7 @@ namespace AGS.Types
 
         public void SaveData()
         {
-            using (StreamWriter sw = new StreamWriter(FileName, false, _encoding))
-            {
-                sw.WriteLine("// AGS TRANSLATION SOURCE FILE");
-                sw.WriteLine("// Format is alternating lines with original game text and replacement");
-                sw.WriteLine("// text. If you don't want to translate a line, just leave the following");
-                sw.WriteLine("// line blank. Lines starting with '//' are comments - DO NOT translate");
-                sw.WriteLine("// them. Special characters such as [ and %%s symbolise things within the");
-                sw.WriteLine("// game, so should be left in an appropriate place in the message.");
-                sw.WriteLine("// ");
-                sw.WriteLine("// ** Translation settings are below");
-                sw.WriteLine("// ** Leave them as \"DEFAULT\" to use the game settings");
-                sw.WriteLine("// The normal font to use - DEFAULT or font number");
-                sw.WriteLine("//#NormalFont=" + WriteOptionalInt(_normalFont));
-                sw.WriteLine("// The speech font to use - DEFAULT or font number");
-                sw.WriteLine("//#SpeechFont=" + WriteOptionalInt(_speechFont));
-                sw.WriteLine("// Text direction - DEFAULT, LEFT or RIGHT");
-                sw.WriteLine("//#TextDirection=" + ((_rightToLeftText == true) ? TAG_DIRECTION_RIGHT : ((_rightToLeftText == null) ? TAG_DEFAULT : TAG_DIRECTION_LEFT)));
-                sw.WriteLine("// Text encoding hint - ASCII or UTF-8");
-                sw.WriteLine("//#Encoding=" + (_encodingHint ?? "ASCII"));
-                sw.WriteLine("// Text language, use standard locale strings, like 'en', 'en_US', etc");
-                sw.WriteLine($"//#Language={( _language != null ? _language.Replace('-', '_') : string.Empty )}");
-                sw.WriteLine("// Whether engine should translate Parser.Said strings automatically - ON or OFF");
-                sw.WriteLine($"//#AutoTranslateParserSaid={(_autoTranslateParserSaid ? TAG_ON : TAG_OFF)}");
-                if (_fontOverrides.Count != 0)
-                {
-                    WriteFontOverrides(sw);
-                }
-                sw.WriteLine("//  ");
-                sw.WriteLine("// ** REMEMBER, WRITE YOUR TRANSLATION IN THE EMPTY LINES, DO");
-                sw.WriteLine("// ** NOT CHANGE THE EXISTING TEXT.");
-
-                TranslationEntryOptions entryOptions = null;
-                foreach (string key in _translatedLines.Keys)
-                {
-                    if (_entryOptions.TryGetValue(key, out entryOptions))
-                    {
-                        foreach (var a in entryOptions.Metadata)
-                            sw.WriteLine($"//${a}");
-                    }
-
-                    sw.WriteLine(key);
-                    sw.WriteLine(_translatedLines[key]);
-                }
-            }
+            TranslationSource.SaveTranslation(FileName, this);
             this.Modified = false;
         }
 
@@ -245,15 +204,12 @@ namespace AGS.Types
             catch (Exception e)
             {
                 errors.Add(new CompileError(string.Format("Failed to load translation from {0}: \n{1}", FileName, e.Message)));
-                _translatedLines.Clear(); // clear on failure
+                ResetContents();
             }
             return errors;
         }
 
-        // TODO: frankly I am not convinced that the TRS file reading/writing should be
-        // in this Translation class. It might be more convenient to have them elsewhere,
-        // in a translation file parser/serializer.
-        private void LoadDataImpl(CompileMessages errors)
+        private bool LoadDataImpl(CompileMessages errors)
         {
             _fontOverrides = new Dictionary<int, Font>();
             _translatedLines = new Dictionary<string, string>();
@@ -261,342 +217,11 @@ namespace AGS.Types
             List<string> annotateNextLine = new List<string>();
             string old_encoding = _encodingHint;
 
-            using (StreamReader sr = new StreamReader(FileName, _encoding))
-            {
-                string line;
-                while ((line = sr.ReadLine()) != null)
-                {
-                    if (line.StartsWith("//"))
-                    {
-                        if (line.Length > 2 && line[2] == '#')
-                        {
-                            ReadSpecialTags(line.Substring(3));
-                            if (string.Compare(old_encoding, _encodingHint) != 0)
-                            {
-                                sr.Close();
-                                LoadDataImpl(errors); // try again with the new encoding
-                                return;
-                            }
-                        }
-                        else if (line.Length > 2 && line[2] == '$')
-                        {
-                            annotateNextLine.Add(line.Substring(3));
-                        }
-                        continue;
-                    }
-
-                    string originalText = line;
-                    string translatedText = sr.ReadLine();
-                    if (translatedText == null)
-                    {
-                        break;
-                    }
-					// Silently ignore any duplicates, as we can't report warnings here
-					if (!_translatedLines.ContainsKey(originalText))
-					{
-						_translatedLines.Add(originalText, translatedText);
-                        if (annotateNextLine.Count > 0)
-                        {
-                            _entryOptions[originalText] = CreateEntryOptions(annotateNextLine);
-                            annotateNextLine.Clear();
-                        }
-					}
-                }
-            }
-        }
-
-        private void ReadSpecialTags(string line)
-        {
-            var keyValue = ParseKeyValue(line);
-            var key = keyValue.Item1;
-            var value = keyValue.Item2;
-
-            if (key == NORMAL_FONT_TAG)
-            {
-                _normalFont = ReadOptionalInt(value);
-            }
-            else if (key == SPEECH_FONT_TAG)
-            {
-                _speechFont = ReadOptionalInt(value);
-            }
-            else if (key == TEXT_DIRECTION_TAG)
-            {
-                string directionText = value;
-                if (directionText == TAG_DIRECTION_LEFT)
-                {
-                    _rightToLeftText = false;
-                }
-                else if (directionText == TAG_DIRECTION_RIGHT)
-                {
-                    _rightToLeftText = true;
-                }
-                else
-                {
-                    _rightToLeftText = null;
-                }
-            }
-            else if (key == AUTO_PARSERSAID_TAG)
-            {
-                if (value == TAG_ON)
-                    _autoTranslateParserSaid = true;
-                else
-                    _autoTranslateParserSaid = false;
-            }
-            else if (key == ENCODING_TAG)
-            {
-                EncodingHint = value;
-            }
-            else if (key == LANGUAGE_TAG)
-            {
-                TextLanguage = value;
-            }
-            else if (key.StartsWith(FONT_OVERRIDE_TAG))
-            {
-                int fontIndex = ParseFontN(key);
-                if (fontIndex >= 0)
-                {
-                    if (!FontOverrides.ContainsKey(fontIndex))
-                    {
-                        FontOverrides.Add(fontIndex, ParseFontOverride(value));
-                    }
-                }
-            }
-        }
-
-        private int? ReadOptionalInt(string textToParse)
-        {
-            int value;
-            if (textToParse == TAG_DEFAULT || !int.TryParse(textToParse, out value))
-            {
-                return null;
-            }
-            return value;
-        }
-
-        private string WriteOptionalInt(int? currentValue)
-        {
-            if (currentValue == null)
-            {
-                return TAG_DEFAULT;
-            }
-            return currentValue.Value.ToString();
-        }
-
-        /// <summary>
-        /// Writes font overrides into the translation source file.
-        /// </summary>
-        private void WriteFontOverrides(StreamWriter sw)
-        {
-            foreach (var fontOverride in _fontOverrides)
-            {
-                StringBuilder sb = new StringBuilder();
-                int fontIndex = fontOverride.Key;
-                Font font = fontOverride.Value;
-                sb.Append($"//#Font{fontIndex}=");
-                if (font.ID >= 0)
-                {
-                    sb.Append($"Font{font.ID}");
-                }
-                else
-                {
-                    // Only write non-default values. Unfortunately there's no way to know
-                    // which values user set in the original source file.
-                    sb.Append($"File={font.ProjectFilename};");
-                    if (font.PointSize > 0)
-                        sb.Append($"Size={font.PointSize.ToString()};");
-                    if (font.SizeMultiplier > 1)
-                        sb.Append($"SizeMultiplier={font.SizeMultiplier.ToString()};");
-
-                    if (font.OutlineStyle == FontOutlineStyle.Automatic)
-                        sb.Append($"Outline=AUTO;");
-                    else if(font.OutlineStyle == FontOutlineStyle.UseOutlineFont)
-                        sb.Append($"Outline=Font{font.OutlineFont};");
-
-                    if (font.OutlineStyle == FontOutlineStyle.Automatic)
-                    {
-                        if (font.AutoOutlineStyle == FontAutoOutlineStyle.Rounded)
-                            sb.Append($"AutoOutline=ROUND;");
-
-                        sb.Append($"AutoOutlineThickness={font.AutoOutlineThickness};");
-                    }
-
-                    if (font.HeightDefinedBy == FontHeightDefinition.PixelHeight)
-                        sb.Append($"HeightDefinition=REAL;");
-                    else if (font.HeightDefinedBy == FontHeightDefinition.CustomValue)
-                        sb.Append($"HeightDefinition=CUSTOM;");
-
-                    if (font.HeightDefinedBy == FontHeightDefinition.CustomValue)
-                    {
-                        sb.Append($"CustomHeight={font.CustomHeightValue};");
-                    }
-
-                    if (font.VerticalOffset != 0)
-                        sb.Append($"VerticalOffset={font.VerticalOffset};");
-                    if (font.LineSpacing != 0)
-                        sb.Append($"LineSpacing={font.LineSpacing};");
-                    if (font.CharacterSpacing != 0)
-                        sb.Append($"CharacterSpacing={font.CharacterSpacing};");
-                }
-                sw.WriteLine(sb.ToString());
-            }
-        }
-
-        // TODO: move to some utility module?
-        private Tuple<string, string> ParseKeyValue(string line, char separator = '=')
-        {
-            int firstSep = line.IndexOf(separator);
-            if (firstSep >= 0)
-            {
-                return new Tuple<string, string>(
-                    line.Substring(0, firstSep).Trim(),
-                    line.Substring(firstSep + 1).Trim());
-            }
-            else
-            {
-                return new Tuple<string, string>(line.Trim(), string.Empty);
-            }
-        }
-
-        /// <summary>
-        /// Parses "FontN" kind of string, where N is a font's ID.
-        /// </summary>
-        private int ParseFontN(string value)
-        {
-            int fontID;
-            if (value.StartsWith("Font") && int.TryParse(value.Substring(4), out fontID))
-                return fontID;
-            return -1;
-        }
-
-        private Font ParseFontOverride(string value)
-        {
-            // Format 1:
-            //    FontN
-            // Format 2:
-            //    Property1=Value1;Property2=Value2;Property3=Value3;...
-            int reFontNumber = ParseFontN(value);
-            if (reFontNumber >= 0)
-            {
-                var font = new Font();
-                font.ID = reFontNumber;
-                return font;
-            }
-            else
-            {
-                var font = new Font();
-                font.ID = -1; // mark it as not one of the game's font
-                var options = value.Split(';').Select(s =>
-                    {
-                        return ParseKeyValue(s);
-                    }).ToArray();
-                foreach (var option in options)
-                {
-                    if (option.Item1 == "File")
-                    {
-                        font.ProjectFilename = option.Item2;
-                    }
-                    else if (option.Item1 == "Size")
-                    {
-                        font.PointSize = option.Item2.ParseIntOrDefault();
-                    }
-                    else if (option.Item1 == "SizeMultiplier")
-                    {
-                        font.SizeMultiplier = option.Item2.ParseIntOrDefault();
-                    }
-                    else if (option.Item1 == "Outline")
-                    {
-                        if (option.Item2 == "NONE")
-                        {
-                            font.OutlineStyle = FontOutlineStyle.None;
-                        }
-                        else if (option.Item2 == "AUTO")
-                        {
-                            font.OutlineStyle = FontOutlineStyle.Automatic;
-                        }
-                        else
-                        {
-                            int outFontID = ParseFontN(option.Item2);
-                            if (outFontID >= 0)
-                            {
-                                font.OutlineStyle = FontOutlineStyle.UseOutlineFont;
-                                font.OutlineFont = outFontID;
-                            }
-                        }
-                    }
-                    else if (option.Item1 == "AutoOutline")
-                    {
-                        if (option.Item2 == "SQUARED")
-                        {
-                            font.AutoOutlineStyle = FontAutoOutlineStyle.Squared;
-                        }
-                        else if (option.Item2 == "ROUND")
-                        {
-                            font.AutoOutlineStyle = FontAutoOutlineStyle.Rounded;
-                        }
-                    }
-                    else if (option.Item1 == "AutoOutlineThickness")
-                    {
-                        font.AutoOutlineThickness = option.Item2.ParseIntOrDefault();
-                    }
-                    else if (option.Item1 == "HeightDefinition")
-                    {
-                        if (option.Item2 == "NOMINAL")
-                        {
-                            font.HeightDefinedBy = FontHeightDefinition.NominalHeight;
-                        }
-                        else if (option.Item2 == "REAL")
-                        {
-                            font.HeightDefinedBy = FontHeightDefinition.PixelHeight;
-                        }
-                        else if (option.Item2 == "CUSTOM")
-                        {
-                            font.HeightDefinedBy = FontHeightDefinition.CustomValue;
-                        }
-                    }
-                    else if (option.Item1 == "CustomHeight")
-                    {
-                        font.CustomHeightValue = option.Item2.ParseIntOrDefault();
-                    }
-                    else if (option.Item1 == "VerticalOffset")
-                    {
-                        font.VerticalOffset = option.Item2.ParseIntOrDefault();
-                    }
-                    else if (option.Item1 == "LineSpacing")
-                    {
-                        font.LineSpacing = option.Item2.ParseIntOrDefault();
-                    }
-                    else if (option.Item1 == "CharacterSpacing")
-                    {
-                        font.CharacterSpacing = option.Item2.ParseIntOrDefault();
-                    }
-                }
-                return font;
-            }
-        }
-
-        private TranslationEntryOptions CreateEntryOptions(List<string> annotations)
-        {
-            TranslationEntryOptions options = new TranslationEntryOptions();
-            options.Metadata = new List<string>(annotations);
-
-            // Parse for known annotations
-            foreach (var annotation in annotations)
-            {
-                var keyValue = ParseKeyValue(annotation);
-                var key = keyValue.Item1;
-                var value = keyValue.Item2;
-
-                if (key == ANNOTATE_OBSOLETE)
-                {
-                    options.IsObsolete = true;
-                }
-                else if (key == ANNOTATE_PARSERWORD)
-                {
-                    options.ParserWordID = Utilities.ParseIntOrDefault(value, -1);
-                }
-            }
-
-            return options;
+            TranslationSource traSource = new TranslationSource();
+            if (!traSource.Load(FileName, errors))
+                return false;
+            traSource.ApplyIntoTranslation(this);
+            return true;
         }
     }
 }
