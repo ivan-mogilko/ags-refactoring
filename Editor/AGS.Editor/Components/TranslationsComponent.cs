@@ -331,52 +331,10 @@ namespace AGS.Editor.Components
                 parserWordLists = fixedWordLists;
             }
 
-            HashSet<string> keyedTexts = new HashSet<string>(generator.LinesForTranslation);
-            if (parserWordLists != null)
-            {
-                foreach (var list in parserWordLists)
-                    keyedTexts.Add(list.Value);
-            }
-
-            // Merge game texts in
+            // Add game texts
             foreach (Translation translation in translations)
             {
-                // Remove or mark as obsolete those texts that are not found in game
-                List<string> removeLines = new List<string>();
-                foreach (var entry in translation.TranslatedLines)
-                {
-                    if (!keyedTexts.Contains(entry.Key))
-                    {
-                        if (string.IsNullOrEmpty(entry.Value))
-                        {
-                            removeLines.Add(entry.Key);
-                            translation.Modified = true;
-                        }
-                        else
-                        {
-                            TranslationEntryOptions entryOptions = null;
-                            if (translation.TranslatedEntryOptions.ContainsKey(entry.Key))
-                                entryOptions = translation.TranslatedEntryOptions[entry.Key];
-                            else
-                                entryOptions = new TranslationEntryOptions();
-                            if (!entryOptions.IsObsolete)
-                            {
-                                entryOptions.IsObsolete = true;
-                                entryOptions.Metadata.Add("OBSOLETE");
-                                translation.TranslatedEntryOptions[entry.Key] = entryOptions;
-                                translation.Modified = true;
-                            }
-                        }
-                    }
-                }
-
-                // Remove obsolete translation lines
-                foreach (var remKey in removeLines)
-                {
-                    translation.TranslatedLines.Remove(remKey);
-                }
-
-                // Add current game texts
+                translation.ResetContents();
                 foreach (string line in generator.LinesForTranslation)
                 {
                     if (!translation.TranslatedLines.ContainsKey(line))

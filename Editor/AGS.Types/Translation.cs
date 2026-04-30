@@ -176,7 +176,18 @@ namespace AGS.Types
 
         public void SaveData()
         {
-            TranslationSource.SaveTranslation(FileName, this);
+            TranslationSource traSource = new TranslationSource();
+            CompileMessages errors = new CompileMessages();
+            if (traSource.Load(FileName, errors))
+            {
+                traSource.MergeFromTranslation(this);
+                traSource.Save(FileName);
+            }
+            else
+            {
+                TranslationSource.SaveTranslation(FileName, this);
+            }
+
             this.Modified = false;
         }
 

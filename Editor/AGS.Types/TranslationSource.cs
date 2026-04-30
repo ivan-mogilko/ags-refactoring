@@ -67,11 +67,17 @@ namespace AGS.Types
     public class TranslationSource
     {
         private const string NORMAL_FONT_TAG = "NormalFont";
+        private const string NORMAL_FONT_COMMENT = "The normal font to use - DEFAULT or font number";
         private const string SPEECH_FONT_TAG = "SpeechFont";
+        private const string SPEECH_FONT_COMMENT = "The speech font to use - DEFAULT or font number";
         private const string TEXT_DIRECTION_TAG = "TextDirection";
+        private const string TEXT_DIRECTION_COMMENT = "Text direction - DEFAULT, LEFT or RIGHT";
         private const string AUTO_PARSERSAID_TAG = "AutoTranslateParserSaid";
+        private const string AUTO_PARSERSAID_COMMENT = "Whether engine should translate Parser.Said strings automatically - ON or OFF";
         private const string ENCODING_TAG = "Encoding";
+        private const string ENCODING_COMMENT = "Text encoding hint - ASCII or UTF-8";
         private const string LANGUAGE_TAG = "Language";
+        private const string LANGUAGE_COMMENT = "Text language, use standard locale strings, like 'en', 'en_US', etc";
         private const string FONT_OVERRIDE_TAG = "Font";
         private const string TAG_DEFAULT = "DEFAULT";
         private const string TAG_DIRECTION_LEFT = "LEFT";
@@ -88,6 +94,7 @@ namespace AGS.Types
         private List<TranslationSourceEntry> _entryDuplicates = new List<TranslationSourceEntry>();
         private Dictionary<string, TranslationSourceOption> _options = new Dictionary<string, TranslationSourceOption>();
         private List<TranslationSourceOption> _optionDuplicates = new List<TranslationSourceOption>();
+        private TranslationSourceNode _lastOptionBeforeFirstTranslationEntry = null;
         private List<TranslationSourceNode> _commentLines = new List<TranslationSourceNode>();
 
         public Encoding Encoding
@@ -160,6 +167,7 @@ namespace AGS.Types
             }
             if (!result && (_encodingHint != tryEncoding))
             {
+                ResetContents();
                 // Try again using encoding hint read from the translation file itself
                 using (var sr = new StreamReader(filename, _encoding))
                 {
@@ -252,7 +260,54 @@ namespace AGS.Types
         /// </summary>
         public void MergeFromTranslation(Translation translation)
         {
-            // TODO
+            EncodingHint = translation.EncodingHint;
+            // Merge options:
+            // * New options appended to the list.
+            // * Matching options have their values overwritten.
+            WriteOption(NORMAL_FONT_TAG, WriteOptionalInt(translation.NormalFont), NORMAL_FONT_COMMENT);
+            WriteOption(SPEECH_FONT_TAG, WriteOptionalInt(translation.SpeechFont), SPEECH_FONT_COMMENT);
+            WriteOption(TEXT_DIRECTION_TAG, ((translation.RightToLeftText == true) ? TAG_DIRECTION_RIGHT : ((translation.RightToLeftText == null) ? TAG_DEFAULT : TAG_DIRECTION_LEFT)),
+                TEXT_DIRECTION_COMMENT);
+            WriteOption(ENCODING_TAG, (_encodingHint ?? "ASCII"), ENCODING_COMMENT);
+            WriteOption(LANGUAGE_TAG, (translation.TextLanguage != null ? translation.TextLanguage.Replace('-', '_') : string.Empty),
+                LANGUAGE_COMMENT);
+            WriteOption(AUTO_PARSERSAID_TAG, (translation.AutoTranslateParserSaid ? TAG_ON : TAG_OFF), AUTO_PARSERSAID_COMMENT);
+
+            // Process obsolete entries:
+            // * Remove ones without translation
+            // * Comment ones with translation (preserve user's work just in case)
+            List<string> removeKeys = new List<string>();
+            foreach (var oldEntry in _entries)
+            {
+                if (!translation.TranslatedLines.ContainsKey(oldEntry.Key))
+                {
+                    if (WriteObsoleteEntry(oldEntry.Value))
+                        removeKeys.Add(oldEntry.Key);
+                }
+            }
+            foreach (var removeKey in removeKeys)
+                _entries.Remove(removeKey);
+
+            // Merge translation entries
+            // * New entries appended to the end of the document
+            // * Matching entries have their translation overwritten, but only if it's not empty
+            // * Entries that are present in TranslationSource, but are not matched in the
+            //   Translation, on contrary, are either removed if translation is empty,
+            //   or commented out if it's not empty.
+            foreach (var entry in translation.TranslatedLines)
+            {
+                if (translation.TranslatedEntryOptions.ContainsKey(entry.Key))
+                    WriteTranslationEntry(entry.Key, entry.Value, translation.TranslatedEntryOptions[entry.Key]);
+                else
+                    WriteTranslationEntry(entry.Key, entry.Value, null);
+            }
+
+            // TODO: also handle entry duplicates read from the file
+
+            // After everything is merged, reenumerate Line indexes
+            int lineIndex = 0;
+            foreach (var line in _lines)
+                line.Line = lineIndex++;
         }
 
         private bool LoadImpl(StreamReader sr, CompileMessages errors)
@@ -577,6 +632,188 @@ namespace AGS.Types
             return options;
         }
 
+        /// <summary>
+        /// Adds an option entry into the translation source.
+        /// If such option already exists, then overwrites its value.
+        /// If it does not, then inserts option, prepended with a comment.
+        /// </summary>
+        private void WriteOption(string key, string value, string comment)
+        {
+            if (_options.ContainsKey(key))
+            {
+                var optionEntry = _options[key];
+                optionEntry.Value = value;
+                optionEntry.Line.Value.Text = $"//#{key}={value}";
+            }
+            else
+            {
+                TranslationSourceNode insertAt = (_lastOptionBeforeFirstTranslationEntry != null) ?
+                    _lastOptionBeforeFirstTranslationEntry.Next : _lines.First;
+                var optionNode = _lines.AddBefore(insertAt, new TranslationSourceLine(insertAt.Value.Line, $"//#{key}={value}"));
+                if (!string.IsNullOrEmpty(comment))
+                    _lines.AddBefore(optionNode, new TranslationSourceLine(optionNode.Value.Line, $"// {comment}"));
+
+                if (!string.IsNullOrEmpty(comment))
+                    _commentLines.Add(optionNode.Previous);
+                _options[key] = new TranslationSourceOption(key, value, optionNode);
+                _lastOptionBeforeFirstTranslationEntry = optionNode;
+            }
+        }
+
+        /// <summary>
+        /// Adds a annotation to the given translation entry.
+        /// If the annotation of the same key already exists, then overwrites it.
+        /// Otherwise - inserts the new annotation right above the translation
+        /// entry's key line.
+        /// </summary>
+        private void WriteAnnotation(TranslationSourceEntry entry, string annotation)
+        {
+            var newKeyValue = ParseKeyValue(annotation);
+            bool annotationFound = false;
+            if (entry.FirstAnnotationLine != null)
+            {
+                for (var annLine = entry.FirstAnnotationLine; annLine != entry.KeyLine; annLine = annLine.Next)
+                {
+                    var oldKeyValue = ParseKeyValue(annLine.Value.Text.Substring(3));
+                    if (newKeyValue.Key == oldKeyValue.Key)
+                    {
+                        annLine.Value.Text = $"//${annotation}";
+                        annotationFound = true;
+                        break;
+                    }
+                }
+            }
+
+            // If annotation with such key was not found, then insert one
+            // at the end of the annotations list (before the translation key)
+            if (!annotationFound)
+            {
+                var insertAt = entry.KeyLine;
+                _lines.AddBefore(insertAt, new TranslationSourceLine(insertAt.Value.Line, $"//${annotation}"));
+            }
+        }
+
+        /// <summary>
+        /// Adds a translation entry into the translation source.
+        /// If the entry with such key already exists, then overwrites its translation line.
+        /// If it does not, then appends this entry to the end of the list.
+        /// 
+        /// In case of existing entry, the metadata (annotations) will be merged in a similar
+        /// fashion.
+        /// </summary>
+        private void WriteTranslationEntry(string key, string value, TranslationEntryOptions options)
+        {
+            if (_entries.ContainsKey(key))
+            {
+                var entry = _entries[key];
+                entry.ValueLine.Value.Text = value;
+                // Try merging metadata
+                if (options != null)
+                {
+                    foreach (var annotation in options.Metadata)
+                    {
+                        WriteAnnotation(entry, annotation);
+                    }
+                }
+            }
+            else
+            {
+                TranslationSourceNode annotationLine = null;
+                if (options != null)
+                {
+                    foreach (var annotation in options.Metadata)
+                    {
+                        var line = _lines.AddLast(new TranslationSourceLine(_lines.Count, annotation));
+                        if (annotationLine == null)
+                            annotationLine = line;
+                    }
+                }
+
+                var keyLine = _lines.AddLast(new TranslationSourceLine(_lines.Count, key));
+                _lines.AddLast(new TranslationSourceLine(_lines.Count, value));
+                _entries.Add(key, new TranslationSourceEntry(key, keyLine, annotationLine));
+            }
+        }
+
+        private bool WriteObsoleteEntry(TranslationSourceEntry entry)
+        {
+            if (string.IsNullOrEmpty(entry.ValueLine.Value.Text))
+            {
+                // No translation, so delete the obsolete entry altogether
+                for (TranslationSourceNode line = entry.FirstAnnotationLine ?? entry.KeyLine, lastLine = entry.ValueLine.Next;
+                        line != lastLine;)
+                {
+                    var remove = line;
+                    line = line.Next;
+                    _lines.Remove(remove);
+                }
+                return true;
+            }
+            else
+            {
+                // Has translation, so comment these out
+                for (TranslationSourceNode line = entry.FirstAnnotationLine ?? entry.KeyLine, lastLine = entry.ValueLine.Next;
+                        line != lastLine; line = line.Next)
+                {
+                    line.Value.Text = $"//{line.Value.Text}";
+                }
+                return false;
+            }
+        }
+
+        private static string FormatFontOverride(KeyValuePair<int, Font> fontOverride)
+        {
+            StringBuilder sb = new StringBuilder();
+            int fontIndex = fontOverride.Key;
+            Font font = fontOverride.Value;
+            sb.Append($"//#{FONT_OVERRIDE_TAG}{fontIndex}=");
+            if (font.ID >= 0)
+            {
+                sb.Append($"Font{font.ID}");
+            }
+            else
+            {
+                // Only write non-default values. Unfortunately there's no way to know
+                // which values user set in the original source file.
+                sb.Append($"File={font.ProjectFilename};");
+                if (font.PointSize > 0)
+                    sb.Append($"Size={font.PointSize.ToString()};");
+                if (font.SizeMultiplier > 1)
+                    sb.Append($"SizeMultiplier={font.SizeMultiplier.ToString()};");
+
+                if (font.OutlineStyle == FontOutlineStyle.Automatic)
+                    sb.Append($"Outline=AUTO;");
+                else if (font.OutlineStyle == FontOutlineStyle.UseOutlineFont)
+                    sb.Append($"Outline=Font{font.OutlineFont};");
+
+                if (font.OutlineStyle == FontOutlineStyle.Automatic)
+                {
+                    if (font.AutoOutlineStyle == FontAutoOutlineStyle.Rounded)
+                        sb.Append($"AutoOutline=ROUND;");
+
+                    sb.Append($"AutoOutlineThickness={font.AutoOutlineThickness};");
+                }
+
+                if (font.HeightDefinedBy == FontHeightDefinition.PixelHeight)
+                    sb.Append($"HeightDefinition=REAL;");
+                else if (font.HeightDefinedBy == FontHeightDefinition.CustomValue)
+                    sb.Append($"HeightDefinition=CUSTOM;");
+
+                if (font.HeightDefinedBy == FontHeightDefinition.CustomValue)
+                {
+                    sb.Append($"CustomHeight={font.CustomHeightValue};");
+                }
+
+                if (font.VerticalOffset != 0)
+                    sb.Append($"VerticalOffset={font.VerticalOffset};");
+                if (font.LineSpacing != 0)
+                    sb.Append($"LineSpacing={font.LineSpacing};");
+                if (font.CharacterSpacing != 0)
+                    sb.Append($"CharacterSpacing={font.CharacterSpacing};");
+            }
+            return sb.ToString();
+        }
+
         private static void SaveTranslationImpl(StreamWriter sw, Translation translation)
         {
             sw.WriteLine("// AGS TRANSLATION SOURCE FILE");
@@ -602,7 +839,10 @@ namespace AGS.Types
             sw.WriteLine($"//#{AUTO_PARSERSAID_TAG}={(translation.AutoTranslateParserSaid ? TAG_ON : TAG_OFF)}");
             if (translation.FontOverrides.Count != 0)
             {
-                WriteFontOverrides(sw, translation.FontOverrides);
+                foreach (var fontOverride in translation.FontOverrides)
+                {
+                    sw.WriteLine(FormatFontOverride(fontOverride));
+                }
             }
             sw.WriteLine("//  ");
             sw.WriteLine("// ** REMEMBER, WRITE YOUR TRANSLATION IN THE EMPTY LINES, DO");
@@ -619,65 +859,6 @@ namespace AGS.Types
 
                 sw.WriteLine(entry.Key);
                 sw.WriteLine(entry.Value);
-            }
-        }
-
-        /// <summary>
-        /// Writes font overrides into the translation source file.
-        /// </summary>
-        private static void WriteFontOverrides(StreamWriter sw, Dictionary<int, Font> fontOverrides)
-        {
-            foreach (var fontOverride in fontOverrides)
-            {
-                StringBuilder sb = new StringBuilder();
-                int fontIndex = fontOverride.Key;
-                Font font = fontOverride.Value;
-                sb.Append($"//#{FONT_OVERRIDE_TAG}{fontIndex}=");
-                if (font.ID >= 0)
-                {
-                    sb.Append($"Font{font.ID}");
-                }
-                else
-                {
-                    // Only write non-default values. Unfortunately there's no way to know
-                    // which values user set in the original source file.
-                    sb.Append($"File={font.ProjectFilename};");
-                    if (font.PointSize > 0)
-                        sb.Append($"Size={font.PointSize.ToString()};");
-                    if (font.SizeMultiplier > 1)
-                        sb.Append($"SizeMultiplier={font.SizeMultiplier.ToString()};");
-
-                    if (font.OutlineStyle == FontOutlineStyle.Automatic)
-                        sb.Append($"Outline=AUTO;");
-                    else if (font.OutlineStyle == FontOutlineStyle.UseOutlineFont)
-                        sb.Append($"Outline=Font{font.OutlineFont};");
-
-                    if (font.OutlineStyle == FontOutlineStyle.Automatic)
-                    {
-                        if (font.AutoOutlineStyle == FontAutoOutlineStyle.Rounded)
-                            sb.Append($"AutoOutline=ROUND;");
-
-                        sb.Append($"AutoOutlineThickness={font.AutoOutlineThickness};");
-                    }
-
-                    if (font.HeightDefinedBy == FontHeightDefinition.PixelHeight)
-                        sb.Append($"HeightDefinition=REAL;");
-                    else if (font.HeightDefinedBy == FontHeightDefinition.CustomValue)
-                        sb.Append($"HeightDefinition=CUSTOM;");
-
-                    if (font.HeightDefinedBy == FontHeightDefinition.CustomValue)
-                    {
-                        sb.Append($"CustomHeight={font.CustomHeightValue};");
-                    }
-
-                    if (font.VerticalOffset != 0)
-                        sb.Append($"VerticalOffset={font.VerticalOffset};");
-                    if (font.LineSpacing != 0)
-                        sb.Append($"LineSpacing={font.LineSpacing};");
-                    if (font.CharacterSpacing != 0)
-                        sb.Append($"CharacterSpacing={font.CharacterSpacing};");
-                }
-                sw.WriteLine(sb.ToString());
             }
         }
     }
