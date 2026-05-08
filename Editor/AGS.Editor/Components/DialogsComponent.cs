@@ -53,10 +53,9 @@ namespace AGS.Editor.Components
             get { return ComponentIDs.Dialogs; }
         }
 
-        private Dialog AddNewDialog(Dialog newItem, string baseScriptName)
+        private Dialog AddNewDialog(Dialog newItem)
         {
             newItem.ID = _agsEditor.CurrentGame.RootDialogFolder.GetAllItemsCount();
-            newItem.ScriptName = _agsEditor.GetFirstAvailableScriptName(baseScriptName);
             string newNodeID;
             if (_itemRightClicked != null)
                 newNodeID = AddSingleItem(newItem, GetNodeIDForFolder(FindFolderThatContainsItem(GetRootFolder(), _itemRightClicked)));
@@ -71,8 +70,7 @@ namespace AGS.Editor.Components
         {
             if (controlID == COMMAND_NEW_ITEM)
             {
-                Dialog newItem = new Dialog();
-                AddNewDialog(newItem, "dDialog");
+                AddNewDialog(new Dialog(_agsEditor.GetFirstAvailableScriptName("dDialog")));
             }
             else if (controlID == COMMAND_DELETE_ITEM)
             {
@@ -90,7 +88,8 @@ namespace AGS.Editor.Components
                 Dialog newItem = ClipboardUtils.PasteFromClipboard(typeof(Dialog)) as Dialog;
                 if (newItem == null)
                     return;
-                AddNewDialog(newItem, newItem.ScriptName);
+                newItem.ScriptName = _agsEditor.GetFirstAvailableScriptName(newItem.ScriptName);
+                AddNewDialog(newItem);
             }
             else if (controlID == COMMAND_CHANGE_ID)
             {
