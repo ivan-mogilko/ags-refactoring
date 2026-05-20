@@ -56,6 +56,9 @@ const char *HELP_STRING = "Usage:\n"
     "  -e, --export           export (extract) files from the existing pack file\n"
     "                         into the output directory.\n"
     "  -l, --list             print pack file's contents.\n"
+    "  -x, --cut              cut an attached pack data from the file.\n"
+    "                         NOTE: if pack data occupies whole file, then its size\n"
+    "                         will become zero.\n"
     "\n"
     "Command options:\n"
     "  -f, --pattern-file <file>\n"
@@ -99,6 +102,11 @@ int DoCommand(const CmdLineOpts::ParseResult &cmdargs)
             command = 'l'; // list
             break;
         }
+        if (opt == "-x" || opt == "--cut")
+        {
+            command = 'x'; // cut
+            break;
+        }
     }
 
     // Fixed pos options
@@ -138,6 +146,10 @@ int DoCommand(const CmdLineOpts::ParseResult &cmdargs)
     case 'a': // append
     case 'c': // create
         {
+            if (command == 'a')
+                printf("Operation: append asset package to the existing file\n");
+            else
+                printf("Operation: create asset package\n");
             if (cmdargs.PosArgs.size() < 2)
                 break; // not enough args
             return AGSPak::Command_Create(work_dir, pak_file, command == 'a',
@@ -145,6 +157,7 @@ int DoCommand(const CmdLineOpts::ParseResult &cmdargs)
         }
     case 'e': // export
         {
+            printf("Operation: export assets\n");
             if (cmdargs.PosArgs.size() < 2)
                 break; // not enough args
             return AGSPak::Command_Export(pak_file, work_dir, pattern_list);
@@ -154,6 +167,13 @@ int DoCommand(const CmdLineOpts::ParseResult &cmdargs)
             if (cmdargs.PosArgs.size() < 1)
                 break; // not enough args
             return AGSPak::Command_List(pak_file);
+        }
+    case 'x': // cut
+        {
+            printf("Operation: cut asset package from the existing file\n");
+            if (cmdargs.PosArgs.size() < 1)
+                break; // not enough args
+            return AGSPak::Command_Cut(pak_file, verbose);
         }
     default:
         printf("Error: no valid command is specified\n");

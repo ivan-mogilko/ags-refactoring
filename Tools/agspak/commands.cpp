@@ -39,9 +39,9 @@ static HError OpenAssetLib(const String &pak_file, AssetLibInfo &lib)
 
 // Checks the presence of a asset library in the given file.
 // If there's no library found in the file, the does no changes.
-// If the whole file is a library, then deletes it.
 // If library is appended to the file, then cuts it off.
-static HError CutAssetLibrary(const String &pak_file)
+// If the whole file is a library, then it becomes zero size.
+static HError CutAssetLibrary(const String &pak_file, bool verbose)
 {
     if (!File::IsFile(pak_file))
         return HError::None();
@@ -54,21 +54,20 @@ static HError CutAssetLibrary(const String &pak_file)
 
         MFLUtil::MFLError mfl_err = MFLUtil::ReadOffset(in.get(), lib_offset);
         if (mfl_err == MFLUtil::kMFLErrNoLibSig)
+        {
+            printf("No asset pack attachement found.\n");
             return HError::None(); // no library, nothing to do
+        }
         // NOTE: we don't really care about supported TOC version here, as we only
         // require valid signature and base offset.
     }
 
-    if (lib_offset == 0)
-    {
-        if (!File::DeleteFile(pak_file))
-            return new Error("Failed to delete existing pack file.");
-    }
-    else
-    {
-        if (!File::TruncateFile(pak_file, lib_offset))
-            return new Error("Failed to truncate the destination file.");
-    }
+    const soff_t old_size = File::GetFileSize(pak_file);
+    if (!File::TruncateFile(pak_file, lib_offset))
+        return new Error("Failed to cut existing asset pack attachement.");
+    const soff_t new_size = File::GetFileSize(pak_file);
+    if (verbose)
+        printf("Info: cut existing asset pack attachement:\n\ttruncated from %lld to %lld, %lld bytes cut.\n", old_size, new_size, old_size - new_size);
     return HError::None();
 }
 
@@ -177,7 +176,7 @@ int Command_Create(const String &src_dir, const String &dst_pak, bool append,
     //-----------------------------------------------------------------------//
     if (append)
     {
-        err = CutAssetLibrary(lib_basefile);
+        err = CutAssetLibrary(lib_basefile, verbose);
         if (!err)
         {
             printf("Error: failed to cut existing asset data from the destination file:\n");
@@ -198,6 +197,21 @@ int Command_Create(const String &src_dir, const String &dst_pak, bool append,
         return -1;
     }
     printf("Pack file(s) written successfully.\nDone.\n");
+    return 0;
+}
+
+int Command_Cut(const String &src_pak, bool verbose)
+{
+    printf("Input pack file: %s\n", src_pak.GetCStr());
+
+    HError err = CutAssetLibrary(src_pak, verbose);
+    if (!err)
+    {
+        printf("Error: %s\n", err->FullMessage().GetCStr());
+        return -1;
+    }
+
+    printf("Done.\n");
     return 0;
 }
 
@@ -272,6 +286,11 @@ int Command_List(const String &src_pak)
     //-----------------------------------------------------------------------//
     AssetLibInfo lib;
     HError err = OpenAssetLib(src_pak, lib);
+    if (!err)
+    {
+        printf("Error: %s\n", err->FullMessage().GetCStr());
+        return -1;
+    }
     if (lib.AssetInfos.size() == 0)
     {
         printf("Pack file has no assets.\nDone.\n");
