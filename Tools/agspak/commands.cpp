@@ -24,6 +24,7 @@ using namespace AGS::DataUtil;
 namespace AGSPak
 {
 
+// Reads asset library TOC from the given file.
 static HError OpenAssetLib(const String &pak_file, AssetLibInfo &lib)
 {
     auto in = File::OpenFileRead(pak_file);
@@ -32,13 +33,121 @@ static HError OpenAssetLib(const String &pak_file, AssetLibInfo &lib)
 
     MFLUtil::MFLError mfl_err = MFLUtil::ReadHeader(lib, in.get());
     if (mfl_err != MFLUtil::kMFLNoError)
-        return new Error("Failed to parse pack file.\n%s", MFLUtil::GetMFLErrorText(mfl_err).GetCStr());
+        return new Error("Failed to parse pack file.", MFLUtil::GetMFLErrorText(mfl_err).GetCStr());
     return HError::None();
 }
 
+// Checks the presence of a asset library in the given file.
+// If there's no library found in the file, the does no changes.
+// If the whole file is a library, then deletes it.
+// If library is appended to the file, then cuts it off.
+static HError CutAssetLibrary(const String &pak_file)
+{
+    if (!File::IsFile(pak_file))
+        return HError::None();
 
-int Command_Create(const String &src_dir, const String &dst_pak, const std::vector<String> &pattern_list,
-                   const String &pattern_file, bool do_subdirs, size_t part_size_mb, bool verbose)
+    soff_t lib_offset = 0;
+    {
+        auto in = File::OpenFileRead(pak_file);
+        if (!in)
+            return new Error("Failed to open pack file for reading.");
+
+        MFLUtil::MFLError mfl_err = MFLUtil::ReadOffset(in.get(), lib_offset);
+        if (mfl_err == MFLUtil::kMFLErrNoLibSig)
+            return HError::None(); // no library, nothing to do
+        // NOTE: we don't really care about supported TOC version here, as we only
+        // require valid signature and base offset.
+    }
+
+    if (lib_offset == 0)
+    {
+        if (!File::DeleteFile(pak_file))
+            return new Error("Failed to delete existing pack file.");
+    }
+    else
+    {
+        if (!File::TruncateFile(pak_file, lib_offset))
+            return new Error("Failed to truncate the destination file.");
+    }
+    return HError::None();
+}
+
+static HError PrepareAssetLibrary(AssetLibInfo &lib,
+    const String &src_dir, const String &dst_pak, bool append,
+    const std::vector<String> &pattern_list, const String &pattern_file,
+    bool do_subdirs, size_t part_size_mb, bool verbose)
+{
+    const String &asset_dir = src_dir;
+    const String &lib_basefile = dst_pak;
+    const bool has_pattern_file = !pattern_file.IsEmpty();
+
+    std::vector<String> files;
+    HError err = MakeListOfFiles(files, asset_dir, do_subdirs);
+    if (!err)
+    {
+        printf("Error: failed to gather list of files:\n");
+        printf("%s\n", err->FullMessage().GetCStr());
+        return err;
+    }
+
+    // Apply the explicit file list, if provided
+    if (!pattern_list.empty())
+    {
+        std::vector<String> output_files;
+        err = MatchPatternPaths(files, output_files, pattern_list);
+        if (!err)
+        {
+            printf("Error: failed to filter files:\n");
+            printf("%s\n", err->FullMessage().GetCStr());
+            return err;
+        }
+        files = std::move(output_files);
+    }
+
+    // Apply the include/exclude pattern file as a filter
+    if (has_pattern_file)
+    {
+        std::vector<String> output_files;
+        err = IncludeFiles(files, output_files, Path::ConcatPaths(asset_dir, pattern_file), verbose);
+        if (!err)
+        {
+            printf("Error: failed to processes %s file:\n", pattern_file.GetCStr());
+            printf("%s\n", err->FullMessage().GetCStr());
+            return err;
+        }
+
+        files = std::move(output_files);
+    }
+
+    std::vector<AssetInfo> assets;
+    err = MakeAssetListFromFileList(files, assets, asset_dir);
+    if (!err)
+    {
+        printf("Error: failed to prepare list of assets:\n");
+        printf("%s\n", err->FullMessage().GetCStr());
+        return err;
+    }
+    if (assets.size() == 0)
+    {
+        printf("No valid assets found in the provided directory.\nDone.\n");
+        return HError::None();
+    }
+
+    soff_t part_size_b = part_size_mb * 1024 * 1024; // MB to bytes
+    err = MakeAssetLib(lib, lib_basefile, assets, part_size_b, append);
+    if (!err)
+    {
+        printf("Error: failed to configure asset library:\n");
+        printf("%s\n", err->FullMessage().GetCStr());
+        return err;
+    }
+
+    return HError::None();
+}
+
+int Command_Create(const String &src_dir, const String &dst_pak, bool append,
+                   const std::vector<String> &pattern_list, const String &pattern_file,
+                   bool do_subdirs, size_t part_size_mb, bool verbose)
 {
     printf("Input directory: %s\n", src_dir.GetCStr());
     printf("Output pack file: %s\n", dst_pak.GetCStr());
@@ -57,74 +166,31 @@ int Command_Create(const String &src_dir, const String &dst_pak, const std::vect
     //-----------------------------------------------------------------------//
     const String &asset_dir = src_dir;
     const String &lib_basefile = dst_pak;
-
-    std::vector<String> files;
-    HError err = MakeListOfFiles(files, asset_dir, do_subdirs);
-    if (!err)
-    {
-        printf("Error: failed to gather list of files:\n");
-        printf("%s\n", err->FullMessage().GetCStr());
-        return -1;
-    }
-
-    // Apply the explicit file list, if provided
-    if (!pattern_list.empty())
-    {
-        std::vector<String> output_files;
-        err = MatchPatternPaths(files, output_files, pattern_list);
-        if (!err)
-        {
-            printf("Error: failed to filter files:\n");
-            printf("%s\n", err->FullMessage().GetCStr());
-            return -1;
-        }
-        files = std::move(output_files);
-    }
-
-    // Apply the include/exclude pattern file as a filter
-    if (has_pattern_file)
-    {
-        std::vector<String> output_files;
-        err = IncludeFiles(files, output_files, Path::ConcatPaths(asset_dir, pattern_file), verbose);
-        if (!err)
-        {
-            printf("Error: failed to processes %s file:\n", pattern_file.GetCStr());
-            printf("%s\n", err->FullMessage().GetCStr());
-            return -1;
-        }
-
-        files = std::move(output_files);
-    }
-
-    std::vector<AssetInfo> assets;
-    err = MakeAssetListFromFileList(files, assets, asset_dir);
-    if (!err)
-    {
-        printf("Error: failed to prepare list of assets:\n");
-        printf("%s\n", err->FullMessage().GetCStr());
-        return -1;
-    }
-    if (assets.size() == 0)
-    {
-        printf("No valid assets found in the provided directory.\nDone.\n");
-        return 0;
-    }
-
     AssetLibInfo lib;
-    soff_t part_size_b = part_size_mb * 1024 * 1024; // MB to bytes
-    err = MakeAssetLib(lib, lib_basefile, assets, part_size_b);
+    HError err = PrepareAssetLibrary(lib, asset_dir, lib_basefile, append, pattern_list, pattern_file, do_subdirs, part_size_mb, verbose);
     if (!err)
-    {
-        printf("Error: failed to configure asset library:\n");
-        printf("%s\n", err->FullMessage().GetCStr());
         return -1;
+
+    //-----------------------------------------------------------------------//
+    // If we are appending, then check for the existing library in the
+    // destination file, and cut one out.
+    //-----------------------------------------------------------------------//
+    if (append)
+    {
+        err = CutAssetLibrary(lib_basefile);
+        if (!err)
+        {
+            printf("Error: failed to cut existing asset data from the destination file:\n");
+            printf("%s\n", err->FullMessage().GetCStr());
+            return -1;
+        }
     }
 
     //-----------------------------------------------------------------------//
     // Write pack file
     //-----------------------------------------------------------------------//
     String lib_dir = Path::GetParent(lib_basefile);
-    err = WriteLibrary(lib, asset_dir, lib_dir, MFLUtil::kMFLVersion_MultiV30, verbose);
+    err = WriteLibrary(lib, asset_dir, lib_dir, MFLUtil::kMFLVersion_MultiV30, append, verbose);
     if (!err)
     {
         printf("Error: failed to write pack file:\n");

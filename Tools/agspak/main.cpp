@@ -15,7 +15,9 @@
 // AGS package file pack/unpack utility.
 // 
 // TODO:
-// * append cmdline option (create new file / append to existing)
+// * option to fully test result of "create", including binary comparison of
+//   all asset data.
+// * option to write library in old format versions (to let test old engines).
 // * proper unified error codes for the AGS tools?
 // * clarify the use of "verbose" option, and make it consistent
 //   throughout the operations.
@@ -30,7 +32,7 @@
 using namespace AGS::Common;
 using namespace AGS::DataUtil;
 
-const char *BIN_STRING = "agspak v0.3.0 - AGS game packaging tool\n"
+const char *BIN_STRING = "agspak v0.4.0 - AGS game packaging tool\n"
     "Copyright (c) 2025 AGS Team and contributors\n";
 
 const char *HELP_STRING = "Usage:\n"
@@ -46,7 +48,10 @@ const char *HELP_STRING = "Usage:\n"
     "      Options may adjust the operation further.\n"
     "\n"
     "Commands:\n"
-    "  -c, --create           create a pack file, gathering the files from the\n"
+    "  -a, --append           append pack data to the existing file, gathering the\n"
+    "                         files from the input directory. Replaces the previously\n"
+    "                         attached pack data, if there was any.\n"
+    "  -c, --create           create a new pack file, gathering the files from the\n"
     "                         input directory.\n"
     "  -e, --export           export (extract) files from the existing pack file\n"
     "                         into the output directory.\n"
@@ -54,7 +59,7 @@ const char *HELP_STRING = "Usage:\n"
     "\n"
     "Command options:\n"
     "  -f, --pattern-file <file>\n"
-    "                         when creating a pack file, use pattern file with the"
+    "                         when creating a pack file, use pattern file with the\n"
     "                         include/exclude patterns\n"
     "  -p, --partition <MB>   when creating a pack file, split asset files between\n"
     "                         partitions of this size max. Input files are not split,\n"
@@ -74,6 +79,11 @@ int DoCommand(const CmdLineOpts::ParseResult &cmdargs)
     char command = 0;
     for (const auto &opt : cmdargs.Opt)
     {
+        if (opt == "-a" || opt == "--append")
+        {
+            command = 'a'; // append
+            break;
+        }
         if (opt == "-c" || opt == "--create")
         {
             command = 'c'; // create
@@ -125,11 +135,13 @@ int DoCommand(const CmdLineOpts::ParseResult &cmdargs)
     // Run supported commands
     switch (command)
     {
+    case 'a': // append
     case 'c': // create
         {
             if (cmdargs.PosArgs.size() < 2)
                 break; // not enough args
-            return AGSPak::Command_Create(work_dir, pak_file, pattern_list, pattern_file, do_subdirs, part_size_mb, verbose);
+            return AGSPak::Command_Create(work_dir, pak_file, command == 'a',
+                pattern_list, pattern_file, do_subdirs, part_size_mb, verbose);
         }
     case 'e': // export
         {
