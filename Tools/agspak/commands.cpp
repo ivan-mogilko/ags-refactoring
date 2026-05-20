@@ -43,9 +43,6 @@ static HError OpenAssetLib(const String &pak_file, AssetLibInfo &lib)
 // If the whole file is a library, then it becomes zero size.
 static HError CutAssetLibrary(const String &pak_file, bool verbose)
 {
-    if (!File::IsFile(pak_file))
-        return HError::None();
-
     soff_t lib_offset = 0;
     {
         auto in = File::OpenFileRead(pak_file);
@@ -68,6 +65,37 @@ static HError CutAssetLibrary(const String &pak_file, bool verbose)
     const soff_t new_size = File::GetFileSize(pak_file);
     if (verbose)
         printf("Info: cut existing asset pack attachement:\n\ttruncated from %lld to %lld, %lld bytes cut.\n", old_size, new_size, old_size - new_size);
+    return HError::None();
+}
+
+static HError CopyAssetLibrary(const String &pak_file, const String &dst_pak_file, bool verbose)
+{
+    auto in = File::OpenFileRead(pak_file);
+    if (!in)
+        return new Error("Failed to open pack file for reading.");
+
+    soff_t lib_offset = 0;
+    MFLUtil::MFLVersion lib_version = MFLUtil::kMFLVersion_Unknown;
+    MFLUtil::MFLError mfl_err = MFLUtil::ReadOffsetAndVersion(in.get(), lib_offset, lib_version);
+    if (mfl_err == MFLUtil::kMFLErrNoLibSig)
+    {
+        printf("No asset pack attachement found.\n");
+        return HError::None(); // no library, nothing to do
+    }
+    else if (mfl_err != MFLUtil::kMFLNoError)
+    {
+        return new Error("Failed to parse pack file.", MFLUtil::GetMFLErrorText(mfl_err).GetCStr());
+    }
+
+    auto out = File::CreateFile(dst_pak_file);
+    if (!out)
+        return new Error("Failed to open pack file for writing.");
+
+    in->Seek(lib_offset, kSeekBegin);
+    CopyStream(in.get(), out.get());
+    if (verbose)
+        printf("Info: copied asset pack attachement, %lld bytes written.\n", out->GetLength());
+    MFLUtil::OverwriteEnder(0, lib_version, out.get());
     return HError::None();
 }
 
@@ -176,12 +204,19 @@ int Command_Create(const String &src_dir, const String &dst_pak, bool append,
     //-----------------------------------------------------------------------//
     if (append)
     {
-        err = CutAssetLibrary(lib_basefile, verbose);
-        if (!err)
+        if (File::IsFile(lib_basefile))
         {
-            printf("Error: failed to cut existing asset data from the destination file:\n");
-            printf("%s\n", err->FullMessage().GetCStr());
-            return -1;
+            err = CutAssetLibrary(lib_basefile, verbose);
+            if (!err)
+            {
+                printf("Error: failed to cut existing asset data from the destination file:\n");
+                printf("%s\n", err->FullMessage().GetCStr());
+                return -1;
+            }
+        }
+        else
+        {
+            printf("Warning: file not found: %s\n", lib_basefile.GetCStr());
         }
     }
 
@@ -303,6 +338,28 @@ int Command_List(const String &src_pak)
     {
         printf("* %s\n", asset.FileName.GetCStr());
     }
+    printf("Done.\n");
+    return 0;
+}
+
+int Command_Split(const String &src_pak, const String &dst_pak, bool verbose)
+{
+    printf("Input pack file: %s\n", src_pak.GetCStr());
+    printf("Output pack file: %s\n", dst_pak.GetCStr());
+
+    HError err = CopyAssetLibrary(src_pak, dst_pak, verbose);
+    if (!err)
+    {
+        printf("Error: %s\n", err->FullMessage().GetCStr());
+        return -1;
+    }
+    err = CutAssetLibrary(src_pak, verbose);
+    if (!err)
+    {
+        printf("Error: %s\n", err->FullMessage().GetCStr());
+        return -1;
+    }
+
     printf("Done.\n");
     return 0;
 }

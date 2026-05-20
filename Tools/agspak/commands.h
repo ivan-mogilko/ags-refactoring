@@ -27,6 +27,7 @@ namespace AGSPak
     int Command_Cut(const String &src_pak, bool verbose);
     int Command_Export(const String &src_pak, const String &dst_dir, const std::vector<String> &pattern_list);
     int Command_List(const String &src_pak);
+    int Command_Split(const String &src_pak, const String &dst_pak, bool verbose);
 }
 
 #endif // __AGS_TOOL_AGSPAK__COMMANDS_H

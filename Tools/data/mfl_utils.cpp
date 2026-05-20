@@ -245,7 +245,7 @@ HError WriteLibraryFile(AssetLibInfo &lib, const String &asset_dir, const String
         final->Seek(0, kSeekEnd);
         lib.BaseFileOffset = final->GetPosition();
         out->Seek(0, kSeekBegin);
-        CopyStream(out->GetStreamBase(), final->GetStreamBase());
+        CopyStream(out.get(), final.get());
         OverwriteEnder(lib.BaseFileOffset, lib_version, final.get());
     }
     return HError::None();

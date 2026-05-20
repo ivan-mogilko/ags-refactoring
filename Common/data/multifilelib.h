@@ -48,6 +48,7 @@ namespace MFLUtil
 
     enum MFLVersion
     {
+        kMFLVersion_Unknown     = 0,
         kMFLVersion_SingleLib   = 6,
         kMFLVersion_MultiV10    = 10,
         kMFLVersion_MultiV11    = 11,
@@ -64,6 +65,7 @@ namespace MFLUtil
 
     MFLError TestIsMFL(Stream *in, bool test_is_main = false);
     MFLError ReadOffset(Stream *in, soff_t &lib_offset);
+    MFLError ReadOffsetAndVersion(Stream *in, soff_t &lib_offset, MFLVersion &lib_version);
     MFLError ReadHeader(AssetLibInfo &lib, Stream *in);
 
     void     WriteHeader(const AssetLibInfo &lib, MFLVersion lib_version, int lib_index, Stream *out);

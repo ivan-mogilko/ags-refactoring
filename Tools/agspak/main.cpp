@@ -37,7 +37,7 @@ const char *BIN_STRING = "agspak v0.4.0 - AGS game packaging tool\n"
 
 const char *HELP_STRING = "Usage:\n"
    //--------------------------------------------------------------------------------|
-    "  agspak <COMMAND> <PAK-FILE> [<WORK-DIR>] [<FILES>] [OPTIONS]\n"
+    "  agspak <COMMAND> <PAK-FILE> [<WORK-DIR>|<DEST_FILE>] [<FILES>] [OPTIONS]\n"
     "      executes an operation regarding the chosen package file, a working\n"
     "      directory, and an optional files list. Depending on a command either the\n"
     "      pack or the directory is an input or an output.\n"
@@ -56,6 +56,9 @@ const char *HELP_STRING = "Usage:\n"
     "  -e, --export           export (extract) files from the existing pack file\n"
     "                         into the output directory.\n"
     "  -l, --list             print pack file's contents.\n"
+    "  -s, --split            split an attached pack data into the <DEST_FILE>.\n"
+    "                         NOTE: if pack data occupies whole file, then operation\n"
+    "                         will be cancelled.\n"
     "  -x, --cut              cut an attached pack data from the file.\n"
     "                         NOTE: if pack data occupies whole file, then its size\n"
     "                         will become zero.\n"
@@ -102,6 +105,11 @@ int DoCommand(const CmdLineOpts::ParseResult &cmdargs)
             command = 'l'; // list
             break;
         }
+        if (opt == "-s" || opt == "--split")
+        {
+            command = 's'; // split
+            break;
+        }
         if (opt == "-x" || opt == "--cut")
         {
             command = 'x'; // cut
@@ -112,6 +120,7 @@ int DoCommand(const CmdLineOpts::ParseResult &cmdargs)
     // Fixed pos options
     const String pak_file = cmdargs.PosArgs.size() > 0 ? cmdargs.PosArgs[0] : String();
     const String work_dir = cmdargs.PosArgs.size() > 1 ? cmdargs.PosArgs[1] : String();
+    const String dest_pak_file = cmdargs.PosArgs.size() > 1 ? cmdargs.PosArgs[1] : String();
     const String file_list_str = cmdargs.PosArgs.size() > 2 ? cmdargs.PosArgs[2] : String();
     // Common options
     // a include pattern file that should be inside the input-dir
@@ -167,6 +176,13 @@ int DoCommand(const CmdLineOpts::ParseResult &cmdargs)
             if (cmdargs.PosArgs.size() < 1)
                 break; // not enough args
             return AGSPak::Command_List(pak_file);
+        }
+    case 's': // split
+        {
+            printf("Operation: split asset package away from the existing file\n");
+            if (cmdargs.PosArgs.size() < 2)
+                break; // not enough args
+            return AGSPak::Command_Split(pak_file, dest_pak_file, verbose);
         }
     case 'x': // cut
         {

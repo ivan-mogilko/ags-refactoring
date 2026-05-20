@@ -96,6 +96,11 @@ MFLUtil::MFLError MFLUtil::ReadOffset(Stream *in, soff_t &lib_offset)
     return ReadSigsAndVersion(in, &lib_version, &lib_offset);
 }
 
+MFLUtil::MFLError MFLUtil::ReadOffsetAndVersion(Stream *in, soff_t &lib_offset, MFLVersion &lib_version)
+{
+    return ReadSigsAndVersion(in, &lib_version, &lib_offset);
+}
+
 MFLUtil::MFLError MFLUtil::ReadHeader(AssetLibInfo &lib, Stream *in)
 {
     MFLVersion lib_version;
