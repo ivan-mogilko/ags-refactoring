@@ -55,6 +55,8 @@ const char *HELP_STRING = "Usage:\n"
     "                         input directory.\n"
     "  -e, --export           export (extract) files from the existing pack file\n"
     "                         into the output directory.\n"
+    "  -i, --import           import (add) files into the existing pack file,\n"
+    "                         gathering the files from the input directory.\n"
     "  -l, --list             print pack file's contents.\n"
     "  -s, --split            split an attached pack data into the <DEST_FILE>.\n"
     "                         NOTE: if pack data occupies whole file, then operation\n"
@@ -65,14 +67,14 @@ const char *HELP_STRING = "Usage:\n"
     "\n"
     "Command options:\n"
     "  -f, --pattern-file <file>\n"
-    "                         when creating a pack file, use pattern file with the\n"
-    "                         include/exclude patterns\n"
-    "  -p, --partition <MB>   when creating a pack file, split asset files between\n"
-    "                         partitions of this size max. Input files are not split,\n"
-    "                         so files larger than this amount will occupy a single\n"
-    "                         partition\n"
-    "  -r, --recursive        when creating a pack file, include all subdirectories\n"
-    "                         of a working directory too\n"
+    "                         when creating a pack file or adding assets into one,\n"
+    "                         use pattern file with the include/exclude patterns.\n"
+    "  -p, --partition <MB>   when creating a pack file or adding assets into one,\n"
+    "                         split asset files between partitions of this size max.\n"
+    "                         Input files are not split, so files larger than this\n"
+    "                         amount will occupy a single partition.\n"
+    "  -r, --recursive        when creating a pack file or adding assets into one,\n"
+    "                         include all subdirectories of the working directory.\n"
     "\n"
     "Other options:\n"
     "  -v, --verbose          print operation details"
@@ -98,6 +100,11 @@ int DoCommand(const CmdLineOpts::ParseResult &cmdargs)
         if (opt == "-e" || opt == "--export")
         {
             command = 'e'; // export
+            break;
+        }
+        if (opt == "-i" || opt == "--import")
+        {
+            command = 'i'; // import
             break;
         }
         if (opt == "-l" || opt == "--list")
@@ -170,6 +177,14 @@ int DoCommand(const CmdLineOpts::ParseResult &cmdargs)
             if (cmdargs.PosArgs.size() < 2)
                 break; // not enough args
             return AGSPak::Command_Export(pak_file, work_dir, pattern_list);
+        }
+    case 'i': // import
+        {
+            printf("Operation: import assets\n");
+            if (cmdargs.PosArgs.size() < 2)
+                break; // not enough args
+            return AGSPak::Command_Import(work_dir, pak_file,
+                pattern_list, pattern_file, do_subdirs, part_size_mb, verbose);
         }
     case 'l': // list
         {
