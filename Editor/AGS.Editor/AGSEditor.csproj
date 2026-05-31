@@ -184,6 +184,7 @@
     <Compile Include="Entities\GenericMessagesArgs.cs" />
     <Compile Include="Entities\UpgradeGame\UpgradeGameCommonTask.cs" />
     <Compile Include="Entities\UpgradeGame\UpgradeGameTaskBase.cs" />
+    <Compile Include="Entities\UpgradeGame\UpgradeGameDialogsToIndividualFiles.cs" />
     <Compile Include="Entities\UpgradeGame\UpgradeGameTextEncodingTask.cs" />
     <Compile Include="Entities\UpgradeGame\UpgradeGameEventArgs.cs" />
     <Compile Include="Entities\UpgradeGame\UpgradeGameFontsToFontFilesTask.cs" />
