@@ -127,11 +127,13 @@ struct SpriteDatHeader
 class SpriteFile
 {
 public:
+    static const sprkey_t UNDEFINED_SPRITE_SLOT = -2;
     // Standart sprite file and sprite index names
+    // FIXME: move them out, should be part of the AGS game info etc
     static const String DefaultSpriteFileName;
     static const String DefaultSpriteIndexName;
 
-    SpriteFile();
+    SpriteFile() = default;
     // Loads sprite reference information and inits sprite stream
     HError      OpenFile(std::unique_ptr<Stream> &&sprite_file,
                          std::unique_ptr<Stream> &&index_file);
@@ -145,9 +147,13 @@ public:
     HError      OpenFile(std::unique_ptr<Stream> &&sprite_file,
                          std::unique_ptr<Stream> &&index_file,
                          std::vector<SpriteDatHeader> &metrics);
+    // Inits sprite stream, but receives table of contents from another instance
+    HError      OpenFile(std::unique_ptr<Stream> &&sprite_file,
+                         const SpriteFile &init_toc_from);
     // Closes stream; no reading will be possible unless opened again
     void        Close();
 
+    // Returns the sprite storage flags of this file (see SpriteStorage)
     int         GetStoreFlags() const;
     // Tells if bitmaps in the file are compressed
     SpriteCompression GetSpriteCompression() const;
@@ -163,22 +169,8 @@ public:
     HError      LoadSprite(sprkey_t index, PixelBuffer &sprite);
     // Loads a raw sprite element data into the buffer, stores header info separately
     HError      LoadRawData(sprkey_t index, SpriteDatHeader &hdr, std::vector<uint8_t> &data);
-    // Loads all sprites's available metrics
-    HError      LoadSpriteMetrics(std::vector<SpriteDatHeader> &metrics);
 
 private:
-    HError      OpenFileImpl(std::unique_ptr<Stream> &&sprite_file,
-                         std::unique_ptr<Stream> &&index_file,
-                         std::vector<Size> *metrics, std::vector<SpriteDatHeader> *metrics2);
-    // Loads sprite index file
-    bool        LoadSpriteIndexFile(std::unique_ptr<Stream> &&index_file,
-                        int expectedFileID, sprkey_t topmost, std::vector<Size> *metrics);
-    // Rebuilds sprite index from the main sprite file
-    HError      RebuildSpriteIndex(Stream *in, sprkey_t topmost,
-                        std::vector<Size> *metrics, std::vector<SpriteDatHeader> *metrics2);
-    // Seek stream to sprite
-    void        SeekToSprite(sprkey_t index);
-
     // Internal sprite reference
     struct SpriteRef
     {
@@ -188,14 +180,33 @@ private:
         // TODO: RawSize is currently unused, due to incompleteness of spriteindex format
     };
 
-    // Array of sprite references
-    std::vector<SpriteRef> _spriteData;
-    size_t _validCount = 0u;
+    struct SpriteFileTOC
+    {
+        SpriteFileVersion Version = kSprfVersion_Current;
+        int StoreFlags = 0; // storage flags, specify how sprites may be stored
+        SpriteCompression Compress = kSprCompress_None; // sprite compression type
+        // Array of sprite references
+        std::vector<SpriteRef> SpriteData;
+        uint32_t ValidCount = 0u;
+    };
+
+    HError      OpenFileImpl(std::unique_ptr<Stream> &&sprite_file,
+                         std::unique_ptr<Stream> &&index_file,
+                         std::vector<Size> *metrics, std::vector<SpriteDatHeader> *metrics2);
+    // Loads sprite index file
+    HError      LoadSpriteIndexFile(std::unique_ptr<Stream> &&index_file,
+                        int expect_file_id, sprkey_t topmost,
+                        SpriteFileTOC &toc, std::vector<Size> *metrics);
+    // Rebuilds sprite index from the main sprite file
+    HError      RebuildSpriteIndex(Stream *in, sprkey_t topmost, SpriteFileTOC &toc,
+                        std::vector<Size> *metrics, std::vector<SpriteDatHeader> *metrics2);
+    // Seek stream to sprite
+    void        SeekToSprite(sprkey_t index);
+
+    
+    std::shared_ptr<SpriteFileTOC> _toc; // shareable table of contents
     std::unique_ptr<Stream> _stream; // the sprite stream
-    SpriteFileVersion _version = kSprfVersion_Current;
-    int _storeFlags = 0; // storage flags, specify how sprites may be stored
-    SpriteCompression _compress = kSprCompress_None; // sprite compression type
-    sprkey_t _curPos; // current stream position (sprite slot)
+    sprkey_t _curPos = UNDEFINED_SPRITE_SLOT; // current stream position (sprite slot)
 };
 
 

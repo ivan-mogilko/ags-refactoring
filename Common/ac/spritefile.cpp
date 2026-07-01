@@ -172,11 +172,6 @@ static inline uint8_t GetPaletteBPP(SpriteFormat fmt)
 }
 
 
-SpriteFile::SpriteFile()
-{
-    _curPos = -2;
-}
-
 HError SpriteFile::OpenFile(std::unique_ptr<Stream> &&sprite_file,
     std::unique_ptr<Stream> &&index_file)
 {
@@ -195,6 +190,14 @@ HError SpriteFile::OpenFile(std::unique_ptr<Stream> &&sprite_file,
     return OpenFileImpl(std::move(sprite_file), std::move(index_file), nullptr, &metrics);
 }
 
+HError SpriteFile::OpenFile(std::unique_ptr<Stream> &&sprite_file, const SpriteFile &init_toc_from)
+{
+    _toc = init_toc_from._toc;
+    _stream = std::move(sprite_file);
+    _curPos = UNDEFINED_SPRITE_SLOT;
+    return HError::None();
+}
+
 HError SpriteFile::OpenFileImpl(std::unique_ptr<Stream> &&sprite_file,
     std::unique_ptr<Stream> &&index_file, std::vector<Size> *metrics, std::vector<SpriteDatHeader> *metrics2)
 {
@@ -206,15 +209,15 @@ HError SpriteFile::OpenFileImpl(std::unique_ptr<Stream> &&sprite_file,
 
     _stream = std::move(sprite_file);
 
-    _version = (SpriteFileVersion)_stream->ReadInt16();
+    SpriteFileVersion version = (SpriteFileVersion)_stream->ReadInt16();
     // read the "Sprite File" signature
     char buff[20];
     _stream->ReadArray(&buff[0], 13, 1);
 
-    if (_version < kSprfVersion_Uncompressed || _version > kSprfVersion_Current)
+    if (version < kSprfVersion_Uncompressed || version > kSprfVersion_Current)
     {
         _stream.reset();
-        return new Error(String::FromFormat("Unsupported spriteset format (requested %d, supported %d - %d).", _version,
+        return new Error(String::FromFormat("Unsupported spriteset format (requested %d, supported %d - %d).", version,
             kSprfVersion_Uncompressed, kSprfVersion_Current));
     }
 
@@ -226,97 +229,105 @@ HError SpriteFile::OpenFileImpl(std::unique_ptr<Stream> &&sprite_file,
         return new Error("Uknown spriteset format.");
     }
 
-    int spriteFileID = 0;
-    _storeFlags = 0;
-    if (_version < kSprfVersion_Compressed)
+    int sprite_file_id = 0;
+    int store_flags = 0;
+    SpriteCompression compress = kSprCompress_None;
+    if (version < kSprfVersion_Compressed)
     {
-        _compress = kSprCompress_None;
+        compress = kSprCompress_None;
         // skip the palette
         _stream->Seek(256 * 3); // sizeof(RGB) * 256
     }
-    else if (_version == kSprfVersion_Compressed)
+    else if (version == kSprfVersion_Compressed)
     {
-        _compress = kSprCompress_RLE;
+        compress = kSprCompress_RLE;
     }
-    else if (_version >= kSprfVersion_Last32bit)
+    else if (version >= kSprfVersion_Last32bit)
     {
-        _compress = (SpriteCompression)_stream->ReadInt8();
-        spriteFileID = _stream->ReadInt32();
+        compress = (SpriteCompression)_stream->ReadInt8();
+        sprite_file_id = _stream->ReadInt32();
     }
 
     sprkey_t topmost;
-    if (_version < kSprfVersion_HighSpriteLimit)
+    if (version < kSprfVersion_HighSpriteLimit)
         topmost = (uint16_t)_stream->ReadInt16();
     else
         topmost = _stream->ReadInt32();
-    if (_version < kSprfVersion_Uncompressed)
+    if (version < kSprfVersion_Uncompressed)
         topmost = 200;
 
-    _spriteData.resize(topmost + 1);
-    if (metrics)
-        metrics->resize(topmost + 1);
-    if (metrics2)
-        metrics2->resize(topmost + 1);
-
     // Version 12+: read global store flags
-    if (_version >= kSprfVersion_StorageFormats)
+    if (version >= kSprfVersion_StorageFormats)
     {
-        _storeFlags = _stream->ReadInt8();
+        store_flags = _stream->ReadInt8();
         _stream->ReadInt8(); // reserved
         _stream->ReadInt8();
         _stream->ReadInt8();
     }
 
+    SpriteFileTOC toc;
+    toc.Compress = compress;
+    toc.StoreFlags = store_flags;
+    toc.Version = version;
+
     // If there is a sprite index file, then use it,
     // but only if we are not required to fill full sprite info, because
     // index contains only basic parameters.
-    if (!metrics2 &&
-        LoadSpriteIndexFile(std::move(index_file), spriteFileID, topmost, metrics))
+    HError err;
+    if (index_file && !metrics2)
     {
-        // Succeeded
-        return HError::None();
+        // Try loading a index file
+        err = LoadSpriteIndexFile(std::move(index_file), sprite_file_id, topmost, toc, metrics);
     }
 
-    // Failed, index file is invalid; index sprites manually
-    return RebuildSpriteIndex(_stream.get(), topmost, metrics, metrics2);
+    if (!err)
+    {
+        // Index sprites manually
+        err = RebuildSpriteIndex(_stream.get(), topmost, toc, metrics, metrics2);
+    }
+
+    if (err)
+    {
+        // Succeeded
+        _toc.reset(new SpriteFileTOC(std::move(toc)));
+    }
+    return err;
 }
 
 void SpriteFile::Close()
 {
+    _toc = {};
     _stream.reset();
-    _spriteData.clear();
-    _version = kSprfVersion_Undefined;
-    _storeFlags = 0;
-    _compress = kSprCompress_None;
-    _curPos = -2;
+    _curPos = UNDEFINED_SPRITE_SLOT;
 }
 
 int SpriteFile::GetStoreFlags() const
 {
-    return _storeFlags;
+    return _toc ? _toc->StoreFlags : 0;
 }
 
 SpriteCompression SpriteFile::GetSpriteCompression() const
 {
-    return _compress;
+    return _toc ? _toc->Compress : kSprCompress_None;
 }
 
 sprkey_t SpriteFile::GetTopmostSprite() const
 {
-    return _spriteData.size() > 0 ? static_cast<sprkey_t>(_spriteData.size()) - 1 : -1;
+    return (_toc && _toc->SpriteData.size() > 0) ? static_cast<sprkey_t>(_toc->SpriteData.size()) - 1 : -1;
 }
 
 size_t SpriteFile::GetSpriteCount() const
 {
-    return _validCount;
+    return _toc ? _toc->ValidCount : 0u;
 }
 
-bool SpriteFile::LoadSpriteIndexFile(std::unique_ptr<Stream> &&fidx,
-    int expectedFileID, sprkey_t topmost, std::vector<Size> *metrics)
+HError SpriteFile::LoadSpriteIndexFile(std::unique_ptr<Stream> &&fidx,
+    int expect_file_id, sprkey_t topmost, SpriteFileTOC &toc, std::vector<Size> *metrics)
 {
+    assert(fidx);
     if (!fidx)
     {
-        return false;
+        return new Error("Internal error: sprite index stream is not provided");
     }
 
     char buffer[9];
@@ -325,19 +336,19 @@ bool SpriteFile::LoadSpriteIndexFile(std::unique_ptr<Stream> &&fidx,
     buffer[8] = 0;
     if (strcmp(buffer, spindexid))
     {
-        return false;
+        return new Error("Internal error: sprite index signature mismatch");
     }
     // check version
     SpriteIndexFileVersion vers = (SpriteIndexFileVersion)fidx->ReadInt32();
     if (vers < kSpridxfVersion_Initial || vers > kSpridxfVersion_Current)
     {
-        return false;
+        return new Error("Sprite index signature mismatch");
     }
     if (vers >= kSpridxfVersion_Last32bit)
     {
-        if (fidx->ReadInt32() != expectedFileID)
+        if (fidx->ReadInt32() != expect_file_id)
         {
-            return false;
+            return new Error("Sprite index ID not matching sprite file's");
         }
     }
 
@@ -345,12 +356,12 @@ bool SpriteFile::LoadSpriteIndexFile(std::unique_ptr<Stream> &&fidx,
     // end index+1 should be the same as num sprites
     if (fidx->ReadInt32() != topmost_index + 1)
     {
-        return false;
+        return new Error("Sprite index's topmost sprite mismatch with number of sprites");
     }
 
     if (topmost_index != topmost)
     {
-        return false;
+        return new Error("Sprite index sprite count not matching sprite file's");
     }
 
     sprkey_t numsprits = topmost_index + 1;
@@ -374,12 +385,16 @@ bool SpriteFile::LoadSpriteIndexFile(std::unique_ptr<Stream> &&fidx,
         fidx->ReadArrayOfInt64(spriteoffs.data(), numsprits);
     }
 
+    std::vector<SpriteRef> sprite_data;
+    sprite_data.resize(topmost + 1);
+    if (metrics)
+        metrics->resize(topmost + 1);
     for (sprkey_t i = 0; i <= topmost_index; ++i)
     {
         if (spriteoffs[i] != 0)
         {
-            _spriteData[i].Offset = spriteoffs[i];
-            _spriteData[i].HasImage = (spritewidths[i] > 0) && (spriteheights[i] > 0);
+            sprite_data[i].Offset = spriteoffs[i];
+            sprite_data[i].HasImage = (spritewidths[i] > 0) && (spriteheights[i] > 0);
             if (metrics)
             {
                 (*metrics)[i].Width = spritewidths[i];
@@ -387,7 +402,8 @@ bool SpriteFile::LoadSpriteIndexFile(std::unique_ptr<Stream> &&fidx,
             }
         }
     }
-    return true;
+    toc.SpriteData = std::move(sprite_data);
+    return HError::None();
 }
 
 static inline void ReadSprHeader(SpriteDatHeader &hdr, Stream *in,
@@ -409,18 +425,23 @@ static inline void ReadSprHeader(SpriteDatHeader &hdr, Stream *in,
     hdr = SpriteDatHeader(bpp, sformat, pal_count, compress, w, h);
 }
 
-HError SpriteFile::RebuildSpriteIndex(Stream *in, sprkey_t topmost,
+HError SpriteFile::RebuildSpriteIndex(Stream *in, sprkey_t topmost, SpriteFileTOC &toc,
     std::vector<Size> *metrics, std::vector<SpriteDatHeader> *metrics2)
 {
-    topmost = std::min(topmost, (sprkey_t)_spriteData.size() - 1);
-    _validCount = 0;
+    uint32_t valid_count = 0;
+    std::vector<SpriteRef> sprite_data;
+    sprite_data.resize(topmost + 1);
+    if (metrics)
+        metrics->resize(topmost + 1);
+    if (metrics2)
+        metrics2->resize(topmost + 1);
 
     for (sprkey_t i = 0; !in->EOS() && (i <= topmost); ++i)
     {
-        _spriteData[i].Offset = in->GetPosition();
+        sprite_data[i].Offset = in->GetPosition();
         SpriteDatHeader hdr;
-        ReadSprHeader(hdr, _stream.get(), _version, _compress);
-        _spriteData[i].HasImage = (hdr.BPP > 0) && (hdr.Width > 0) && (hdr.Height > 0);
+        ReadSprHeader(hdr, _stream.get(), toc.Version, toc.Compress);
+        sprite_data[i].HasImage = (hdr.BPP > 0) && (hdr.Width > 0) && (hdr.Height > 0);
         if (hdr.BPP == 0) continue; // empty slot, this is normal
         if (hdr.BPP < 0 || hdr.Width <= 0 || hdr.Height <= 0)
         {
@@ -430,7 +451,7 @@ HError SpriteFile::RebuildSpriteIndex(Stream *in, sprkey_t topmost,
         int pal_bpp = GetPaletteBPP(hdr.SFormat);
         if (pal_bpp > 0) in->Seek(hdr.PalCount * pal_bpp); // skip palette
         size_t data_sz =
-            ((_version >= kSprfVersion_StorageFormats) || _compress != kSprCompress_None) ?
+            ((toc.Version >= kSprfVersion_StorageFormats) || toc.Compress != kSprCompress_None) ?
             (uint32_t)in->ReadInt32() : hdr.Width * hdr.Height * hdr.BPP;
         in->Seek(data_sz); // skip image data
         if (metrics)
@@ -442,32 +463,35 @@ HError SpriteFile::RebuildSpriteIndex(Stream *in, sprkey_t topmost,
         {
             (*metrics2)[i] = hdr;
         }
-        _validCount++;
+        valid_count++;
     }
+
+    toc.ValidCount = valid_count;
+    toc.SpriteData = std::move(sprite_data);
     return HError::None();
 }
 
 bool SpriteFile::DoesSpriteExist(sprkey_t index)
 {
-    return (index >= 0) && (static_cast<size_t>(index) < _spriteData.size())
-        && (_spriteData[index].HasImage);
+    return _toc && (index >= 0) && (static_cast<size_t>(index) < _toc->SpriteData.size())
+        && (_toc->SpriteData[index].HasImage);
 }
 
 HError SpriteFile::LoadSprite(sprkey_t index, PixelBuffer &sprite)
 {
     sprite = {};
-    if (index < 0 || (size_t)index >= _spriteData.size())
+    if (index < 0 || index > GetTopmostSprite())
         return new Error(String::FromFormat("LoadSprite: slot index %d out of bounds (%d - %d).",
-            index, 0, _spriteData.size() - 1));
+            index, 0, GetTopmostSprite()));
 
-    if (_spriteData[index].Offset == 0)
+    if (_toc->SpriteData[index].Offset == 0)
         return HError::None(); // sprite is not in file
 
     SeekToSprite(index);
-    _curPos = -2; // mark undefined pos
+    _curPos = UNDEFINED_SPRITE_SLOT;
 
     SpriteDatHeader hdr;
-    ReadSprHeader(hdr, _stream.get(), _version, _compress);
+    ReadSprHeader(hdr, _stream.get(), _toc->Version, _toc->Compress);
     if (hdr.BPP == 0) return HError::None(); // empty slot, this is normal
     if (hdr.BPP < 0 || hdr.Width <= 0 || hdr.Height <= 0)
     {
@@ -503,7 +527,7 @@ HError SpriteFile::LoadSprite(sprkey_t index, PixelBuffer &sprite)
     }
     // (Optional) Decompress the image data into the temp buffer
     size_t in_data_size =
-        ((_version >= kSprfVersion_StorageFormats) || _compress != kSprCompress_None) ?
+        ((_toc->Version >= kSprfVersion_StorageFormats) || _toc->Compress != kSprCompress_None) ?
         (uint32_t)_stream->ReadInt32() : (w * h * bpp);
     if (hdr.Compress != kSprCompress_None)
     {
@@ -569,17 +593,17 @@ HError SpriteFile::LoadRawData(sprkey_t index, SpriteDatHeader &hdr, std::vector
 {
     hdr = SpriteDatHeader();
     data.resize(0);
-    if (index < 0 || (size_t)index >= _spriteData.size())
+    if (!_toc || index < 0 || index > GetTopmostSprite())
         return new Error(String::FromFormat("LoadSprite: slot index %d out of bounds (%d - %d).",
-            index, 0, _spriteData.size() - 1));
+            index, 0, GetTopmostSprite()));
 
-    if (_spriteData[index].Offset == 0)
+    if (_toc->SpriteData[index].Offset == 0)
         return HError::None(); // sprite is not in file
 
     SeekToSprite(index);
-    _curPos = -2; // mark undefined pos
+    _curPos = UNDEFINED_SPRITE_SLOT;
 
-    ReadSprHeader(hdr, _stream.get(), _version, _compress);
+    ReadSprHeader(hdr, _stream.get(), _toc->Version, _toc->Compress);
     if (hdr.BPP == 0) return HError::None(); // empty slot, this is normal
     size_t data_size = 0;
     soff_t data_pos = _stream->GetPosition();
@@ -588,7 +612,7 @@ HError SpriteFile::LoadRawData(sprkey_t index, SpriteDatHeader &hdr, std::vector
     data_size += pal_size;
     _stream->Seek(pal_size);
     // Pixel data
-    if ((_version >= kSprfVersion_StorageFormats) || _compress != kSprCompress_None)
+    if ((_toc->Version >= kSprfVersion_StorageFormats) || _toc->Compress != kSprCompress_None)
         data_size += (uint32_t)_stream->ReadInt32() + sizeof(uint32_t);
     else
         data_size += hdr.Width * hdr.Height * hdr.BPP;
@@ -601,25 +625,16 @@ HError SpriteFile::LoadRawData(sprkey_t index, SpriteDatHeader &hdr, std::vector
     return HError::None();
 }
 
-HError SpriteFile::LoadSpriteMetrics(std::vector<SpriteDatHeader> &metrics)
-{
-    metrics.resize(_spriteData.size());
-    if (_spriteData.size() == 0)
-        return HError::None();
-
-    return RebuildSpriteIndex(_stream.get(), GetTopmostSprite(), nullptr, &metrics);
-}
-
 void SpriteFile::SeekToSprite(sprkey_t index)
 {
     // If we didn't just load the previous sprite, seek to it
+    assert(_toc);
     if (index != _curPos)
     {
-        _stream->Seek(_spriteData[index].Offset, kSeekBegin);
+        _stream->Seek(_toc->SpriteData[index].Offset, kSeekBegin);
         _curPos = index;
     }
 }
-
 
 // Finds the topmost occupied slot index
 static sprkey_t FindTopmostSprite(const std::vector<std::pair<bool, BitmapData>> &sprites)
