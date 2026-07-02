@@ -22,7 +22,7 @@ Size get_new_size_for_sprite(const Size &size, const uint32_t sprite_flags);
 // Returns a resulting bitmap, which may be a new or old bitmap; or null on failure.
 // Original bitmap **gets deleted** if a new bitmap had to be created,
 // or if failed to properly initialize one.
-Common::Bitmap *initialize_sprite(Common::sprkey_t index, Common::Bitmap *image, uint32_t &sprite_flags);
+Common::Bitmap *initialize_sprite(Common::Bitmap *image, uint32_t &sprite_flags);
 void post_init_sprite(Common::sprkey_t index);
 
 #endif // __AGS_EE_AC__SPRITE_H

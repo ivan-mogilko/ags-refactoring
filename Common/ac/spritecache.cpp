@@ -367,43 +367,71 @@ size_t SpriteCache::CalcSize(const std::unique_ptr<Bitmap> &item)
 
 Bitmap *SpriteCache::LoadSprite(sprkey_t index, bool lock)
 {
-    assert((index >= 0) && ((size_t)index < _spriteData.size()));
-    if (index < 0 || (size_t)index >= _spriteData.size())
+    assert(IsAssetSprite(index));
+    if (!IsAssetSprite(index))
         return nullptr;
-    assert((_spriteData[index].Flags & SPRCACHEFLAG_ISASSET) != 0);
 
-    PixelBuffer pxbuf;
-    HError err = _file.LoadSprite(index, pxbuf);
-    if (!pxbuf)
+    // First of all, merge any externally loaded sprites accumulated so far,
+    // and see if we may already return a prepared sprite
+    Bitmap *image_ptr = nullptr;
+    // FIXME: wrap in a ARE THREADS SUPPORTED macro
     {
-        Debug::Printf(kDbgGroup_SprCache, kDbgMsg_Warn,
-            "LoadSprite: failed to load sprite %d:\n%s\n - remapping to placeholder.", index,
-            err ? "Sprite does not exist." : err->FullMessage().GetCStr());
-        RemapSpriteToPlaceholder(index);
-        return nullptr;
+        std::lock_guard<std::mutex> lk(_loadMutex);
+        for (auto &item : _extLoadedSprites)
+        {
+            if (item.first == index)
+                image_ptr = item.second.first.get(); // save image ptr for returning from function
+            // TODO: should we filter flags that are allowed to be re-assigned using a mask here?
+            _sprInfos[index].Flags = item.second.second;
+            PutLoadedSprite(item.first, std::move(item.second.first),
+                lock && item.first == index); // lock only requested sprite now
+        }
+        _extLoadedSprites.clear();
     }
 
-    // Let the external user convert this sprite's image for their needs
-    Bitmap *image = new Bitmap(std::move(pxbuf));
-    image = _callbacks.InitSprite(index, image, _sprInfos[index].Flags);
-    if (!image)
+    // Sprite is not ready, load one from the file
+    if (!image_ptr)
     {
-        Debug::Printf(kDbgGroup_SprCache, kDbgMsg_Warn,
-            "LoadSprite: failed to initialize sprite %d, remapping to placeholder.", index);
-        RemapSpriteToPlaceholder(index);
-        return nullptr;
+        PixelBuffer pxbuf;
+        HError err = _file.LoadSprite(index, pxbuf);
+        if (!pxbuf)
+        {
+            Debug::Printf(kDbgGroup_SprCache, kDbgMsg_Warn,
+                "LoadSprite: failed to load sprite %d:\n%s\n - remapping to placeholder.", index,
+                err ? "Sprite does not exist." : err->FullMessage().GetCStr());
+            RemapSpriteToPlaceholder(index);
+            return nullptr;
+        }
+
+        // Let the external user convert this sprite's image for their needs
+        std::unique_ptr<Bitmap> image(new Bitmap(std::move(pxbuf)));
+        image.reset(_callbacks.InitSprite(image.release(), _sprInfos[index].Flags));
+        if (!image)
+        {
+            Debug::Printf(kDbgGroup_SprCache, kDbgMsg_Warn,
+                "LoadSprite: failed to initialize sprite %d, remapping to placeholder.", index);
+            RemapSpriteToPlaceholder(index);
+            return nullptr;
+        }
+        image_ptr = image.get(); // save image ptr for returning from function
+        PutLoadedSprite(index, std::move(image), lock);
     }
 
+    return image_ptr;
+}
+
+void SpriteCache::PutLoadedSprite(sprkey_t index, std::unique_ptr<Bitmap> &&image, bool lock)
+{
     // save the stored sprite info
     _sprInfos[index].Width = image->GetWidth();
     _sprInfos[index].Height = image->GetHeight();
 
     // Add to the cache, lock if requested or if it's sprite 0
     const bool should_lock = lock || (index == 0);
-    ResourceCache::Put(index, std::unique_ptr<Bitmap>(image), kCacheItem_Locked * should_lock);
+    ResourceCache::Put(index, std::move(image), kCacheItem_Locked * should_lock);
     _spriteData[index].Flags =
-          SPRCACHEFLAG_ISASSET |
-          SPRCACHEFLAG_LOCKED * should_lock;
+        SPRCACHEFLAG_ISASSET |
+        SPRCACHEFLAG_LOCKED * should_lock;
     SprCacheLog("Loaded %d, normal size %zu KB", index, _cacheSize / 1024);
 
     // Let the external user to react to the new sprite;
@@ -412,7 +440,40 @@ Bitmap *SpriteCache::LoadSprite(sprkey_t index, bool lock)
     // FIXME: redo this to let pass the Bitmap itself, not sprite's index,
     // as using a sprite index requires accessing a SpriteCache, which we may not want
     _callbacks.PostInitSprite(index);
-    return image;
+}
+
+void SpriteCache::OnSpriteLoaded(sprkey_t index, std::unique_ptr<Bitmap> &&image)
+{
+    assert(index >= 0); // out of positive range indexes are valid to fail
+    assert(image);
+    if (index < 0 || !image)
+        return;
+
+    // FIXME: wrap in a ARE THREADS SUPPORTED macro
+
+    std::lock_guard<std::mutex> lk(_loadMutex);
+    // FIXME: sprite data flags can also be modified by SetSprite etc,
+    //        need to lock mutex there too
+    if (!IsAssetSprite(index))
+        return;
+
+    // Let the external user convert this sprite's image for their needs
+    // FIXME: _sprInfos[index].Flags is not protected by a mutex anywhere else!!
+    //        must reorganize this somehow.
+    // IDEA:  pass these flags along with the sprite's request, and recv in
+    //        OnSpriteLoaded() as a parameter?
+    uint32_t sprite_flags = _sprInfos[index].Flags;
+    image.reset(_callbacks.InitSprite(image.release(), sprite_flags));
+    if (!image)
+    {
+        Debug::Printf(kDbgGroup_SprCache, kDbgMsg_Warn,
+            "LoadSprite: failed to initialize sprite %d, receiving one from external loader.", index);
+        return;
+    }
+
+    // NOTE: do not call PostInitSprite here, save that for when the sprite
+    // is about to be placed in the main storage.
+    _extLoadedSprites[index] = std::move(std::make_pair(std::move(image), sprite_flags));
 }
 
 void SpriteCache::RemapSpriteToPlaceholder(sprkey_t index)

@@ -39,11 +39,8 @@ Size get_new_size_for_sprite(const Size &size, const uint32_t sprite_flags)
     return newsz;
 }
 
-Bitmap *initialize_sprite(sprkey_t index, Bitmap *image, uint32_t &sprite_flags)
+Bitmap *initialize_sprite(Bitmap *image, uint32_t &sprite_flags)
 {
-    int oldeip = get_our_eip();
-    set_our_eip(4300);
-
     // If SPF_HADALPHACHANNEL is set that means that we have stripped alpha
     // channel from this sprite last time it was loaded. Add SPF_ALPHACHANNEL
     // so that we can remove it properly again (see PrepareSpriteForUse).
@@ -53,11 +50,7 @@ Bitmap *initialize_sprite(sprkey_t index, Bitmap *image, uint32_t &sprite_flags)
     }
 
     // stretch sprites to correct resolution
-    Size newsz = get_new_size_for_sprite(image->GetSize(), sprite_flags);
-
-    eip_guinum = index;
-    eip_guiobj = newsz.Width;
-        
+    Size newsz = get_new_size_for_sprite(image->GetSize(), sprite_flags);       
     Bitmap *use_bmp = image;
     if (newsz != image->GetSize())
     {
@@ -78,8 +71,6 @@ Bitmap *initialize_sprite(sprkey_t index, Bitmap *image, uint32_t &sprite_flags)
         sprite_flags &= ~SPF_ALPHACHANNEL;
         sprite_flags |= SPF_HADALPHACHANNEL;
     }
-
-    set_our_eip(oldeip);
     return use_bmp;
 }
 

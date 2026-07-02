@@ -39,6 +39,7 @@
 #include <functional>
 #include <list>
 #include <memory>
+#include <mutex>
 #include <vector>
 #include "ac/spritefile.h"
 #include "gfx/bitmap.h"
@@ -60,8 +61,21 @@ namespace AGS
 namespace Common
 {
 
+// ISpriteLoadDestination is a interface of a object that receives sprites
+// loaded by someone else. Assumes that the sprites may be received from
+// another thread. This is used by the SpriteCache to allow external sprite
+// loaders. What the receiving object is doing with the sprite is its own
+// internal business (it may store, or discard one).
+class ISpriteLoadDestination
+{
+    // Receive sprite's image
+    virtual void OnSpriteLoaded(sprkey_t index, std::unique_ptr<Bitmap> &&image) = 0;
+};
+
+
 class SpriteCache :
-    protected ResourceCache<sprkey_t, std::unique_ptr<Bitmap>>
+    protected ResourceCache<sprkey_t, std::unique_ptr<Bitmap>>,
+    public ISpriteLoadDestination
 {
 public:
     static const sprkey_t NO_SPRITE_INDEX  = -1;
@@ -70,7 +84,7 @@ public:
     static const size_t   MAX_SPRITE_SLOTS = INT32_MAX;
 
     typedef std::function<Size(const Size &size, const uint32_t sprite_flags)> PfnAdjustSpriteSize;
-    typedef std::function<Bitmap*(sprkey_t index, Bitmap *image, uint32_t &sprite_flags)> PfnInitSprite;
+    typedef std::function<Bitmap*(Bitmap *image, uint32_t &sprite_flags)> PfnInitSprite;
     // FIXME: redo this to let pass the Bitmap itself, not sprite's index,
     // as using a sprite index requires accessing a SpriteCache, which we may not want;
     // see LoadSpriteNoCache for example.
@@ -128,6 +142,7 @@ public:
     // Tells if the sprite storage still has unoccupied slots to put new sprites in
     // FIXME: this method is not implemented properly, dont use until its fixed.
     // bool     HasFreeSlots() const;
+
     // Tells if the given slot is reserved for the asset sprite, that is a "static"
     // sprite cached from the game assets
     bool        IsAssetSprite(sprkey_t index) const;
@@ -204,6 +219,8 @@ private:
     sprkey_t    GetFreeIndex();
     // Load sprite from game resource and put into the cache
     Bitmap *    LoadSprite(sprkey_t index, bool lock = false);
+    // Puts loaded sprite into the main storage (helper method)
+    void        PutLoadedSprite(sprkey_t index, std::unique_ptr<Bitmap> &&image, bool lock);
     // Remap the given index to the sprite 0
     void        RemapSpriteToPlaceholder(sprkey_t index);
     // Initialize the empty sprite slot
@@ -216,10 +233,16 @@ private:
     sprkey_t    TraceTopmostSpriteBack(sprkey_t start_with = -1);
 
     //
+    // ISpriteLoadDestination implementation
+    //
+    // Receive and store sprite's bitmap
+    void OnSpriteLoaded(sprkey_t index, std::unique_ptr<Bitmap> &&image) override;
+
+    //
     // Dummy no-op variants for callbacks
     //
     static Size DummyAdjustSize(const Size &size, const uint32_t) { return size; }
-    static Bitmap* DummyInitSprite(sprkey_t, Bitmap *image, uint32_t&) { return image; }
+    static Bitmap* DummyInitSprite(Bitmap *image, uint32_t&) { return image; }
     static void DummyPostInitSprite(sprkey_t) { /* do nothing */ }
     static void DummyPrewriteSprite(Bitmap*) { /* do nothing */ }
 
@@ -251,9 +274,15 @@ private:
     std::unique_ptr<Bitmap> _placeholder;
     // Topmost known occupied sprite slot
     sprkey_t _topmostSprite = -1;
+    // Externally loaded sprites, stored separately until merged into the
+    // main storage on a convenient event. The bitmaps are stored paired
+    // with the sprite flags.
+    std::unordered_map<sprkey_t, std::pair<std::unique_ptr<Bitmap>, uint32_t>> _extLoadedSprites;
 
     Callbacks  _callbacks;
     SpriteFile _file;
+    // Mutex for external sprite loading (ISpriteLoadDestination impl)
+    std::mutex _loadMutex;
 };
 
 } // namespace Common
