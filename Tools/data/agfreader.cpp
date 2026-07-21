@@ -309,6 +309,14 @@ int ValueParser::ReadInt(DocElem elem, const char *field, int def_value)
     return def_value;
 }
 
+float ValueParser::ReadFloat(DocElem elem, const char *field, float def_value)
+{
+    DocElem name_f = elem->FirstChildElement(field);
+    if (name_f)
+        return StrUtil::StringToFloat(name_f->GetText(), def_value);
+    return def_value;
+}
+
 bool ValueParser::ReadBool(DocElem elem, const char *field, bool def_value)
 {
     if (!elem)
@@ -865,9 +873,46 @@ void CustomPropertySchema::GetAll(DocElem root, std::vector<DocElem> &elems)
     }
 }
 
+void RuntimeSetup::ReadAllData(DocElem elem, DataUtil::RuntimeSetup &setup)
+{
+    setup.AAScaledSprites = ReadBool(elem, "AAScaledSprites");
+    setup.AutoLockMouse = ReadBool(elem, "AutoLockMouse");
+    setup.CompressSaves = ReadBool(elem, "CompressSaves");
+    setup.CustomAppDataPath = ReadString(elem, "CustomAppDataPath");
+    setup.CustomSavePath = ReadString(elem, "CustomSavePath");
+    setup.AudioDriver = ReadString(elem, "DigitalSound");
+    setup.FullscreenDesktop = ReadBool(elem, "FullscreenDesktop");
+    setup.FullscreenGameScaling = ReadString(elem, "FullscreenGameScaling");
+    setup.WindowGameScaling = ReadString(elem, "GameScaling");
+    setup.GameScalingMultiplier = ReadInt(elem, "GameScalingMultiplier");
+    setup.GraphicsDriver = ReadString(elem, "GraphicsDriver");
+    setup.GraphicsFilter = ReadString(elem, "GraphicsFilter");
+    setup.MouseSpeed = ReadFloat(elem, "MouseSpeed");
+    setup.RenderAtScreenResolution = ReadBool(elem, "RenderAtScreenResolution");
+    setup.Rotation = ReadString(elem, "Rotation");
+    setup.ShowFPS = ReadBool(elem, "ShowFPS");
+    setup.SoundCacheSize = ReadInt(elem, "SoundCacheSize");
+    setup.SpriteCacheSize = ReadInt(elem, "SpriteCacheSize");
+    setup.TextureCacheSize = ReadInt(elem, "TextureCacheSize");
+    setup.TitleText = ReadString(elem, "TitleText");
+    setup.TouchToMouseEmulation = ReadString(elem, "TouchToMouseEmulation");
+    setup.TouchToMouseMotionMode = ReadString(elem, "TouchToMouseMotionMode");
+    setup.Translation = ReadString(elem, "Translation");
+    setup.UseCustomAppDataPath = ReadBool(elem, "UseCustomAppDataPath");
+    setup.UseCustomSavePath = ReadBool(elem, "UseCustomSavePath");
+    setup.UseVoicePack = ReadBool(elem, "UseVoicePack");
+    setup.VSync = ReadBool(elem, "VSync");
+    setup.Windowed = ReadBool(elem, "Windowed");
+}
+
 DocElem Game::GetSettings(DocElem elem)
 {
     return elem->FirstChildElement("Settings");
+}
+
+DocElem Game::GetDefaultSetup(DocElem elem)
+{
+    return elem->FirstChildElement("RuntimeSetup");
 }
 
 DocElem ScriptWithHeader::GetHeader(DocElem elem)
@@ -1644,6 +1689,14 @@ void ReadGameRef(DataUtil::GameRef &game, AGFReader &reader)
         for (const auto &view : views)
             if (view.ID > 0) game.Views[view.ID - 1] = view;
     }
+}
+
+void ReadRuntimeSetup(DataUtil::RuntimeSetup &setup, DocElem elem)
+{
+    AGF::Game p_game;
+    AGF::RuntimeSetup p_set;
+    DocElem set_elem = p_game.GetDefaultSetup(elem);
+    p_set.ReadAllData(set_elem, setup);
 }
 
 void ReadScriptList(std::vector<String> &script_list, DocElem root)
