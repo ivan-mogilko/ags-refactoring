@@ -1699,6 +1699,19 @@ void ReadRuntimeSetup(DataUtil::RuntimeSetup &setup, DocElem elem)
     p_set.ReadAllData(set_elem, setup);
 }
 
+void ReadCustomDataDirectories(std::vector<String> &dirs, DocElem root)
+{
+    AGF::Game p_game;
+    AGF::GameSettings p_set;
+    DataUtil::GameSettings set;
+    p_set.ReadAllData(p_game.GetSettings(root), set);
+    const auto game_dirs = set.CustomDataDir.Split(',');
+    dirs.clear();
+    for (const auto &dir : game_dirs)
+        if (!dir.IsEmpty())
+            dirs.push_back(dir);
+}
+
 void ReadFontList(std::vector<int> &font_list, DocElem root)
 {
     AGF::Fonts fonts;

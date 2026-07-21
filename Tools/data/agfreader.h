@@ -515,6 +515,8 @@ void ReadGameRef(DataUtil::GameRef &game, AGFReader &reader);
 void ReadGameData(DataUtil::GameData &game, AGFReader &reader);
 // Reads default runtime game setup data
 void ReadRuntimeSetup(DataUtil::RuntimeSetup &setup, DocElem root);
+// Reads a list of custom asset directories for this project
+void ReadCustomDataDirectories(std::vector<String> &dirs, DocElem root);
 // Reads a list of font IDs.
 // In 3.x AGS project the font items do not provide explicit filenames, so one has to rely on IDs.
 void ReadFontList(std::vector<int> &font_list, DocElem root);
