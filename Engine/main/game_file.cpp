@@ -141,12 +141,12 @@ HError LoadGameScripts(LoadedGameEntities &ents)
         ents.GlobalScript = script;
     }
     // Dialog script
-    in = AssetMgr->OpenAsset("DialogScripts.o");
+    in = AssetMgr->OpenAsset("__DialogScripts.o");
     if (in)
     {
         PScript script(ccScript::CreateFromStream("__DialogScripts.asc", in.get()));
         if (!script)
-            return MakeScriptLoadError("DialogScripts.o");
+            return MakeScriptLoadError("__DialogScripts.o");
         ents.DialogScript = script;
     }
     // Script modules
