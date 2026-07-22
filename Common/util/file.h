@@ -72,6 +72,8 @@ namespace File
     bool        RenameFile(const String &old_name, const String &new_name);
     // Copies a file from src_path to dst_path; returns TRUE on success
     bool        CopyFile(const String &src_path, const String &dst_path, bool overwrite);
+    // Create a hard-link referencing the existing file; returns TRUE on success
+    bool        LinkFile(const String &src_path, const String &dst_path, bool overwrite);
     // Truncates existing file to the given length in bytes.
     bool        TruncateFile(const String &filename, soff_t length);
 

@@ -249,6 +249,21 @@ int ags_file_copy(const char *src, const char *dst, int overwrite)
 #endif // POSIX
 }
 
+int ags_file_link(const char *src, const char *dst, int overwrite)
+{
+    // Since link() does not overwrite, we have to test link's presence and remove existing first
+    if (ags_file_exists(dst) != 0)
+        ags_file_remove(dst);
+#if AGS_PLATFORM_OS_WINDOWS
+    WCHAR wsrc[MAX_PATH_SZ], wdst[MAX_PATH_SZ];
+    MultiByteToWideChar(CP_UTF8, 0, src, -1, wsrc, MAX_PATH_SZ);
+    MultiByteToWideChar(CP_UTF8, 0, dst, -1, wdst, MAX_PATH_SZ);
+    return !CreateHardLinkW(wdst, wsrc, NULL); // inverse CreateHardLinkW's result to match 0 = success
+#else // POSIX
+    return link(src, dst);
+#endif // POSIX
+}
+
 int ags_file_truncate(const char *path, file_off_t length)
 {
 #if AGS_PLATFORM_OS_WINDOWS

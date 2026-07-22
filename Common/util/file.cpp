@@ -141,6 +141,11 @@ bool File::CopyFile(const String &src_path, const String &dst_path, bool overwri
     return ags_file_copy(src_path.GetCStr(), dst_path.GetCStr(), overwrite) == 0;
 }
 
+bool File::LinkFile(const String &src_path, const String &dst_path, bool overwrite)
+{
+    return ags_file_link(src_path.GetCStr(), dst_path.GetCStr(), overwrite) == 0;
+}
+
 bool File::TruncateFile(const String &filename, soff_t length)
 {
     return ags_file_truncate(filename.GetCStr(), length) == 0;

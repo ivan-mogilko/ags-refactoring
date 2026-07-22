@@ -56,6 +56,8 @@ namespace Directory
     // Makes sure all the sub-directories in the path are created. Parent path is
     // not touched, and function must fail if parent path is not accessible.
     bool   CreateAllDirectories(const String &parent, const String &sub_dirs);
+    // Deletes a directory, returns result. If no such directory existed then returns positive result.
+    bool   DeleteDirectory(const String &path);
     // Sets current working directory, returns the resulting path
     String SetCurrentDirectory(const String &path);
     // Gets current working directory

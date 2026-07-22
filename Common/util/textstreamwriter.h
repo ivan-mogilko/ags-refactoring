@@ -32,6 +32,7 @@ class TextStreamWriter : public TextWriter
 public:
     TextStreamWriter(std::unique_ptr<Stream> &&stream)
         : _stream(std::move(stream)) {}
+    TextStreamWriter(TextStreamWriter &&writer) = default;
     ~TextStreamWriter() override = default;
 
     std::unique_ptr<Stream> ReleaseStream() { return std::move(_stream); }
