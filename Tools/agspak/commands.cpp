@@ -461,7 +461,7 @@ int Command_List(const String &src_pak)
     // TODO: print more info, but perhaps require cmd arguments for that? (because it's not always useful)
     for (const auto &asset : lib.AssetInfos)
     {
-        printf("* %s\n", asset.FileName.GetCStr());
+        printf("* %-40s[%10lld]\n", asset.FileName.GetCStr(), asset.Size);
     }
     printf("Done.\n");
     return 0;
