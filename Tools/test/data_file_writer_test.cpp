@@ -534,7 +534,7 @@ TEST(DataFileWriter, RoundTripAudioType)
     std::vector<uint8_t> buffer;
     auto out = std::make_unique<Stream>(
         std::make_unique<VectorStream>(buffer, kStream_Write));
-    DataFileWriter::WriteAudioType(out.get(), &type, 4);
+    DataFileWriter::WriteAudioType(out.get(), type, 4);
     out.reset();
 
     auto in = std::make_unique<Stream>(

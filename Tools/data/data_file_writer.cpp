@@ -97,10 +97,10 @@ void WritePropertySchemaBlock(Stream *out,
 
 // Read by Properties::ReadValues() in Common/game/customproperties.cpp for
 // inventory slot 0, from GameSetupStruct::read_customprops().
-void WriteUnusedInventoryPropertyValues(Stream *out)
+void WriteEmptyPropertyValues(Stream *out)
 {
-    out->WriteInt32(1); // inv slot 0 is unused, write the property header (int 1)
-    out->WriteInt32(0); // then write the number of props used by this inv item (int 0)
+    out->WriteInt32(AGS::Common::kPropertyVersion_Current);
+    out->WriteInt32(0); // number of items
 }
 
 // Read inline by GameSetupStruct::read_font_infos() in
@@ -422,12 +422,12 @@ void WriteGuiListBox(Stream *out, const DataUtil::GUIListBoxData &list_box)
 }
 
 // Read by AudioClipType::ReadFromFile() in Common/ac/audiocliptype.cpp.
-void WriteAudioType(Stream *out, const DataUtil::AudioTypeData *type, int id)
+void WriteAudioType(Stream *out, const DataUtil::AudioTypeData &type, int id)
 {
     out->WriteInt32(id);
-    out->WriteInt32(type ? type->MaxChannels : 1);
-    out->WriteInt32(type ? type->VolumeReductionWhileSpeechPlaying : 0);
-    out->WriteInt32(type ? type->Crossfade : 0);
+    out->WriteInt32(type.MaxChannels);
+    out->WriteInt32(type.VolumeReductionWhileSpeechPlaying);
+    out->WriteInt32(type.Crossfade);
     out->WriteInt32(0);
 }
 
@@ -613,7 +613,7 @@ void WriteGameSetupStructBase(const DataUtil::GameData &game, Stream *out, soff_
     out->WriteInt32(num_characters); // Characters.Count
     out->WriteInt32(game.PlayerCharacter); // PlayerCharacter.ID
     out->WriteInt32(game.Settings.MaximumScore);
-    out->WriteInt16(static_cast<int16_t>(num_inventory + 1));
+    out->WriteInt16(static_cast<int16_t>(num_inventory + 1)); // add dummy item at index 0
     out->WriteInt16(0); // alignment padding
     out->WriteInt32(0); // was game.Dialogs.Count, write 0 for old format entries, we use "v363_dialogsnew" extension
     out->WriteInt32(0); // numdlgmessage, deprecated
@@ -706,7 +706,9 @@ void WriteSpriteFlags(const DataUtil::GameData &game, Stream *out)
 // which calls InventoryItemInfo::ReadFromFile().
 void WriteInventoryBlock(const DataUtil::GameData &game, Stream *out)
 {
-    out->WriteByteCount(0, 68); // slot 0 is unused
+    // Add dummy item at index 0
+    DataUtil::InventoryItemData dummy_item;
+    WriteInventoryItem(out, dummy_item);
     for (const auto &item_ref : game.Inventory)
         WriteInventoryItem(out, item_ref);
 }
@@ -893,7 +895,8 @@ void WriteCustomPropertiesBlock(const DataUtil::GameData &game, Stream *out)
     WritePropertySchemaBlock(out, game.PropertySchema);
     for (const auto &character : game.Characters)
         WritePropertyValues(out, character.Properties);
-    WriteUnusedInventoryPropertyValues(out);
+    // Add dummy item at index 0
+    WriteEmptyPropertyValues(out);
     for (const auto &item : game.Inventory)
         WritePropertyValues(out, item.Properties);
 }
@@ -919,11 +922,14 @@ void WriteLegacyScriptNamesBlock(const DataUtil::GameData &game, Stream *out)
 // Read by GameSetupStruct::read_audio() in Common/ac/gamesetupstruct.cpp.
 void WriteAudioBlock(const DataUtil::GameData &game, Stream *out)
 {
+    // Add a fixed voice-over audio type at index 0
     const int audio_type_count = static_cast<int>(game.AudioTypes.size()) + 1;
     out->WriteInt32(audio_type_count);
-    WriteAudioType(out, nullptr, 0);
+    DataUtil::AudioTypeData voice_type;
+    voice_type.MaxChannels = 1;
+    WriteAudioType(out, voice_type, 0);
     for (size_t i = 0; i < game.AudioTypes.size(); ++i)
-        WriteAudioType(out, &game.AudioTypes[i], static_cast<int>(i) + 1);
+        WriteAudioType(out, game.AudioTypes[i], static_cast<int>(i) + 1);
 
     out->WriteInt32(static_cast<int32_t>(game.AudioClips.size()));
     for (size_t i = 0; i < game.AudioClips.size(); ++i)
@@ -1024,7 +1030,7 @@ void WriteExt361ObjNames(Stream *out, const DataUtil::GameData &game)
         StrUtil::WriteString(character.ScriptName, out);
         StrUtil::WriteString(character.RealName, out);
     }
-    // Add 1 dummy inventory slot at index 0
+    // Add dummy item at index 0
     out->WriteInt32(static_cast<int32_t>(game.Inventory.size() + 1));
     StrUtil::WriteString("", out);
     for (const auto &item : game.Inventory)
