@@ -46,6 +46,7 @@
 #include "game/customproperties.h"
 #include "game/interactions.h"
 #include "gfx/gfx_def.h"
+#include "gui/guibutton.h"
 #include "gui/guidefines.h"
 #include "util/string_utils.h"
 
@@ -338,9 +339,9 @@ void WriteGuiControl(Stream *out, const DataUtil::GUIControlData &control,
 int GetButtonClickAction(const String &action)
 {
     if (action.CompareNoCase("SetCursorMode") == 0 || action.CompareNoCase("SetMode") == 0)
-        return 1;
+        return kGUIAction_SetMode;
     if (action.CompareNoCase("RunScript") == 0)
-        return 2;
+        return kGUIAction_RunScript;
     return 0;
 }
 
@@ -1111,8 +1112,8 @@ void WriteExt363GuiControls(Stream *out, const DataUtil::GameData &game)
         WriteGuiControlLooks363(out, *button);
         const bool dynamic = button->ColorStyle == DataUtil::kButtonColor_Dynamic ||
             button->ColorStyle == DataUtil::kButtonColor_DynamicFlat;
-        out->WriteInt32((dynamic ? 1 : 0) |
-            (button->ColorStyle == DataUtil::kButtonColor_DynamicFlat ? 2 : 0));
+        out->WriteInt32((dynamic ? AGS::Common::kButton_DynamicColors : 0) |
+            (button->ColorStyle == DataUtil::kButtonColor_DynamicFlat ? AGS::Common::kButton_FlatStyle : 0));
         out->WriteInt32(button->BorderShadeColor);
         out->WriteInt32(button->MouseOverBackgroundColor);
         out->WriteInt32(button->PushedBackgroundColor);
