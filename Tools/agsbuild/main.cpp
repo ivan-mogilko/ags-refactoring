@@ -200,8 +200,6 @@ int main(int argc, char *argv[])
         StartProcessAndWait(tool_agfexport, String::FromFormat("tra-list %s %s/_translations.txt", src_agf.GetCStr(), temp_dir.GetCStr()));
 
         StartProcessAndWait(tool_dlgasc, String::FromFormat("%s %s/__DialogScripts.asc", src_agf.GetCStr(), temp_dir.GetCStr()));
-
-        //pak_temp_files.push_back("acsetup.cfg");
     }
 
     // Build game28.dta
@@ -270,9 +268,38 @@ int main(int argc, char *argv[])
         }
     }
 
-    // Generate hard-links for all the files necessary to be packed in the dedicated directory;
-    // then pack them up into *.ags
     {
+        // Write ScriptModules.lst
+        {
+            std::vector<String> sco_without_global;
+            for (const auto scm : sc_module_objects)
+                if (scm != "GlobalScript.o")
+                    sco_without_global.push_back(scm);
+            WriteStringListToTextFile(Path::ConcatPaths(temp_dir, "ScriptModules.lst"), sco_without_global);
+            pak_temp_files.push_back("ScriptModules.lst");
+        }
+    }
+
+    // Package certain existing files from the source directory
+    std::vector<String> pak_src_files;
+    {
+        pak_src_files.push_back("acsprset.spr");
+        pak_src_files.push_back("sprindex.dat");
+
+        std::vector<String> font_files;
+        ReadStringListFromTextFile(Path::ConcatPaths(temp_dir, "_fonts.txt"), font_files);
+        for (const auto &ff : font_files)
+        {
+            if (File::IsFile(Path::ConcatPaths(src_dir, ff)))
+                pak_src_files.push_back(ff);
+        }
+    }
+
+    //// Generate hard-links for all the files necessary to be packed in the dedicated directory;
+    //// then pack them up into *.ags
+    // Pack selected files into game.ags
+    {
+        /*
         // Create clear directory for packing *.ags
         const String &pak_dir = Path::ConcatPaths(temp_dir, "_package");
         // FIXME: maybe better delete files but keep directory?
@@ -309,12 +336,24 @@ int main(int argc, char *argv[])
                     File::LinkFile(src_file, Path::ConcatPaths(pak_dir, ff), true);
             }
         }
+        */
 
         // Package files
         const String tool_agspak = Path::ConcatPaths(sys_dir, ToolAgsPak);
+        String file_filter;
+        for (const auto &f : pak_src_files)
+            file_filter.AppendFmt("%s,", f);
+        for (const auto &f : pak_temp_files)
+            file_filter.AppendFmt("%s,", f);
+        file_filter.ClipRight(1); // cut last comma
         // FIXME: how to know the game file name? need to find out from the Game.agf using agfexport?
         // and optionally let pass game file name as a argument
-        StartProcessAndWait(tool_agspak, String::FromFormat("-c %s/game.ags %s -r", temp_dir.GetCStr(), pak_dir.GetCStr()));
+        StartProcessAndWait(tool_agspak, String::FromFormat("-c %s/game.ags %s -D %s %s --replace-dup",
+            temp_dir.GetCStr(), // output pak dir
+            src_dir.GetCStr(), // main input dir
+            temp_dir.GetCStr(), // temp output dir            
+            file_filter.GetCStr() // file match filter
+            ));
     }
     
 
