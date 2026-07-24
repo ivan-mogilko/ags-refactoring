@@ -672,7 +672,6 @@ void WriteSaveGameInfo(const DataUtil::GameData &game, Stream *out)
     String guid = game.Settings.GUIDAsString;
     StrUtil::WriteFixedString(guid, MAX_GUID_LENGTH, out);
     StrUtil::WriteFixedString(game.Settings.SaveGameFileExtension, MAX_SG_EXT_LENGTH, out);
-
     StrUtil::WriteFixedString(game.Settings.SaveGameFolderName, LEGACY_MAX_SG_FOLDER_LEN, out);
 }
 
@@ -688,7 +687,8 @@ void WriteFontBlock(const DataUtil::GameData &game, Stream *out)
 void WriteSpriteFlags(const DataUtil::GameData &game, Stream *out)
 {
     int topmost = -1;
-    for (const auto &sprite : game.Sprites) topmost = std::max(topmost, sprite.Slot);
+    for (const auto &sprite : game.Sprites)
+        topmost = std::max(topmost, sprite.Slot);
     out->WriteInt32(topmost + 1);
     std::vector<uint8_t> flags(topmost + 1, 0);
     for (const auto &sprite : game.Sprites)
@@ -698,7 +698,8 @@ void WriteSpriteFlags(const DataUtil::GameData &game, Stream *out)
         if (sprite.Resolution == DataUtil::kSpriteImport_HighRes) flags[sprite.Slot] |= SPF_HIRES;
         if (sprite.AlphaChannel) flags[sprite.Slot] |= SPF_ALPHACHANNEL;
     }
-    if (!flags.empty()) out->Write(flags.data(), flags.size());
+    if (!flags.empty())
+        out->Write(flags.data(), flags.size());
 }
 
 // Read by GameSetupStruct::ReadInvInfo() in Common/ac/gamesetupstruct.cpp,
@@ -973,7 +974,11 @@ void WriteGuiControlLooks363(Stream *out, const DataUtil::GUIControlData &contro
     out->WriteInt32(control.BorderWidth);
     out->WriteInt32(control.PaddingX);
     out->WriteInt32(control.PaddingY);
-    for (int i = 0; i < 4; ++i) out->WriteInt32(0);
+    // reserved
+    out->WriteInt32(0);
+    out->WriteInt32(0);
+    out->WriteInt32(0);
+    out->WriteInt32(0);
 }
 
 // Read by GameDataExtReader::ReadBlock()'s "v360_fonts" branch in
@@ -986,7 +991,9 @@ void WriteExt360Fonts(Stream *out, const DataUtil::GameData &game)
         out->WriteInt32(font.AutoOutlineStyle);
         out->WriteInt32(font.CharacterSpacing);
         out->WriteInt32(font.CustomHeightValue);
-        out->WriteInt32(0); out->WriteInt32(0);
+        // reserved
+        out->WriteInt32(0);
+        out->WriteInt32(0);
     }
 }
 
@@ -997,7 +1004,10 @@ void WriteExt360Cursors(Stream *out, const DataUtil::GameData &game)
     for (const auto &cursor : game.Cursors)
     {
         out->WriteInt32(cursor.AnimationDelay);
-        out->WriteInt32(0); out->WriteInt32(0); out->WriteInt32(0);
+        // reserved
+        out->WriteInt32(0);
+        out->WriteInt32(0);
+        out->WriteInt32(0);
     }
 }
 
@@ -1014,11 +1024,14 @@ void WriteExt361ObjNames(Stream *out, const DataUtil::GameData &game)
         StrUtil::WriteString(character.ScriptName, out);
         StrUtil::WriteString(character.RealName, out);
     }
+    // Add 1 dummy inventory slot at index 0
     out->WriteInt32(static_cast<int32_t>(game.Inventory.size() + 1));
     StrUtil::WriteString("", out);
-    for (const auto &item : game.Inventory) StrUtil::WriteString(item.Description, out);
+    for (const auto &item : game.Inventory)
+        StrUtil::WriteString(item.Description, out);
     out->WriteInt32(static_cast<int32_t>(game.Cursors.size()));
-    for (const auto &cursor : game.Cursors) StrUtil::WriteString(cursor.ScriptName, out);
+    for (const auto &cursor : game.Cursors)
+        StrUtil::WriteString(cursor.ScriptName, out);
     out->WriteInt32(static_cast<int32_t>(game.AudioClips.size()));
     for (const auto &clip : game.AudioClips)
     {
@@ -1043,7 +1056,8 @@ void WriteExt362Interactions(Stream *out, const DataUtil::GameData &game)
     for (const auto &item : game.Inventory)
         WriteInteractionEvents(out, item.ScriptModule, item.InteractionEvents);
     out->WriteInt32(static_cast<int32_t>(game.GUI.size()));
-    for (const auto &gui : game.GUI) StrUtil::WriteString(gui.ScriptModule, out);
+    for (const auto &gui : game.GUI)
+        StrUtil::WriteString(gui.ScriptModule, out);
 }
 
 // Read by GameDataExtReader::ReadBlock()'s "v363_gameinfo" branch, using
@@ -1093,47 +1107,75 @@ void WriteExt363GuiControls(Stream *out, const DataUtil::GameData &game)
             button->ColorStyle == DataUtil::kButtonColor_DynamicFlat;
         out->WriteInt32((dynamic ? 1 : 0) |
             (button->ColorStyle == DataUtil::kButtonColor_DynamicFlat ? 2 : 0));
-        out->WriteInt32(button->BorderShadeColor); out->WriteInt32(button->MouseOverBackgroundColor);
-        out->WriteInt32(button->PushedBackgroundColor); out->WriteInt32(button->MouseOverBorderColor);
-        out->WriteInt32(button->PushedBorderColor); out->WriteInt32(button->MouseOverTextColor);
-        out->WriteInt32(button->PushedTextColor); out->WriteInt32(button->TextOutlineColor);
-        out->WriteInt32(0); out->WriteInt32(0); out->WriteInt32(0);
+        out->WriteInt32(button->BorderShadeColor);
+        out->WriteInt32(button->MouseOverBackgroundColor);
+        out->WriteInt32(button->PushedBackgroundColor);
+        out->WriteInt32(button->MouseOverBorderColor);
+        out->WriteInt32(button->PushedBorderColor);
+        out->WriteInt32(button->MouseOverTextColor);
+        out->WriteInt32(button->PushedTextColor);
+        out->WriteInt32(button->TextOutlineColor);
+        // reserved
+        out->WriteInt32(0);
+        out->WriteInt32(0);
+        out->WriteInt32(0);
     }
     const auto labels = CollectGuiControls<DataUtil::GUILabelData>(game);
     out->WriteInt32(static_cast<int32_t>(labels.size()));
     for (const auto &label : labels)
     {
-        WriteGuiControlLooks363(out, *label); out->WriteInt32(label->TextOutlineColor);
-        out->WriteInt32(0); out->WriteInt32(0); out->WriteInt32(0);
+        WriteGuiControlLooks363(out, *label);
+        out->WriteInt32(label->TextOutlineColor);
+        // reserved
+        out->WriteInt32(0);
+        out->WriteInt32(0);
+        out->WriteInt32(0);
     }
     const auto invs = CollectGuiControls<DataUtil::GUIInventoryData>(game);
     out->WriteInt32(static_cast<int32_t>(invs.size()));
     for (const auto &inv : invs)
     {
         WriteGuiControlLooks363(out, *inv);
-        for (int i = 0; i < 4; ++i) out->WriteInt32(0);
+        // reserved
+        out->WriteInt32(0);
+        out->WriteInt32(0);
+        out->WriteInt32(0);
+        out->WriteInt32(0); 
     }
     const auto sliders = CollectGuiControls<DataUtil::GUISliderData>(game);
     out->WriteInt32(static_cast<int32_t>(sliders.size()));
     for (const auto &slider : sliders)
     {
-        WriteGuiControlLooks363(out, *slider); out->WriteInt32(slider->HandleColor);
+        WriteGuiControlLooks363(out, *slider);
+        out->WriteInt32(slider->HandleColor);
         out->WriteInt32(slider->BorderShadeColor);
-        for (int i = 0; i < 4; ++i) out->WriteInt32(0);
+        // reserved
+        out->WriteInt32(0);
+        out->WriteInt32(0);
+        out->WriteInt32(0);
+        out->WriteInt32(0);
     }
     const auto textboxes = CollectGuiControls<DataUtil::GUITextBoxData>(game);
     out->WriteInt32(static_cast<int32_t>(textboxes.size()));
     for (const auto &textbox : textboxes)
     {
-        WriteGuiControlLooks363(out, *textbox); out->WriteInt32(textbox->TextAlignment);
-        out->WriteInt32(textbox->TextOutlineColor); out->WriteInt32(0); out->WriteInt32(0);
+        WriteGuiControlLooks363(out, *textbox);
+        out->WriteInt32(textbox->TextAlignment);
+        out->WriteInt32(textbox->TextOutlineColor);
+        // reserved
+        out->WriteInt32(0);
+        out->WriteInt32(0);
     }
     const auto listboxes = CollectGuiControls<DataUtil::GUIListBoxData>(game);
     out->WriteInt32(static_cast<int32_t>(listboxes.size()));
     for (const auto &listbox : listboxes)
     {
-        WriteGuiControlLooks363(out, *listbox); out->WriteInt32(listbox->TextOutlineColor);
-        out->WriteInt32(0); out->WriteInt32(0); out->WriteInt32(0);
+        WriteGuiControlLooks363(out, *listbox);
+        out->WriteInt32(listbox->TextOutlineColor);
+        // reserved
+        out->WriteInt32(0);
+        out->WriteInt32(0);
+        out->WriteInt32(0);
     }
 }
 
@@ -1163,7 +1205,10 @@ void WriteExt363Dialogs(Stream *out, const DataUtil::GameData &game)
     {
         StrUtil::WriteString(dialog.ScriptName, out);
         out->WriteInt32(dialog.ShowTextParser ? DTFLG_SHOWPARSER : 0);
-        out->WriteInt32(0); out->WriteInt32(0); out->WriteInt32(0);
+        // reserved
+        out->WriteInt32(0);
+        out->WriteInt32(0);
+        out->WriteInt32(0);
 
         out->WriteInt32(static_cast<int32_t>(dialog.Options.size()));
         for (const auto &option : dialog.Options)
@@ -1173,7 +1218,10 @@ void WriteExt363Dialogs(Stream *out, const DataUtil::GameData &game)
             if (!option.Say) flags |= DFLG_NOREPEAT;
             if (option.Show) flags |= DFLG_ON;
             out->WriteInt32(flags);
-            out->WriteInt32(0); out->WriteInt32(0); out->WriteInt32(0);
+            // reserved
+            out->WriteInt32(0);
+            out->WriteInt32(0);
+            out->WriteInt32(0);
         }
     }
 }
@@ -1194,7 +1242,7 @@ void WriteExtensions(Stream *out, const DataUtil::GameData &game, soff_t ext_off
     WriteExtension(out, "v363_gameinfo", game, WriteExt363GameInfo);
     WriteExtension(out, "v363_dialogsnew", game, WriteExt363Dialogs);
     WriteExtension(out, "v363_guictrls2", game, WriteExt363GuiControls);
-    out->WriteInt8(0xff);
+    out->WriteInt8(static_cast<uint8_t>(0xff));
 }
 
 // Read by OpenMainGameFileBase() in Common/game/main_game_file.cpp before
