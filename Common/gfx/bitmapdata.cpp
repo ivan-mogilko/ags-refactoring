@@ -400,7 +400,7 @@ namespace PaletteOp
             // keep transparency
             color_mapped_table[0] = 0;
             // any other pixels which are being mapped to 0, map to 16 instead
-            for (int i = 0; i < 256; ++i)
+            for (int i = 1; i < 256; ++i)
             {
                 if (color_mapped_table[i] == 0)
                     color_mapped_table[i] = 16;
