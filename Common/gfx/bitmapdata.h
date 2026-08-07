@@ -399,10 +399,10 @@ namespace PaletteOp
     }
 
     // Rotates palette colors in the range [first, last], in the given direction
-    void Rotate(PALETTE pal, uint8_t first, uint8_t last, bool forward);
-    inline void Rotate(Palette pal, uint8_t first, uint8_t last, bool forward)
+    void Rotate(PALETTE pal, uint8_t first, uint8_t last, bool to_left);
+    inline void Rotate(Palette &pal, uint8_t first, uint8_t last, bool to_left)
     {
-        Rotate(pal.data(), first, last, forward);
+        Rotate(pal.data(), first, last, to_left);
     }
     // Remaps bitmap's colors between source and destination palettes, trying to
     // find the closest match to source palette colors. If told to keep transparency,

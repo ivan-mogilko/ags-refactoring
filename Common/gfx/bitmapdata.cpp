@@ -368,16 +368,24 @@ void ReplaceAlphaWithRGBMask(BitmapData &bm_data, int alpha_threshold)
 
 namespace PaletteOp
 {
-    void Rotate(PALETTE pal, uint8_t first, uint8_t last, bool forward)
+    void Rotate(PALETTE pal, uint8_t first, uint8_t last, bool to_left)
     {
-        int dir = forward ? 1 : -1;
-        if (!forward)
-            std::swap(first, last);
+        assert(first < last);
+        if (last <= first)
+            return; // nothing to do
 
-        RGB temp = pal[first];
-        for (int i = first; i < last; i += dir)
-            pal[i] = pal[i + dir];
-        pal[last] = temp;
+        RGB wrap = pal[to_left ? first : last];
+        if (to_left)
+        {
+            for (int i = first; i < last; ++i)
+                pal[i] = pal[i + 1];
+        }
+        else
+        {
+            for (int i = last; i > first; --i)
+                pal[i] = pal[i - 1];
+        }
+        pal[to_left ? last : first] = wrap;
     }
 
     void Remap(BitmapData &bm_data, const PALETTE src_pal, const PALETTE dst_pal, bool keep_transparent)
