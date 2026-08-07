@@ -170,6 +170,29 @@ void PrintPixelData32(const BitmapData &bm_data1, const BitmapData &bm_data2)
     }
 }
 
+template<typename PxType>
+void TestPixelData4x4(const BitmapData &bm_expect, const BitmapData &bm_result)
+{
+    const PxType *expect_p = reinterpret_cast<const PxType *>(bm_expect.GetData());
+    const PxType *result_p = reinterpret_cast<const PxType *>(bm_result.GetData());
+    EXPECT_EQ(expect_p[0],  result_p[0]);
+    EXPECT_EQ(expect_p[1],  result_p[1]);
+    EXPECT_EQ(expect_p[2],  result_p[2]);
+    EXPECT_EQ(expect_p[3],  result_p[3]);
+    EXPECT_EQ(expect_p[4],  result_p[4]);
+    EXPECT_EQ(expect_p[5],  result_p[5]);
+    EXPECT_EQ(expect_p[6],  result_p[6]);
+    EXPECT_EQ(expect_p[7],  result_p[7]);
+    EXPECT_EQ(expect_p[8],  result_p[8]);
+    EXPECT_EQ(expect_p[9],  result_p[9]);
+    EXPECT_EQ(expect_p[10], result_p[10]);
+    EXPECT_EQ(expect_p[11], result_p[11]);
+    EXPECT_EQ(expect_p[12], result_p[12]);
+    EXPECT_EQ(expect_p[13], result_p[13]);
+    EXPECT_EQ(expect_p[14], result_p[14]);
+    EXPECT_EQ(expect_p[15], result_p[15]);
+}
+
 PixelBuffer ImportDefault8Sprite(const GameColorSettings *use_color_set, const RoomPaletteCache *room_pal_cache, int room_to_use,
     GameColorDepth convert_to_depth = kGameColorDepth_Palette, SpriteImportTransparency trans = kSpriteImport_LeaveAsIs)
 {
@@ -307,7 +330,7 @@ TEST(SpriteImport, DirectImportConvert8To16)
     pixels[15] = makecol16(32, 32, 32);
     /* PrintPixelData16(dest, image2); */
 
-    EXPECT_TRUE(std::equal(image2.GetData(), image2.GetData() + image2.GetDataSize(), dest.GetData()));
+    TestPixelData4x4<uint16_t>(image2, dest);
 }
 
 TEST(SpriteImport, DirectImportConvert8To32)
@@ -336,7 +359,7 @@ TEST(SpriteImport, DirectImportConvert8To32)
     pixels[15] = 0xFF202020;
     /* PrintPixelData32(dest, image2); */
 
-    EXPECT_TRUE(std::equal(image2.GetData(), image2.GetData() + image2.GetDataSize(), dest.GetData()));
+    TestPixelData4x4<uint32_t>(image2, dest);
 }
 
 TEST(SpriteImport, DirectImportConvert16To32)
@@ -362,7 +385,7 @@ TEST(SpriteImport, Transparency8LeaveAsIs)
     uint16_t *pixels = reinterpret_cast<uint16_t*>(image2.GetData());
     /* PrintPixelData8(dest, image2); */
 
-    EXPECT_TRUE(std::equal(image2.GetData(), image2.GetData() + image2.GetDataSize(), dest.GetData()));
+    TestPixelData4x4<uint8_t>(image2, dest);
 }
 
 TEST(SpriteImport, Transparency16LeaveAsIs)
@@ -373,7 +396,7 @@ TEST(SpriteImport, Transparency16LeaveAsIs)
     uint16_t *pixels = reinterpret_cast<uint16_t*>(image2.GetData());
     /* PrintPixelData16(dest, image2); */
 
-    EXPECT_TRUE(std::equal(image2.GetData(), image2.GetData() + image2.GetDataSize(), dest.GetData()));
+    TestPixelData4x4<uint16_t>(image2, dest);
 }
 
 TEST(SpriteImport, Transparency32LeaveAsIs)
@@ -389,7 +412,7 @@ TEST(SpriteImport, Transparency32LeaveAsIs)
     pixels[13] = MASK_COLOR_32; // 0x00AAAAAA -> MASK_COLOR_32
     /* PrintPixelData32(dest, image2); */
 
-    EXPECT_TRUE(std::equal(image2.GetData(), image2.GetData() + image2.GetDataSize(), dest.GetData()));
+    TestPixelData4x4<uint32_t>(image2, dest);
 }
 
 TEST(SpriteImport, Transparency8NoTransparency)
@@ -404,7 +427,7 @@ TEST(SpriteImport, Transparency8NoTransparency)
     pixels[9] = 16;
     /* PrintPixelData8(dest, image2); */
 
-    EXPECT_TRUE(std::equal(image2.GetData(), image2.GetData() + image2.GetDataSize(), dest.GetData()));
+    TestPixelData4x4<uint8_t>(image2, dest);
 }
 
 TEST(SpriteImport, Transparency16NoTransparency)
@@ -419,7 +442,7 @@ TEST(SpriteImport, Transparency16NoTransparency)
     pixels[14] = MASK_COLOR_16 - 1;
     /* PrintPixelData16(dest, image2); */
 
-    EXPECT_TRUE(std::equal(image2.GetData(), image2.GetData() + image2.GetDataSize(), dest.GetData()));
+    TestPixelData4x4<uint16_t>(image2, dest);
 }
 
 TEST(SpriteImport, Transparency32NoTransparency)
@@ -438,7 +461,7 @@ TEST(SpriteImport, Transparency32NoTransparency)
     pixels[14] = MASK_COLOR_32 - 1; // MASK_COLOR_32 -> NO TRANS
     /* PrintPixelData32(dest, image2); */
 
-    EXPECT_TRUE(std::equal(image2.GetData(), image2.GetData() + image2.GetDataSize(), dest.GetData()));
+    TestPixelData4x4<uint32_t>(image2, dest);
 }
 
 TEST(SpriteImport, Transparency8TopLeft)
@@ -455,7 +478,7 @@ TEST(SpriteImport, Transparency8TopLeft)
     pixels[9] = 16;
     /* PrintPixelData8(dest, image2); */
 
-    EXPECT_TRUE(std::equal(image2.GetData(), image2.GetData() + image2.GetDataSize(), dest.GetData()));
+    TestPixelData4x4<uint8_t>(image2, dest);
 }
 
 TEST(SpriteImport, Transparency16TopLeft)
@@ -474,7 +497,7 @@ TEST(SpriteImport, Transparency16TopLeft)
     pixels[14] = 0;
     /* PrintPixelData16(dest, image2); */
 
-    EXPECT_TRUE(std::equal(image2.GetData(), image2.GetData() + image2.GetDataSize(), dest.GetData()));
+    TestPixelData4x4<uint16_t>(image2, dest);
 }
 
 TEST(SpriteImport, Transparency32TopLeft)
@@ -496,7 +519,7 @@ TEST(SpriteImport, Transparency32TopLeft)
     pixels[14] = 0;
     /* PrintPixelData32(dest, image2); */
 
-    EXPECT_TRUE(std::equal(image2.GetData(), image2.GetData() + image2.GetDataSize(), dest.GetData()));
+    TestPixelData4x4<uint32_t>(image2, dest);
 }
 
 TEST(SpriteImport, Transparency8TopRight)
@@ -513,7 +536,7 @@ TEST(SpriteImport, Transparency8TopRight)
     pixels[9] = 16;
     /* PrintPixelData8(dest, image2); */
 
-    EXPECT_TRUE(std::equal(image2.GetData(), image2.GetData() + image2.GetDataSize(), dest.GetData()));
+    TestPixelData4x4<uint8_t>(image2, dest);
 }
 
 TEST(SpriteImport, Transparency16TopRight)
@@ -532,7 +555,7 @@ TEST(SpriteImport, Transparency16TopRight)
     pixels[14] = 0;
     /* PrintPixelData16(dest, image2); */
 
-    EXPECT_TRUE(std::equal(image2.GetData(), image2.GetData() + image2.GetDataSize(), dest.GetData()));
+    TestPixelData4x4<uint16_t>(image2, dest);
 }
 
 TEST(SpriteImport, Transparency32TopRight)
@@ -554,7 +577,7 @@ TEST(SpriteImport, Transparency32TopRight)
     pixels[14] = 0;
     /* PrintPixelData32(dest, image2); */
 
-    EXPECT_TRUE(std::equal(image2.GetData(), image2.GetData() + image2.GetDataSize(), dest.GetData()));
+    TestPixelData4x4<uint32_t>(image2, dest);
 }
 
 TEST(SpriteImport, Transparency8BottomLeft)
@@ -571,7 +594,7 @@ TEST(SpriteImport, Transparency8BottomLeft)
     pixels[12] = 0;
     /* PrintPixelData8(dest, image2); */
 
-    EXPECT_TRUE(std::equal(image2.GetData(), image2.GetData() + image2.GetDataSize(), dest.GetData()));
+    TestPixelData4x4<uint8_t>(image2, dest);
 }
 
 TEST(SpriteImport, Transparency16BottomLeft)
@@ -590,7 +613,7 @@ TEST(SpriteImport, Transparency16BottomLeft)
     pixels[14] = 0;
     /* PrintPixelData16(dest, image2); */
 
-    EXPECT_TRUE(std::equal(image2.GetData(), image2.GetData() + image2.GetDataSize(), dest.GetData()));
+    TestPixelData4x4<uint16_t>(image2, dest);
 }
 
 TEST(SpriteImport, Transparency32BottomLeft)
@@ -612,7 +635,7 @@ TEST(SpriteImport, Transparency32BottomLeft)
     pixels[14] = 0;
     /* PrintPixelData32(dest, image2); */
 
-    EXPECT_TRUE(std::equal(image2.GetData(), image2.GetData() + image2.GetDataSize(), dest.GetData()));
+    TestPixelData4x4<uint32_t>(image2, dest);
 }
 
 TEST(SpriteImport, Transparency8BottomRight)
@@ -629,7 +652,7 @@ TEST(SpriteImport, Transparency8BottomRight)
     pixels[15] = 0;
     /* PrintPixelData8(dest, image2); */
 
-    EXPECT_TRUE(std::equal(image2.GetData(), image2.GetData() + image2.GetDataSize(), dest.GetData()));
+    TestPixelData4x4<uint8_t>(image2, dest);
 }
 
 TEST(SpriteImport, Transparency16BottomRight)
@@ -646,7 +669,7 @@ TEST(SpriteImport, Transparency16BottomRight)
     pixels[15] = MASK_COLOR_16;
     /* PrintPixelData16(dest, image2); */
 
-    EXPECT_TRUE(std::equal(image2.GetData(), image2.GetData() + image2.GetDataSize(), dest.GetData()));
+    TestPixelData4x4<uint16_t>(image2, dest);
 }
 
 TEST(SpriteImport, Transparency32BottomRight)
@@ -666,7 +689,7 @@ TEST(SpriteImport, Transparency32BottomRight)
     pixels[15] = MASK_COLOR_32;
     /* PrintPixelData32(dest, image2); */
 
-    EXPECT_TRUE(std::equal(image2.GetData(), image2.GetData() + image2.GetDataSize(), dest.GetData()));
+    TestPixelData4x4<uint32_t>(image2, dest);
 }
 
 TEST(SpriteImport, Import8RemapToGamePalette)
@@ -711,11 +734,11 @@ TEST(SpriteImport, Import8RemapToGamePalette)
     pixels[2] = 13;
     pixels[3] = 12;
     pixels[4] = 11;
-    pixels[5] = 16;
+    pixels[5] = 0;  // transparency is always at 0
     pixels[6] = 9;
     pixels[7] = 8;
     pixels[8] = 7;
-    pixels[9] = 16;
+    pixels[9] = 0;  // transparency is always at 0
     pixels[10] = 5;
     pixels[11] = 4;
     pixels[12] = 3;
@@ -724,7 +747,7 @@ TEST(SpriteImport, Import8RemapToGamePalette)
     pixels[15] = 1;
     /* PrintPixelData8(dest, image2); */
 
-    EXPECT_TRUE(std::equal(image2.GetData(), image2.GetData() + image2.GetDataSize(), dest.GetData()));
+    TestPixelData4x4<uint8_t>(image2, dest);
 }
 
 TEST(SpriteImport, Import8RemapToRoomPalette)
@@ -794,11 +817,11 @@ TEST(SpriteImport, Import8RemapToRoomPalette)
     pixels[2] = 13;
     pixels[3] = 14;
     pixels[4] = 15;
-    pixels[5] = 16; // CHECKME: idk why 16 and not 10
+    pixels[5] = 0;  // transparency is always at 0
     pixels[6] = 9;
     pixels[7] = 8;
     pixels[8] = 7;
-    pixels[9] = 16; // CHECKME: idk why 16 and not 10
+    pixels[9] = 0;  // transparency is always at 0
     pixels[10] = 5;
     pixels[11] = 4;
     pixels[12] = 3;
@@ -807,5 +830,5 @@ TEST(SpriteImport, Import8RemapToRoomPalette)
     pixels[15] = 1;
     /* PrintPixelData8(dest, image2); */
 
-    EXPECT_TRUE(std::equal(image2.GetData(), image2.GetData() + image2.GetDataSize(), dest.GetData()));
+    TestPixelData4x4<uint8_t>(image2, dest);
 }
