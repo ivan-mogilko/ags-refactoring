@@ -614,7 +614,7 @@ static void SortOutPalette(BitmapData &bm_data, Palette &pal, const Palette &gam
     }
 
     Palette dst_pal;
-    for (int i = 0; i < 255; ++i) // CHECKME: 255th index is ignored?
+    for (int i = 0; i < PAL_SIZE; ++i)
     {
         if (use_bg_slots) // use either slots
             dst_pal[i] = game_pal[i];
