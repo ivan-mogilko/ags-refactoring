@@ -175,22 +175,8 @@ void TestPixelData4x4(const BitmapData &bm_expect, const BitmapData &bm_result)
 {
     const PxType *expect_p = reinterpret_cast<const PxType *>(bm_expect.GetData());
     const PxType *result_p = reinterpret_cast<const PxType *>(bm_result.GetData());
-    EXPECT_EQ(expect_p[0],  result_p[0]);
-    EXPECT_EQ(expect_p[1],  result_p[1]);
-    EXPECT_EQ(expect_p[2],  result_p[2]);
-    EXPECT_EQ(expect_p[3],  result_p[3]);
-    EXPECT_EQ(expect_p[4],  result_p[4]);
-    EXPECT_EQ(expect_p[5],  result_p[5]);
-    EXPECT_EQ(expect_p[6],  result_p[6]);
-    EXPECT_EQ(expect_p[7],  result_p[7]);
-    EXPECT_EQ(expect_p[8],  result_p[8]);
-    EXPECT_EQ(expect_p[9],  result_p[9]);
-    EXPECT_EQ(expect_p[10], result_p[10]);
-    EXPECT_EQ(expect_p[11], result_p[11]);
-    EXPECT_EQ(expect_p[12], result_p[12]);
-    EXPECT_EQ(expect_p[13], result_p[13]);
-    EXPECT_EQ(expect_p[14], result_p[14]);
-    EXPECT_EQ(expect_p[15], result_p[15]);
+    for (size_t i = 0; i < 16; ++i)
+        EXPECT_EQ(expect_p[i], result_p[i]) << "At pixel " << i;
 }
 
 PixelBuffer ImportDefault8Sprite(const GameColorSettings *use_color_set, const RoomPaletteCache *room_pal_cache, int room_to_use,
