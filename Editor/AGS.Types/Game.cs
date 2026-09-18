@@ -135,7 +135,7 @@ namespace AGS.Types
             get { return _characters; }
         }
 
-        public IList<Dialog> Dialogs
+        public IList<IDialog> Dialogs
         {
             get { return _dialogs; }
         }
@@ -232,7 +232,7 @@ namespace AGS.Types
             get { return _dialogs.RootFolder; }
         }
 
-        public IList<Dialog> DialogFlatList
+        public IList<IDialog> DialogFlatList
         {
             get { return _dialogs.FlatList; }
         }

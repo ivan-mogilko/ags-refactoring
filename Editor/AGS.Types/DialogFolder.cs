@@ -5,7 +5,7 @@ using System.Xml;
 
 namespace AGS.Types
 {
-    public class DialogFolders : FolderListHybrid<Dialog, DialogFolder>
+    public class DialogFolders : FolderListHybrid<IDialog, DialogFolder>
     {
         public DialogFolders() : base(new DialogFolder()) { }
 
@@ -15,7 +15,7 @@ namespace AGS.Types
             base(new DialogFolder(node, parentNodeForBackwardsCompatability)) { }
     }
 
-    public class DialogFolder : BaseFolderCollection<Dialog, DialogFolder>
+    public class DialogFolder : BaseFolderCollection<IDialog, DialogFolder>
     {
         public const string MAIN_DIALOG_FOLDER_NAME = "Main";        
 
@@ -33,7 +33,7 @@ namespace AGS.Types
             return new DialogFolder(name);
         }
 
-        public Dialog FindDialogByID(int dialogID, bool recursive)
+        public IDialog FindDialogByID(int dialogID, bool recursive)
         {
             return FindItem(IsItem, dialogID, recursive);
         }
@@ -52,12 +52,12 @@ namespace AGS.Types
             return new DialogFolder(node);
         }
 
-        protected override Dialog CreateItem(XmlNode node)
+        protected override IDialog CreateItem(XmlNode node)
         {
             return new Dialog(node);
         }
 
-        private bool IsItem(Dialog dialog, int dialogID)
+        private bool IsItem(IDialog dialog, int dialogID)
         {
             return dialog.ID == dialogID;
         }

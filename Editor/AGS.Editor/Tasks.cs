@@ -767,7 +767,7 @@ namespace AGS.Editor
             }
         }
 
-        private void AppendDialogsToHeader(StringBuilder sb, IList<Dialog> dialogs)
+        private void AppendDialogsToHeader(StringBuilder sb, IList<IDialog> dialogs)
         {
             if (dialogs.Count > 0)
             {

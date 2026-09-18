@@ -210,6 +210,7 @@
     <Compile Include="HelperTypes\GameObjectEvents.cs" />
     <Compile Include="HelperTypes\MediaInfo.cs" />
     <Compile Include="HelperTypes\SpriteInfo.cs" />
+    <Compile Include="Interfaces\IDialog.cs" />
     <Compile Include="Interfaces\IRePopulatableComponent.cs" />
     <Compile Include="Interfaces\ILoadedRoom.cs" />
     <Compile Include="Interfaces\IChangeNotification.cs" />

@@ -10,7 +10,7 @@ namespace AGS.Types
 		IList<GUI> GUIs { get; }
 		IList<InventoryItem> InventoryItems { get; }
 		IList<Character> Characters { get; }
-		IList<Dialog> Dialogs { get; }
+		IList<IDialog> Dialogs { get; }
 		IList<MouseCursor> Cursors { get; }
 		IList<Font> Fonts { get; }
 		IList<Translation> Translations { get; }

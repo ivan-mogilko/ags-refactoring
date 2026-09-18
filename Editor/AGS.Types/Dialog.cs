@@ -9,7 +9,7 @@ namespace AGS.Types
 {
     [Serializable]
     [DefaultProperty("Name")]
-    public class Dialog : IScript, IToXml, IComparable<Dialog>, ICloneable
+    public class Dialog : IDialog, IScript, IToXml, IComparable<IDialog>, ICloneable
     {
         private int _id;
         private string _scriptName;
@@ -174,9 +174,9 @@ namespace AGS.Types
 
         }
 
-        #region IComparable<Dialog> Members
+        #region IComparable<IDialog> Members
 
-        public int CompareTo(Dialog other)
+        public int CompareTo(IDialog other)
         {
             return ID.CompareTo(other.ID);
         }
