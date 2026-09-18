@@ -12,6 +12,8 @@ namespace AGS.Editor.Components
 {
     class DialogsComponent : BaseComponentWithFolders<IDialog, DialogFolder>
     {
+        public const string DIALOG_FILES_DIRECTORY = "Dialogs";
+
         private const string DIALOGS_COMMAND_ID = "Dialogs";
         private const string COMMAND_NEW_ITEM = "NewDialog";
         private const string COMMAND_DELETE_ITEM = "DeleteDialog";
