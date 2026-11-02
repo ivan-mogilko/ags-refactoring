@@ -284,9 +284,26 @@ int alogg_open(APEG_LAYER *layer)
 			                             (double)layer->stream.h * aspect;
 		}
 
+		// TODO: record this value in pixel_format_info for now,
+		// because having it in pixelformat breaks renderer down the line
+		switch (info->tinfo.pixelformat)
+		{
+		case OC_PF_420: layer->stream.pixel_format_info = APEG_420; break;
+		case OC_PF_422: layer->stream.pixel_format_info = APEG_422; break;
+		case OC_PF_444: layer->stream.pixel_format_info = APEG_444; break;
+		default: layer->stream.pixel_format_info = APEG_420; break; // just leave this wrong
+		}
+
+		layer->stream.pixel_format = layer->stream.pixel_format_info;
+
 		// Allocate frame pointers
 		size = layer->coded_width*layer->coded_height +
 			   (layer->chroma_width*layer->chroma_height)*2;
+
+		// ???
+		if (layer->stream.pixel_format_info == APEG_422)
+			size = layer->coded_width*layer->coded_height +
+			(layer->chroma_width*layer->chroma_height)*4;
 
 		free(layer->image_ptr);
 		layer->image_ptr = malloc(size);

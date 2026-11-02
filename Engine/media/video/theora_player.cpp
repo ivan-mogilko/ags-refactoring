@@ -131,7 +131,7 @@ HError TheoraPlayer::OpenAPEGStream(Stream *data_stream, const Common::String &n
     _videoFramesDecoded = 0u;
     _nextFrameTs = 0.f;
 
-    const char *pixelfmt_str[] = { "APEG_420", "APEG_422", "APEG_444" };
+    const char *pixelfmt_str[] = { "YUV 420", "YUV 422", "YUV 444" };
     Debug::Printf("TheoraPlayer: opened video \"%s\": %dx%d fmt: %s, fps: %.4f"
                   "\n\taudio: %d Hz, chans: %d",
                   name.GetCStr(),
@@ -139,6 +139,9 @@ HError TheoraPlayer::OpenAPEGStream(Stream *data_stream, const Common::String &n
                   (apeg_stream->pixel_format >= APEG_STREAM::APEG_420 && apeg_stream->pixel_format <= APEG_STREAM::APEG_444) ? pixelfmt_str[apeg_stream->pixel_format] : "unknown",
                   static_cast<float>(apeg_stream->frame_rate),
                   _audioFreq, _audioChannels);
+    // TODO: warn about anything but YUV 420, because APEG library does not handle it properly
+    //if (apeg_stream->pixel_format != APEG_STREAM::APEG_420)
+        //Debug::Printf(kDbgMsg_Warn, );
 
     return HError::None();
 }
