@@ -113,6 +113,15 @@ namespace AGS.Editor
                 };
             }
 
+            if (game.SavedXmlVersion >= new System.Version(AGSEditor.AGS_4_0_0_XML_VERSION_OPEN_DIALOGS))
+            {
+                fontFiles = new string[]
+                {
+                    $"{Dialog.DIALOG_FILES_DIRECTORY}/*.{Dialog.DIALOG_DATA_FILE_EXT}",
+                    $"{Dialog.DIALOG_FILES_DIRECTORY}/*.{DialogScript.DIALOG_SCRIPT_FILE_EXT}"
+                };
+            }
+
             List<string> allFiles = new List<string>();
             allFiles.AddRange(commonFiles);
             if (mediaRes != null)

@@ -43,6 +43,7 @@ namespace AGS.Types
         {
             _script = new DialogScript();
             _script.Text = DEFAULT_NEW_DIALOG_SCRIPT;
+            _script.Modified = false;
         }
 
         public Dialog(int id, string scriptName)
@@ -264,7 +265,6 @@ namespace AGS.Types
             writer.WriteEndElement();
 
             writer.WriteEndElement();
-
         }
 
         #region IComparable<Dialog> Members
