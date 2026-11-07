@@ -357,37 +357,10 @@
     <ClCompile Include="..\..\Engine\ac\dynobj\cc_agsdynamicobject.cpp">
       <Filter>Source Files\ac\dynobj</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\dynobj\cc_audiochannel.cpp">
-      <Filter>Source Files\ac\dynobj</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\dynobj\cc_audioclip.cpp">
-      <Filter>Source Files\ac\dynobj</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\dynobj\cc_character.cpp">
-      <Filter>Source Files\ac\dynobj</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\dynobj\cc_dialog.cpp">
-      <Filter>Source Files\ac\dynobj</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Engine\ac\dynobj\cc_dynamicarray.cpp">
       <Filter>Source Files\ac\dynobj</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\dynobj\cc_gui.cpp">
-      <Filter>Source Files\ac\dynobj</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Engine\ac\dynobj\cc_guicontrol.cpp">
-      <Filter>Source Files\ac\dynobj</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\dynobj\cc_hotspot.cpp">
-      <Filter>Source Files\ac\dynobj</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\dynobj\cc_inventory.cpp">
-      <Filter>Source Files\ac\dynobj</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\dynobj\cc_object.cpp">
-      <Filter>Source Files\ac\dynobj</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\dynobj\cc_region.cpp">
       <Filter>Source Files\ac\dynobj</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Engine\ac\dynobj\cc_serializer.cpp">
@@ -708,12 +681,6 @@
     <ClCompile Include="..\..\Engine\plugin\plugin_stubs.cpp">
       <Filter>Source Files\plugin</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\dynobj\cc_walkablearea.cpp">
-      <Filter>Source Files\ac\dynobj</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\Engine\ac\dynobj\cc_walkbehind.cpp">
-      <Filter>Source Files\ac\dynobj</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\Engine\media\audio\audioplayer.cpp">
       <Filter>Source Files\media\audio</Filter>
     </ClCompile>
@@ -782,6 +749,9 @@
     </ClCompile>
     <ClCompile Include="..\..\Engine\ac\utils_script.cpp">
       <Filter>Source Files\ac</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Engine\ac\dynobj\cc_dynobjreftypes.cpp">
+      <Filter>Source Files\ac\dynobj</Filter>
     </ClCompile>
     <ClCompile Include="..\..\Engine\platform\windows\gfx\ali3dd3d11.cpp">
       <Filter>Source Files\gfx</Filter>
@@ -1010,37 +980,10 @@
     <ClInclude Include="..\..\Engine\ac\dynobj\cc_agsdynamicobject.h">
       <Filter>Header Files\ac\dynobj</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\dynobj\cc_audiochannel.h">
-      <Filter>Header Files\ac\dynobj</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\dynobj\cc_audioclip.h">
-      <Filter>Header Files\ac\dynobj</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\dynobj\cc_character.h">
-      <Filter>Header Files\ac\dynobj</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\dynobj\cc_dialog.h">
-      <Filter>Header Files\ac\dynobj</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Engine\ac\dynobj\cc_dynamicarray.h">
       <Filter>Header Files\ac\dynobj</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\dynobj\cc_gui.h">
-      <Filter>Header Files\ac\dynobj</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Engine\ac\dynobj\cc_guicontrol.h">
-      <Filter>Header Files\ac\dynobj</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\dynobj\cc_hotspot.h">
-      <Filter>Header Files\ac\dynobj</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\dynobj\cc_inventory.h">
-      <Filter>Header Files\ac\dynobj</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\dynobj\cc_object.h">
-      <Filter>Header Files\ac\dynobj</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\dynobj\cc_region.h">
       <Filter>Header Files\ac\dynobj</Filter>
     </ClInclude>
     <ClInclude Include="..\..\Engine\ac\dynobj\cc_serializer.h">
@@ -1505,12 +1448,6 @@
     <ClInclude Include="..\..\Engine\ac\dynobj\scriptobjects.h">
       <Filter>Header Files\ac\dynobj</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\dynobj\cc_walkbehind.h">
-      <Filter>Header Files\ac\dynobj</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\Engine\ac\dynobj\cc_walkablearea.h">
-      <Filter>Header Files\ac\dynobj</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\Engine\media\audio\audioplayer.h">
       <Filter>Header Files\media\audio</Filter>
     </ClInclude>
@@ -1583,6 +1520,9 @@
     <ClInclude Include="..\..\Engine\main\def_version.h">
       <Filter>Header Files\main</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Engine\ac\dynobj\cc_dynobjreftypes.h">
+      <Filter>Header Files\ac\dynobj</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\Engine\platform\windows\gfx\ali3dd3d11.h">
       <Filter>Header Files\gfx</Filter>
     </ClInclude>
@@ -1605,6 +1545,7 @@
     <None Include="..\..\Engine\ac\route_finder_jps.inl">
       <Filter>Header Files\ac</Filter>
     </None>
+    <None Include="$(AGS_SDL_DLL)" />
     <None Include="$(AGS_SDL_DLL)" />
     <None Include="$(AGS_SDL_DLL)" />
   </ItemGroup>

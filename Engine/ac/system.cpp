@@ -14,7 +14,6 @@
 #include <SDL.h>
 #include "ac/common.h"
 #include "ac/draw.h"
-#include "ac/dynobj/cc_audiochannel.h"
 #include "ac/game.h"
 #include "ac/gamesetup.h"
 #include "ac/gamesetupstruct.h"
@@ -25,6 +24,7 @@
 #include "ac/spritecache.h"
 #include "ac/string.h"
 #include "ac/system.h"
+#include "ac/dynobj/cc_dynobjreftypes.h"
 #include "ac/dynobj/scriptsystem.h"
 #include "debug/debug_log.h"
 #include "debug/debugger.h"

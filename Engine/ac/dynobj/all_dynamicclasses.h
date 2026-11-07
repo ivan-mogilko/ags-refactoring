@@ -19,19 +19,8 @@
 #define __AGS_EE_DYNOBJ__ALLDYNAMICCLASSES_H
 
 #include "ac/dynobj/cc_agsdynamicobject.h"
-#include "ac/dynobj/cc_audiochannel.h"
-#include "ac/dynobj/cc_audioclip.h"
-#include "ac/dynobj/cc_character.h"
-#include "ac/dynobj/cc_dialog.h"
-#include "ac/dynobj/cc_gui.h"
+#include "ac/dynobj/cc_dynobjreftypes.h"
 #include "ac/dynobj/cc_guicontrol.h"
-#include "ac/dynobj/cc_hotspot.h"
-#include "ac/dynobj/cc_inventory.h"
-#include "ac/dynobj/cc_object.h"
-#include "ac/dynobj/cc_region.h"
-#include "ac/dynobj/cc_walkablearea.h"
-#include "ac/dynobj/cc_walkbehind.h"
-
 #include "ac/dynobj/cc_serializer.h"
 
 #endif // __AGS_EE_DYNOBJ__ALLDYNAMICCLASSES_H

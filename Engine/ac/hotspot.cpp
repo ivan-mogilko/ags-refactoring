@@ -11,7 +11,6 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include "ac/dynobj/cc_hotspot.h"
 #include "ac/character.h"
 #include "ac/common.h"
 #include "ac/event.h"
@@ -24,6 +23,7 @@
 #include "ac/room.h"
 #include "ac/roomstatus.h"
 #include "ac/string.h"
+#include "ac/dynobj/cc_dynobjreftypes.h"
 #include "debug/debug_log.h"
 #include "game/roomstruct.h"
 #include "gfx/bitmap.h"
