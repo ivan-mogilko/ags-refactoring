@@ -21,7 +21,7 @@
 #include "ac/roomstatus.h"
 #include "ac/runtime_defines.h"
 #include "ac/viewframe.h"
-#include "ac/dynobj/cc_object.h"
+#include "ac/dynobj/cc_dynobjreftypes.h"
 #include "debug/debug_log.h"
 #include "main/update.h"
 #include "script/script.h"

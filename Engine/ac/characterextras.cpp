@@ -15,7 +15,7 @@
 #include "ac/characterinfo.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/viewframe.h"
-#include "ac/dynobj/cc_character.h"
+#include "ac/dynobj/cc_dynobjreftypes.h"
 #include "ac/dynobj/scriptstring.h"
 #include "script/script.h"
 #include "util/stream.h"

@@ -16,29 +16,25 @@
 // types. These are allocated in the script managed pool and exported
 // to the script.
 //
-// For historical reasons must be at least 8-bytes large (actual contents
-// are not restricted now).
-//
 //=============================================================================
 #ifndef __AGS_EE_DYNOBJ__SCRIPTOBJECTS_H
 #define __AGS_EE_DYNOBJ__SCRIPTOBJECTS_H
 
-struct ScriptSimpleRef
+struct ScriptObjectRef
 {
     int id = -1;
-    int reserved = 0;
 };
 
-struct ScriptAudioChannel : public ScriptSimpleRef {};
+struct ScriptAudioChannel : public ScriptObjectRef {};
 // NOTE: ScriptCharacter is a dummy placeholder
-struct ScriptCharacter : public ScriptSimpleRef {};
-struct ScriptDialog : public ScriptSimpleRef {};
-struct ScriptGUI : public ScriptSimpleRef {};
-struct ScriptHotspot : public ScriptSimpleRef {};
-struct ScriptInvItem : public ScriptSimpleRef {};
-struct ScriptObject : public ScriptSimpleRef {};
-struct ScriptRegion : public ScriptSimpleRef {};
-struct ScriptWalkableArea : public ScriptSimpleRef {};
-struct ScriptWalkbehind : public ScriptSimpleRef {};
+struct ScriptCharacter : public ScriptObjectRef {};
+struct ScriptDialog : public ScriptObjectRef {};
+struct ScriptGUI : public ScriptObjectRef {};
+struct ScriptHotspot : public ScriptObjectRef {};
+struct ScriptInvItem : public ScriptObjectRef {};
+struct ScriptObject : public ScriptObjectRef {};
+struct ScriptRegion : public ScriptObjectRef {};
+struct ScriptWalkableArea : public ScriptObjectRef {};
+struct ScriptWalkbehind : public ScriptObjectRef {};
 
 #endif // __AGS_EE_DYNOBJ__SCRIPTOBJECTS_H

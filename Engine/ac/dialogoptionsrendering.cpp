@@ -16,9 +16,9 @@
 #include "ac/dialogtopic.h"
 #include "ac/dialogoptionsrendering.h"
 #include "ac/gamestructdefines.h"
+#include "ac/dynobj/cc_dynobjreftypes.h"
 #include "debug/debug_log.h"
 #include "script/runtimescriptvalue.h"
-#include "ac/dynobj/cc_dialog.h"
 
 extern CCDialog ccDynamicDialog;
 

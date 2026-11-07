@@ -20,8 +20,7 @@
 #include "ac/gamestate.h"
 #include "ac/properties.h"
 #include "ac/string.h"
-#include "ac/dynobj/cc_audioclip.h"
-#include "ac/dynobj/cc_audiochannel.h"
+#include "ac/dynobj/cc_dynobjreftypes.h"
 #include "data/assetmanager.h"
 #include "script/runtimescriptvalue.h"
 
