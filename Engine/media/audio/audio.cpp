@@ -39,37 +39,61 @@
 #include "media/audio/audio_core.h"
 #include "platform/base/sys_main.h"
 #include "script/script_runtime.h"
+#include "util/indexedobjectpool.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
-//-----------------------
-//sound channel management
-
-static std::array<std::unique_ptr<SoundClip>, TOTAL_AUDIO_CHANNELS> _channels;
+//
+// Sound playbacks and channels management.
+//
+static IndexedObjectPool<std::shared_ptr<SoundClip>, int32_t> _playbacks;
+static std::array<std::shared_ptr<SoundClip>, TOTAL_AUDIO_CHANNELS> _channels;
+static std::map<int, int> _chanIDToPlaybackID;
 
 SoundClip *AudioChans::GetChannel(int index)
 {
-    return _channels[index].get();
+    return (index >= 0 && static_cast<uint32_t>(index) < _channels.size()) ? _channels[index].get() : nullptr;
 }
 
 SoundClip *AudioChans::GetChannelIfPlaying(int index)
 {
-    auto *ch = _channels[index].get();
+    auto *ch = GetChannel(index);
     return (ch != nullptr && ch->IsReady()) ? ch : nullptr;
 }
 
-SoundClip *AudioChans::SetChannel(int index, std::unique_ptr<SoundClip> &&ch)
+SoundClip *AudioChans::GetPlayback(int play_index)
 {
-    if ((ch != nullptr) && (_channels[index] != nullptr))
-        Debug::Printf(kDbgMsg_Warn, "WARNING: channel %d - clip overwritten", index);
-    _channels[index] = std::move(ch);
-    return _channels[index].get();
+    return _playbacks.IsInUse(play_index) ? _playbacks[play_index].get() : nullptr;
 }
 
-SoundClip *AudioChans::MoveChannel(int to, int from)
+int AudioChans::GetPlaybackIDFromChan(int index)
 {
-    return SetChannel(to, std::move(_channels[from]));
+    return (index >= 0 && static_cast<uint32_t>(index) < _channels.size()) ?
+        _chanIDToPlaybackID[index] : -1;
+}
+
+static void SetClipOnChannel(int index, std::shared_ptr<SoundClip> &clip)
+{
+    if ((clip != nullptr) && (!_channels[index]))
+        Debug::Printf(kDbgMsg_Warn, "WARNING: channel %d - clip overwritten", index);
+
+    _channels[index] = clip;
+}
+
+SoundClip *AudioChans::SetChannel(int index, std::unique_ptr<SoundClip> &&clip)
+{
+    std::shared_ptr<SoundClip> clip_int(clip.release());
+    int playback_id = _playbacks.Add(clip_int);
+    SetClipOnChannel(index, clip_int);
+    return _playbacks[playback_id].get();
+}
+
+SoundClip *AudioChans::MoveChannel(int from, int to)
+{
+    _channels[from].reset();
+    SetClipOnChannel(to, std::move(_channels[from]));
+    return _channels[to].get();
 }
 
 void AudioChans::DeleteClipOnChannel(int index)
@@ -122,7 +146,7 @@ void start_fading_in_new_track_if_applicable(int fadeInChannel, const AudioPlayS
 static void move_track_to_crossfade_channel(int currentChannel, int crossfadeSpeed, int fadeInChannel, const AudioPlaySetup &newSound)
 {
     stop_and_destroy_channel(SPECIAL_CROSSFADE_CHANNEL);
-    auto *cfade_clip = AudioChans::MoveChannel(SPECIAL_CROSSFADE_CHANNEL, currentChannel);
+    auto *cfade_clip = AudioChans::MoveChannel(currentChannel, SPECIAL_CROSSFADE_CHANNEL);
     if (!cfade_clip)
         return;
 
@@ -395,7 +419,7 @@ ScriptAudioChannel *play_audio_clip_direct(const AudioPlaySetup &aplay, int chan
         }
         return nullptr;
     }
-    soundfx->SetPriority(priority);
+    soundfx->SetPlaybackInfo(-1, -1, channel, priority); // FIXME!!!!
 
     if (play.crossfading_in_channel == channel)
     {
@@ -443,8 +467,8 @@ ScriptAudioChannel *play_sound_on_channel(std::unique_ptr<SoundClip> &&sound, in
         return nullptr;
     }
 
+    sound->SetPlaybackInfo(-1, -1, channel, priority); // FIXME!!!!
     sound->SetRepeat(repeat);
-    sound->SetPriority(priority);
     AudioChans::SetChannel(channel, std::move(sound));
     return &scrAudioChannel[channel];
 }

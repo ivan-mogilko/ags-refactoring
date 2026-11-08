@@ -765,6 +765,12 @@
     <ClCompile Include="..\..\Engine\ac\dynobj\cc_dynamicautoobjectref.cpp">
       <Filter>Source Files\ac\dynobj</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Engine\ac\audioplayback.cpp">
+      <Filter>Source Files\ac</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\Common\ac\dynobj\scriptaudioplayback.cpp">
+      <Filter>Source Files\ac\dynobj</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Engine\ac\asset_helper.h">
@@ -1538,6 +1544,12 @@
     <ClInclude Include="..\..\Engine\ac\dynobj\cc_dynamicautoobjectref.h">
       <Filter>Header Files\ac\dynobj</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\Common\ac\audioplayback.h">
+      <Filter>Header Files\ac</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Common\ac\dynobj\scriptaudioplayback.h">
+      <Filter>Header Files\ac\dynobj</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="..\..\Engine\resource\game-1.ico">
@@ -1551,6 +1563,8 @@
     <None Include="..\..\Engine\ac\route_finder_jps.inl">
       <Filter>Header Files\ac</Filter>
     </None>
+    <None Include="$(AGS_SDL_DLL)" />
+    <None Include="$(AGS_SDL_DLL)" />
     <None Include="$(AGS_SDL_DLL)" />
     <None Include="$(AGS_SDL_DLL)" />
     <None Include="$(AGS_SDL_DLL)" />

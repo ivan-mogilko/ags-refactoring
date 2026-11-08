@@ -45,6 +45,14 @@ void SoundClip::SetClipInfo(int clip_id, int audio_type, const String &filename,
     _bundlingType = bundle_type;
 }
 
+void SoundClip::SetPlaybackInfo(int sc_handle, int play_id, int ch_id, int priority)
+{
+    _scHandle = sc_handle;
+    _audioPlaybackID = play_id;
+    _audioChannelID = ch_id;
+    _priority = priority;
+}
+
 bool SoundClip::Play()
 {
     if (!IsReady())

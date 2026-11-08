@@ -300,9 +300,9 @@ public:
     // Tells if particular index is registered
     bool IndexExists(TIndex index) const { return index >= 0 && static_cast<size_t>(index) < BaseType::_isFree.size(); }
     // Tells if particular index is free
-    bool IsFree(TIndex index) const { return BaseType::_isFree[index]; }
+    bool IsFree(TIndex index) const { return IndexExists(index) ? BaseType::_isFree[index] : false; }
     // Tells if particular index is being used
-    bool IsInUse(TIndex index) const { return !BaseType::_isFree[index]; }
+    bool IsInUse(TIndex index) const { return IndexExists(index) ? !BaseType::_isFree[index] : false; }
 
     // Adds new element, initialized with default value; returns its index
     TIndex Add()

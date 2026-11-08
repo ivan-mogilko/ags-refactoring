@@ -2633,15 +2633,70 @@ builtin managed struct DialogOptionsRenderingInfo {
   import void Update();
 };
 
+#ifdef SCRIPT_API_v400_30
+
+builtin managed struct AudioChannel;
+
+builtin managed struct AudioPlayback {
+  /// Pauses the audio playback.
+  import void Pause();
+  /// Resumes the paused audio playback.
+  import void Resume();
+  /// Changes audio playback to continue from the specified position. The position units depend on the audio type.
+  import void Seek(int position);
+  /// Changes audio playback to continue from the specified position in milliseconds.
+  import void SeekMs(int position);
+  /// Sets the audio to have its location at the certain room coordinates (x,y); it will get quieter the further away the player character is.
+  import void SetRoomLocation(int x, int y, int maxDistance = 0);
+  /// Stops the playback completely. It cannot be resumed after this.
+  import void Stop();
+  /// Which channel is this audio playback is on.
+  import readonly attribute AudioChannel* Channel;
+  /// Whether the audio playback is currently paused.
+  import readonly attribute bool IsPaused;
+  /// Whether the audio playback is currently running.
+  import readonly attribute bool IsPlaying;
+  /// Whether the audio playback has stopped, either by completion or by command.
+  import readonly attribute bool IsStopped;
+  /// The length of the current playback, in milliseconds.
+  import readonly attribute int LengthMs;
+  /// The stereo panning of the audio playback, from -1.0 to 1.0.
+  import attribute float Panning;
+  /// The source audio clip of this playback.
+  import readonly attribute AudioClip* PlayingClip;
+  // TODO: AudioType should be a struct, and this turned into the reference
+  /// Gets which audio type this audio playback is representing, and which settings and rules it's using.
+  import readonly attribute AudioType PlayingType;
+  /// The current offset into the sound. What this represents depends on the source clip type (MIDI and MOD clips have special meaning for position).
+  import readonly attribute int Position;
+  /// The current offset into the sound, in milliseconds.
+  import readonly attribute int PositionMs;
+  /// The speed of playing, in clip milliseconds per second (1000 is default).
+  import attribute int Speed;
+  /// The sound volume, from 0 to 255.
+  import attribute int Volume;
+};
+
+#endif // SCRIPT_API_v400_30
+
 builtin managed struct AudioChannel {
+  /// The numeric ID of this channel.
+  readonly import attribute int ID;
+  /// The AudioPlayback instance that is currently hosted on this channel, or null if none.
+  readonly import attribute AudioPlayback* Playback;
+
+  // TODO: add AudioType reference, for case when this channel is auto-reserved by a audio type.
+
+  //
+  // Deprecated 3.x Audio playback controls inside AudioChannel
+  //
+#ifdef SCRIPT_COMPAT_v400
   /// Changes playback to continue from the specified position. The position units depend on the audio type.
   import void Seek(int position);
   /// Sets the audio to have its location at (x,y); it will get quieter the further away the player is.
   import void SetRoomLocation(int x, int y, int maxDistance = 0);
   /// Stops the sound currently playing on this channel.
   import void Stop();
-  /// The channel ID of this channel (for use with legacy script).
-  readonly import attribute int ID;
   /// Whether this channel is currently playing something.
   readonly import attribute bool IsPlaying;
   /// The length of the currently playing audio clip, in milliseconds.
@@ -2674,6 +2729,7 @@ builtin managed struct AudioChannel {
   /// Gets which audio type current played clip is representing, or -1 if no clip is being played.
   import readonly attribute AudioType PlayingType;
 #endif // SCRIPT_API_v363
+#endif // SCRIPT_COMPAT_v400
 };
 
 builtin managed struct AudioClip {
@@ -2687,20 +2743,40 @@ builtin managed struct AudioClip {
   /// Gets the audio clip by its script name
   import static AudioClip* GetByScriptName(const string scriptName); // $AUTOCOMPLETESTATICONLY$
 #endif // SCRIPT_API_v400_33
+
+#ifdef SCRIPT_API_v400_33
+  /// Plays this audio clip.
+  import AudioPlayback* Play(AudioPriority=SCR_NO_VALUE, RepeatStyle=SCR_NO_VALUE);
+  /// Plays this audio clip, starting from the specified offset.
+  import AudioPlayback* PlayFrom(int position, AudioPriority=SCR_NO_VALUE, RepeatStyle=SCR_NO_VALUE);
+  /// Plays this audio clip, or queues it if all channels are busy.
+  import AudioPlayback* PlayQueued(AudioPriority=SCR_NO_VALUE, RepeatStyle=SCR_NO_VALUE);
+  /// Plays this audio clip, explicitly putting it on the particular channel.
+  import AudioPlayback* PlayOnChannel(int chan, AudioPriority=SCR_NO_VALUE, RepeatStyle=SCR_NO_VALUE);
+  /// Plays this audio clip using certain AudioType settings, and optionally putting it on a particular channel.
+  import AudioPlayback* PlayAsType(AudioType type, int chan=SCR_NO_VALUE, AudioPriority=SCR_NO_VALUE, RepeatStyle=SCR_NO_VALUE);
+
+#else // !SCRIPT_API_v400_33
+  //
+  // Deprecated 3.x Audio playback controls inside AudioChannel
+  //
+
   /// Plays this audio clip.
   import AudioChannel* Play(AudioPriority=SCR_NO_VALUE, RepeatStyle=SCR_NO_VALUE);
   /// Plays this audio clip, starting from the specified offset.
   import AudioChannel* PlayFrom(int position, AudioPriority=SCR_NO_VALUE, RepeatStyle=SCR_NO_VALUE);
   /// Plays this audio clip, or queues it if all channels are busy.
   import AudioChannel* PlayQueued(AudioPriority=SCR_NO_VALUE, RepeatStyle=SCR_NO_VALUE);
-#ifdef SCRIPT_API_v360
-  /// Plays this audio clip, explicitly putting it on the particular channel.
-  import AudioChannel* PlayOnChannel(int chan, AudioPriority=SCR_NO_VALUE, RepeatStyle=SCR_NO_VALUE);
-#endif // SCRIPT_API_v360
-#ifdef SCRIPT_API_v363
-  /// Plays this audio clip using certain AudioType settings, and optionally putting it on a particular channel.
-  import AudioChannel* PlayAsType(AudioType type, int chan=SCR_NO_VALUE, AudioPriority=SCR_NO_VALUE, RepeatStyle=SCR_NO_VALUE);
-#endif // SCRIPT_API_v363
+  #ifdef SCRIPT_API_v360
+    /// Plays this audio clip, explicitly putting it on the particular channel.
+    import AudioChannel* PlayOnChannel(int chan, AudioPriority=SCR_NO_VALUE, RepeatStyle=SCR_NO_VALUE);
+  #endif // SCRIPT_API_v360
+  #ifdef SCRIPT_API_v363
+    /// Plays this audio clip using certain AudioType settings, and optionally putting it on a particular channel.
+    import AudioChannel* PlayAsType(AudioType type, int chan=SCR_NO_VALUE, AudioPriority=SCR_NO_VALUE, RepeatStyle=SCR_NO_VALUE);
+  #endif // SCRIPT_API_v363
+#endif // !SCRIPT_API_v400_30
+
   /// Stops all currently playing instances of this audio clip.
   import void Stop();
   /// Gets the file type of the sound.
