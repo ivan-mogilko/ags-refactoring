@@ -54,7 +54,7 @@ public:
     int id = -1;
     Common::String scriptName;
     Common::String fileName;
-    uint8_t bundlingType = kAudioBundle_Undefined;
+    AudioClipBundle bundlingType = kAudioBundle_Undefined;
     uint8_t type = AUDIOTYPE_UNDEFINED;
     AudioFileType fileType = eAudioFileUndefined;
     char defaultRepeat = 0;

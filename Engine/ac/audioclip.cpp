@@ -76,7 +76,7 @@ void AudioClip_Stop(ScriptAudioClip *clip)
     for (int i = NUM_SPEECH_CHANS; i < game.numGameChannels; i++)
     {
         auto* ch = AudioChans::GetChannelIfPlaying(i);
-        if ((ch != nullptr) && (ch->sourceClipID == clip->id))
+        if ((ch != nullptr) && (ch->GetSourceClipID() == clip->id))
         {
             AudioChannel_Stop(&scrAudioChannel[i]);
         }
@@ -124,7 +124,7 @@ ScriptAudioChannel *AudioClip_PlayAsType(ScriptAudioClip *clip, int type, int ch
         priority = clip->defaultPriority;
     if (repeat == SCR_NO_VALUE)
         repeat = clip->defaultRepeat;
-    return play_audio_clip(AudioPlayback(clip, type), chan, priority, repeat);
+    return play_audio_clip(AudioPlaySetup(clip, type), chan, priority, repeat);
 }
 
 int AudioClip_GetProperty(ScriptAudioClip *clip, const char *property)

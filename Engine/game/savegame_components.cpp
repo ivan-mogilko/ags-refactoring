@@ -494,29 +494,29 @@ HSaveError WriteAudio(Stream *out)
         auto* ch = AudioChans::GetChannelIfPlaying(i);
         if (ch)
         {
-            out->WriteInt32(ch->sourceClipID);
+            out->WriteInt32(ch->GetSourceClipID());
             // kAudioSvgVersion_36215
-            StrUtil::WriteString(ch->fileName, out);
-            out->WriteInt8(ch->bundlingType);
+            StrUtil::WriteString(ch->GetFileName(), out);
+            out->WriteInt8(ch->GetBundlingType());
             //
-            out->WriteInt32(ch->get_pos());
-            out->WriteInt32(ch->priority);
-            out->WriteInt32(ch->repeat ? 1 : 0);
-            out->WriteInt32(ch->get_volume255());
+            out->WriteInt32(ch->GetPos());
+            out->WriteInt32(ch->GetPriority());
+            out->WriteInt32(ch->IsRepeat() ? 1 : 0);
+            out->WriteInt32(ch->GetVolume255());
             out->WriteInt32(0); // was redundant data
-            out->WriteInt32(ch->get_volume100());
-            out->WriteInt32(ch->get_panning());
-            out->WriteInt32(ch->get_speed());
+            out->WriteInt32(ch->GetVolume100());
+            out->WriteInt32(ch->GetPanning());
+            out->WriteInt32(ch->GetSpeed());
             // since version kAudioSvgVersion_35026
-            out->WriteInt32(ch->xSource);
-            out->WriteInt32(ch->ySource);
-            out->WriteInt32(ch->maximumPossibleDistanceAway);
+            out->WriteInt32(ch->GetEmitterPosition().X);
+            out->WriteInt32(ch->GetEmitterPosition().Y);
+            out->WriteInt32(ch->GetEmitterMaxDistance());
             // since version kAudioSvgVersion_36130
             int playback_flags = 0;
-            if (ch->is_paused())
+            if (ch->IsPaused())
                 playback_flags |= kSvgAudioPaused;
             out->WriteInt32(playback_flags);
-            out->WriteInt32(ch->sourceClipType);
+            out->WriteInt32(ch->GetSourceAudioType());
             out->WriteInt32(0); // reserved
             out->WriteInt32(0);
         }
@@ -589,7 +589,7 @@ HSaveError ReadAudio(Stream *in, int32_t cmp_ver, soff_t cmp_size, const Preserv
         if (cmp_ver >= kAudioSvgVersion_36215)
         {
             chan_info.FileName = StrUtil::ReadString(in);
-            chan_info.BundlingType = in->ReadInt8();
+            chan_info.BundlingType = static_cast<AudioClipBundle>(in->ReadInt8());
         }
 
         if (chan_info.ClipID >= 0 || !chan_info.FileName.IsEmpty())

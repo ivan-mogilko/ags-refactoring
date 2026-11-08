@@ -160,9 +160,9 @@ bool PlayViewFrameSound(int view, int loop, int frame, int sound_volume, int sou
         auto *ch = AudioChans::GetChannel(channel->id);
         if (ch)
         {
-            ch->set_volume100(ch->get_volume100() * Math::Clamp(sound_volume, 0, 100) / 100);
-            ch->set_panning(sound_pan);
-            ch->set_speed(sound_speed);
+            ch->SetVolume100(ch->GetVolume100() * Math::Clamp(sound_volume, 0, 100) / 100);
+            ch->SetPanning(sound_pan);
+            ch->SetSpeed(sound_speed);
         }
         return true; // return positive if sound is linked, regardless of the playback success
     }

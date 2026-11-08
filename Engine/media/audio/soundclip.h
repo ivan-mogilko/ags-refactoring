@@ -12,8 +12,14 @@
 //
 //=============================================================================
 //
-// SoundClip - an interface for an audio clip configuration and control.
+// SoundClip - an interface for an audio playback configuration and control.
 //
+// SoundClip plays two-part role:
+// - as a link between audioplayer api in script
+//       and playback logic in the engine;
+// - as a link between playback logic and the audio backend,
+//       with which it syncs at certain times (see below).
+// 
 // SoundClip's state and parameter updates sync with the audio core in
 // batches, only when the engine updates the game, never while the user script
 // is being executed. The sync is performed by calling update().
@@ -38,7 +44,7 @@
 #define __AGS_EE_MEDIA__SOUNDCLIP_H__
 #include "ac/dynobj/scriptaudioclip.h"
 #include "media/audio/audiodefines.h"
-#include "util/math.h"
+#include "util/geometry.h"
 #include "util/string.h"
 
 using namespace AGS::Common;
@@ -49,167 +55,204 @@ public:
     SoundClip(int slot, AudioFileType snd_type, bool loop);
     ~SoundClip();
 
-    // TODO: move these to private
-    int sourceClipID;
-    int sourceClipType;
-    // Filename and bundling type, in case this is not a common audio clip
-    String fileName;
-    uint8_t bundlingType;
-    // soundType is used for the reference, and when applying
-    // format-dependent seek and position
-    AudioFileType soundType;
-    bool repeat;
-    int lengthMs;
-    int priority; // relative clip priority
-    int xSource, ySource;
-    int maximumPossibleDistanceAway;
-
-    bool play();
-    bool play_from(int position);
-    void pause();
-    void resume();
+    bool Play();
+    bool PlayFrom(int position);
+    void Pause();
+    void Resume();
     // Seeks to the position, where pos units depend on the audio type
-    void seek(int pos);
+    void Seek(int pos);
     // Seeks to the position in milliseconds
-    void seek_ms(int pos_ms);
+    void SeekMs(int pos_ms);
     // Synchronize this SoundClip with the audio subsystem:
     // - start scheduled playback;
     // - apply all accumulated sound parameters;
     // - read and save current position;
     // Returns if the clip is still playing, otherwise it's finished
-    bool update();
+    bool Update();
 
-    // Gets if the clip is valid (playing or ready to play)
-    inline bool is_ready() const
-    {
-        return IsPlaybackReady(state);
-    }
-    // Gets if the clip is currently paused
-    inline bool is_paused() const
-    {
-        return state == PlayStatePaused;
-    }
+    // Gets ID of the source audio clip
+    inline int GetSourceClipID() const { return _sourceClipID; }
+    // Gets ID of the audio type, associated with the source clip
+    inline int GetSourceAudioType() const { return _sourceClipType; }
+    // Gets the source filename (if available)
+    inline const String &GetFileName() const { return _fileName; }
+    // Gets the source bundling type (if available)
+    inline AudioClipBundle GetBundlingType() const { return _bundlingType; }
+    // Sets playback's clip reference info
+    void SetClipInfo(int clip_id, int audio_type, const String &filename, AudioClipBundle bundle_type);
+    // Gets this playback's priority
+    inline int GetPriority() const { return _priority; }
+    inline void SetPriority(int priority) { _priority = priority; }
 
-    // Get legacy sound format type (MUS_*)
-    inline AudioFileType get_sound_type() const { return soundType; }
+    // Gets if the playback is valid (playing or ready to play)
+    inline bool IsReady() const
+    {
+        return IsPlaybackReady(_state);
+    }
+    // Gets if the playback is currently paused
+    inline bool IsPaused() const
+    {
+        return _state == PlayStatePaused;
+    }
+    // Gets if the playback is looped
+    inline bool IsRepeat() const { return _repeat; }
+    inline void SetRepeat(bool repeat) { _repeat = repeat; }
+
+    // Get sound file format type
+    inline AudioFileType GetSoundType() const { return _soundType; }
     // Gets clip's volume property, as percentage (0 - 100);
     // note this may not be the real volume of playback (which could e.g. be muted)
-    inline int get_volume100() const { return vol100; }
+    inline int GetVolume100() const { return _vol100; }
     // Gets clip's volume measured in 255 units
-    inline int get_volume255() const { return vol255; }
+    inline int GetVolume255() const { return _vol255; }
     // Gets clip's panning (-100 - +100)
-    inline int get_panning() const { return panning; }
+    inline int GetPanning() const { return _panning; }
     // Gets clip's playback speed in clip ms per real second
-    inline int get_speed() const { return speed; }
+    inline int GetSpeed() const { return _speed; }
     // Gets if clip is muted (without changing the volume setting)
-    inline bool is_muted() const { return muted; }
+    inline bool IsMuted() const { return _muted; }
 
     // Gets current position in clip's type meaning
-    int get_pos() { return pos; }
+    int GetPos() { return _pos; }
     // Gets current position in ms
-    int get_pos_ms() { return posMs; }
+    int GetPosMs() { return _posMs; }
     // Gets total clip length in ms (or 0)
-    int get_length_ms() { return lengthMs; }
+    int GetLengthMs() { return _lengthMs; }
 
     // Sets the current volume property, as percentage (0 - 100).
-    inline void set_volume100(int volume)
+    inline void SetVolume100(int volume)
     {
         volume = Math::Clamp(volume, 0, 100);
-        vol100 = volume;
-        vol255 = (volume * 255) / 100;
-        paramsChanged = true;
+        _vol100 = volume;
+        _vol255 = (volume * 255) / 100;
+        _paramsChanged = true;
     }
     // Sets the current volume property in units of 255
-    inline void set_volume255(int volume)
+    inline void SetVolume255(int volume)
     {
         volume = Math::Clamp(volume, 0, 255);
-        vol255 = volume;
-        vol100 = (vol255 * 100) / 255;
-        paramsChanged = true;
+        _vol255 = volume;
+        _vol100 = (_vol255 * 100) / 255;
+        _paramsChanged = true;
     }
     // Explicitly defines both percentage and 255-based volume values,
     // without calculating it from given percentage.
-    inline void set_volume_direct(int vol_percent, int vol_absolute)
+    inline void SetVolumeDirect(int vol_percent, int vol_absolute)
     {
-        vol255 = Math::Clamp(vol_absolute, 0, 255);
-        vol100 = Math::Clamp(vol_percent, 0, 100);
-        paramsChanged = true;
+        _vol255 = Math::Clamp(vol_absolute, 0, 255);
+        _vol100 = Math::Clamp(vol_percent, 0, 100);
+        _paramsChanged = true;
     }
     // Mutes sound clip, while preserving current volume property
     // for the future reference; when unmuted, that property is
     // used to restart previous volume.
-    inline void set_mute(bool enable)
+    inline void SetMute(bool enable)
     {
-        muted = enable;
-        paramsChanged = true;
+        _muted = enable;
+        _paramsChanged = true;
     }
     // Apply arbitrary permanent volume modifier, in absolute units (0 - 255);
     // this is distinct value that is used in conjunction with current volume
     // (can be both positive and negative).
-    inline void apply_volume_modifier(int mod)
+    inline void ApplyVolumeModifier(int mod)
     {
-        volModifier = Math::Clamp(mod, 0, 255);
-        paramsChanged = true;
+        _volModifier = Math::Clamp(mod, 0, 255);
+        _paramsChanged = true;
     }
     // Apply permanent directional volume modifier, in absolute units (0 - 255)
     // this is distinct value that is used in conjunction with current volume
     // (can be both positive and negative).
-    inline void apply_directional_modifier(int mod)
+    inline void ApplyDirectionalModifier(int mod)
     {
-        directionalVolModifier = Math::Clamp(mod, 0, 255);
-        paramsChanged = true;
+        _directionalVolModifier = Math::Clamp(mod, 0, 255);
+        _paramsChanged = true;
     }
 
-    inline void set_panning(int newPanning)
+    inline const Point &GetEmitterPosition() const { return _emitterPos; }
+    inline int GetEmitterMaxDistance() const { return _maximumPossibleDistanceAway; }
+    inline void SetEmitterPosition(int x, int y, int maxDistAway)
     {
-        panning = Math::Clamp(newPanning, -100, 100);
-        paramsChanged = true;
+        _emitterPos = Point(x, y);
+        _maximumPossibleDistanceAway = maxDistAway;
+    }
+    inline void SetEmitterPosition(const Point &pos, int maxDistAway)
+    {
+        _emitterPos = pos;
+        _maximumPossibleDistanceAway = maxDistAway;
     }
 
-    inline void set_speed(int new_speed)
+    inline void SetPanning(int newPanning)
     {
-        speed = std::max(0, new_speed);
-        paramsChanged = true;
+        _panning = Math::Clamp(newPanning, -100, 100);
+        _paramsChanged = true;
+    }
+
+    inline void SetSpeed(int new_speed)
+    {
+        _speed = std::max(0, new_speed);
+        _paramsChanged = true;
     }
 
 private:
     // helper function for calculating volume with applied modifiers
-    inline int get_final_volume() const
+    inline int GetFinalVolume() const
     {
-        if (muted) return 0;
-        int final_vol = vol255 + volModifier + directionalVolModifier;
+        if (_muted) return 0;
+        int final_vol = _vol255 + _volModifier + _directionalVolModifier;
         return final_vol >= 0 ? final_vol : 0;
     }
 
-    int posms_to_pos(int pos_ms);
-    int pos_to_posms(int pos);
+    int PosmsToPos(int pos_ms);
+    int PosToPosms(int pos);
 
-    // audio core slot handle
-    const int slot_;
+    // Audio channel's ID, where this playback is placed on.
+    int _audioChannel = -1;
+    // Audio clip's ID
+    int _sourceClipID = -1;
+    // Audio type ID, associated with the source clip
+    int _sourceClipType = AUDIOTYPE_UNDEFINED;
+    // Filename and bundling type, in case this is not a common audio clip
+    String _fileName;
+    AudioClipBundle _bundlingType = kAudioBundle_Undefined;
+    // Type of file format, used for the reference, and when applying
+    // format-dependent seek and position
+    AudioFileType _soundType = eAudioFileUndefined;
+    bool _repeat = false;
+    int _lengthMs = 0;
+    // Relative playback's priority (0-100, 50 being default)
+    int _priority = 50;
+    // Panning and room position
+    Point _emitterPos = Point(-1, -1);
+    int _maximumPossibleDistanceAway = 0;
+
+    // Audio core slot handle, link to the audio backend
+    const int _slot = -1;
     // Frequency, needed for position handling
-    int freq;
-    // current playback state
-    PlaybackState state;
-    // last synced position
-    int pos, posMs;
-    // whether playback parameters changed and have to be reapplied
-    bool paramsChanged;
+    int freq = 0;
+    // Current playback _state
+    PlaybackState _state = PlayStateInvalid;
+    // Last synced position, in units respective to the file format type
+    int _pos = 0;
+    // Last synced position, in ms
+    int _posMs = 0;
+    // Whether playback parameters changed and have to be reapplied
+    bool _paramsChanged = false;
     // current volume, in legacy units of 255
-    int vol255;
+    int _vol255 = 0;
     // current volume, in percents
-    int vol100;
+    int _vol100 = 0;
     // volModifier is used when there's a need to temporarily change and
     // the restore the clip's absolute volume (vol)
-    int volModifier;
+    int _volModifier = 0;
     // directional modifier is used to simulate positional sound origin
-    int directionalVolModifier;
+    int _directionalVolModifier = 0;
     // sound panning, in offset percents, from -100 to +100
-    int panning;
-    // speed of playback, in clip ms per real second
-    int speed;
+    int _panning = 0;
+    // speed of playback, in clip ms per real second (1000 is default)
+    int _speed = 1000;
     // mute mode overrides the volume; if set, any volume assigned is stored
     // in properties, but not applied to playback itself
-    bool muted;
+    bool _muted = false;
 };
 
 #endif // __AGS_EE_MEDIA__SOUNDCLIP_H__
