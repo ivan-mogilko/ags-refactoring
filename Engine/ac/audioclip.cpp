@@ -75,7 +75,7 @@ void AudioClip_Stop(ScriptAudioClip *clip)
 {
     for (int i = NUM_SPEECH_CHANS; i < game.numGameChannels; i++)
     {
-        auto* ch = AudioChans::GetChannelIfPlaying(i);
+        auto ch = AudioChans::GetAtChannelIfPlaying(i);
         if ((ch != nullptr) && (ch->GetSourceClipID() == clip->id))
         {
             AudioChannel_Stop(&scrAudioChannel[i]);
@@ -83,22 +83,26 @@ void AudioClip_Stop(ScriptAudioClip *clip)
     }
 }
 
-ScriptAudioChannel* AudioClip_Play(ScriptAudioClip *clip, int priority, int repeat)
+ScriptAudioPlayback* AudioClip_Play(ScriptAudioClip *clip, int priority, int repeat)
 {
-    return play_audio_clip(clip, priority, repeat, 0, false);
+    auto aplay = play_audio_clip(clip, priority, repeat, 0, false);
+    return aplay ? aplay->GetScriptPlayback() : AudioPlays::CreateEmptyScriptPlayback();
 }
 
-ScriptAudioChannel* AudioClip_PlayFrom(ScriptAudioClip *clip, int position, int priority, int repeat)
+ScriptAudioPlayback* AudioClip_PlayFrom(ScriptAudioClip *clip, int position, int priority, int repeat)
 {
-    return play_audio_clip(clip, priority, repeat, position, false);
+    auto aplay = play_audio_clip(clip, priority, repeat, position, false);
+    return aplay ? aplay->GetScriptPlayback() : AudioPlays::CreateEmptyScriptPlayback();
 }
 
-ScriptAudioChannel* AudioClip_PlayQueued(ScriptAudioClip *clip, int priority, int repeat)
+ScriptAudioPlayback* AudioClip_PlayQueued(ScriptAudioClip *clip, int priority, int repeat)
 {
-    return play_audio_clip(clip, priority, repeat, 0, true);
+    auto aplay = play_audio_clip(clip, priority, repeat, 0, true);
+    // TODO: still return something valid when it's queued but not played immediately!
+    return aplay ? aplay->GetScriptPlayback() : AudioPlays::CreateEmptyScriptPlayback();
 }
 
-ScriptAudioChannel* AudioClip_PlayOnChannel(ScriptAudioClip *clip, int chan, int priority, int repeat)
+ScriptAudioPlayback* AudioClip_PlayOnChannel(ScriptAudioClip *clip, int chan, int priority, int repeat)
 {
     if (chan < NUM_SPEECH_CHANS || chan >= game.numGameChannels)
         quitprintf("!AudioClip.PlayOnChannel: invalid channel %d, the range is %d - %d",
@@ -107,10 +111,11 @@ ScriptAudioChannel* AudioClip_PlayOnChannel(ScriptAudioClip *clip, int chan, int
         priority = clip->defaultPriority;
     if (repeat == SCR_NO_VALUE)
         repeat = clip->defaultRepeat;
-    return play_audio_clip_on_channel(clip, chan, priority, repeat);
+    auto aplay = play_audio_clip_on_channel(clip, chan, priority, repeat);
+    return aplay ? aplay->GetScriptPlayback() : AudioPlays::CreateEmptyScriptPlayback();
 }
 
-ScriptAudioChannel *AudioClip_PlayAsType(ScriptAudioClip *clip, int type, int chan, int priority, int repeat)
+ScriptAudioPlayback *AudioClip_PlayAsType(ScriptAudioClip *clip, int type, int chan, int priority, int repeat)
 {
     if (type <= AUDIOTYPE_SPEECH || static_cast<uint32_t>(type) >= game.audioClipTypes.size())
         quitprintf("!AudioClip.PlayAsType: invalid audio type %d, the range is %u - %u",
@@ -124,7 +129,8 @@ ScriptAudioChannel *AudioClip_PlayAsType(ScriptAudioClip *clip, int type, int ch
         priority = clip->defaultPriority;
     if (repeat == SCR_NO_VALUE)
         repeat = clip->defaultRepeat;
-    return play_audio_clip(AudioPlaySetup(clip, type), chan, priority, repeat);
+    auto aplay = play_audio_clip(AudioPlaySetup(clip, type), chan, priority, repeat);
+    return aplay ? aplay->GetScriptPlayback() : AudioPlays::CreateEmptyScriptPlayback();
 }
 
 int AudioClip_GetProperty(ScriptAudioClip *clip, const char *property)

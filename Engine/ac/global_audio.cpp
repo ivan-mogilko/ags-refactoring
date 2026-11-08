@@ -42,7 +42,7 @@ void SetSpeechVolume(int newvol) {
     if ((newvol<0) | (newvol>255))
         quit("!SetSpeechVolume: invalid volume - must be from 0-255");
 
-    auto* ch = AudioChans::GetChannel(SCHAN_SPEECH);
+    auto ch = AudioChans::GetAtChannel(SCHAN_SPEECH);
     if (ch)
         ch->SetVolume255(newvol);
     play.speech_volume = newvol;
@@ -111,7 +111,7 @@ static bool play_voice_clip_on_channel(const String &voice_name)
     if (!apath)
         return false;
 
-    std::unique_ptr<SoundClip> voice_clip(load_sound_clip(apath, "", false));
+    auto voice_clip = load_sound_clip(apath, "", false);
     if (voice_clip != nullptr) {
         voice_clip->SetClipInfo(-1, AUDIOTYPE_SPEECH, apath.Name, kAudioBundle_SpeechVox);
         voice_clip->SetVolume255(play.speech_volume);
@@ -124,7 +124,7 @@ static bool play_voice_clip_on_channel(const String &voice_name)
         return false;
     }
 
-    AudioChans::SetChannel(SCHAN_SPEECH, std::move(voice_clip));
+    AudioPlays::AddPlaybackToChannel(std::move(voice_clip), SCHAN_SPEECH);
     return true;
 }
 
@@ -200,7 +200,7 @@ bool play_voice_nonblocking(int charid, int sndid, bool as_speech)
     return play_voice_clip_impl(voice_file, as_speech, false);
 }
 
-const ScriptAudioChannel *play_voice_clip_as_type(int charid, int sndid, int type, int chan, int priority, int repeat)
+std::shared_ptr<SoundClip> play_voice_clip_as_type(int charid, int sndid, int type, int chan, int priority, int repeat)
 {
     // don't play voice if we're skipping a cutscene
     if (!play.ShouldPlayVoiceSpeechNonBlocking())

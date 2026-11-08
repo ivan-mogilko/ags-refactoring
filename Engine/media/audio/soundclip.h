@@ -43,6 +43,7 @@
 #ifndef __AGS_EE_MEDIA__SOUNDCLIP_H__
 #define __AGS_EE_MEDIA__SOUNDCLIP_H__
 #include "ac/dynobj/scriptaudioclip.h"
+#include "ac/dynobj/scriptaudioplayback.h"
 #include "media/audio/audiodefines.h"
 #include "util/geometry.h"
 #include "util/string.h"
@@ -52,6 +53,7 @@ using namespace AGS::Common;
 class SoundClip final
 {
 public:
+    // Constructs a SoundClip, where 'slot' is a audio backend slot
     SoundClip(int slot, AudioFileType snd_type, bool loop);
     ~SoundClip();
 
@@ -78,11 +80,20 @@ public:
     inline const String &GetFileName() const { return _fileName; }
     // Gets the source bundling type (if available)
     inline AudioClipBundle GetBundlingType() const { return _bundlingType; }
-    // Sets playback's clip reference info
-    void SetClipInfo(int clip_id, int audio_type, const String &filename, AudioClipBundle bundle_type);
+    // Gets handle of a managed object, referencing this playback from script
+    inline int GetScriptHandle() const { return _scHandle; }
+    // Gets script object associated with this playback, or creates one if it was not made yet
+    ScriptAudioPlayback *GetScriptPlayback();
+    // Gets ID of this clip in the game's list of active playbacks
+    inline int GetAudioPlaybackID() const { return _audioPlaybackID; }
     // Gets this playback's priority
     inline int GetPriority() const { return _priority; }
-    inline void SetPriority(int priority) { _priority = priority; }
+    // Sets playback's clip reference info
+    void SetClipInfo(int clip_id, int audio_type, const String &filename, AudioClipBundle bundle_type);
+    // Sets playback's priority (will it be replaced by another playback if there are no free channels)
+    void SetPriority(int priority) { _priority = priority; }
+    // Sets id of a audio playback in the game logic that this SoundClip represents
+    void SetPlaybackID(int playback_id);
 
     // Gets if the playback is valid (playing or ready to play)
     inline bool IsReady() const
@@ -205,8 +216,10 @@ private:
     int PosmsToPos(int pos_ms);
     int PosToPosms(int pos);
 
-    // Audio channel's ID, where this playback is placed on.
-    int _audioChannel = -1;
+    // Audio playback ID (this is an index in audio system, here for the reference)
+    int _audioPlaybackID = -1;
+    // Script handle for AudioPlayback object
+    int _scHandle = 0;
     // Audio clip's ID
     int _sourceClipID = -1;
     // Audio type ID, associated with the source clip

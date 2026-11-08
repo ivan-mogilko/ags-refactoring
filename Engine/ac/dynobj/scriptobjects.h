@@ -26,7 +26,6 @@ struct ScriptObjectRef
 };
 
 struct ScriptAudioChannel : public ScriptObjectRef {};
-// NOTE: ScriptCharacter is a dummy placeholder
 struct ScriptCharacter : public ScriptObjectRef {};
 struct ScriptDialog : public ScriptObjectRef {};
 struct ScriptGUI : public ScriptObjectRef {};

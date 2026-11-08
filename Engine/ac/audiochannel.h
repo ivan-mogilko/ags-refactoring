@@ -11,10 +11,6 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-//
-//
-//
-//=============================================================================
 #ifndef __AGS_EE_AC__AUDIOCHANNEL_H
 #define __AGS_EE_AC__AUDIOCHANNEL_H
 
@@ -22,7 +18,8 @@
 #include "ac/dynobj/scriptobjects.h"
 
 int     AudioChannel_GetID(ScriptAudioChannel *channel);
-int     AudioChannel_GetIsPlaying(ScriptAudioChannel *channel);
+bool    AudioChannel_GetIsPlaying(ScriptAudioChannel *channel);
+bool    AudioChannel_GetIsPaused(ScriptAudioChannel *channel);
 int     AudioChannel_GetPanning(ScriptAudioChannel *channel);
 void    AudioChannel_SetPanning(ScriptAudioChannel *channel, int newPanning);
 ScriptAudioClip* AudioChannel_GetPlayingClip(ScriptAudioChannel *channel);
@@ -30,9 +27,13 @@ int     AudioChannel_GetPlayingType(ScriptAudioChannel *channel);
 int     AudioChannel_GetPosition(ScriptAudioChannel *channel);
 int     AudioChannel_GetPositionMs(ScriptAudioChannel *channel);
 int     AudioChannel_GetLengthMs(ScriptAudioChannel *channel);
+int     AudioChannel_GetSpeed(ScriptAudioChannel *channel);
+void    AudioChannel_SetSpeed(ScriptAudioChannel *channel, int new_speed);
 int     AudioChannel_GetVolume(ScriptAudioChannel *channel);
-int     AudioChannel_SetVolume(ScriptAudioChannel *channel, int newVolume);
+void    AudioChannel_SetVolume(ScriptAudioChannel *channel, int newVolume);
 void    AudioChannel_Stop(ScriptAudioChannel *channel);
+void    AudioChannel_Pause(ScriptAudioChannel *channel);
+void    AudioChannel_Resume(ScriptAudioChannel *channel);
 void    AudioChannel_Seek(ScriptAudioChannel *channel, int newPosition);
 void    AudioChannel_SeekMs(ScriptAudioChannel *channel, int newPosition);
 void    AudioChannel_SetRoomLocation(ScriptAudioChannel *channel, int xPos, int yPos, int maxDist);

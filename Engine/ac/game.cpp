@@ -310,7 +310,7 @@ void Game_SetAudioTypeVolume(int audioType, int volume, int changeType)
             int play_atype = AudioChannel_GetPlayingType(&scrAudioChannel[i]);
             if (play_atype == audioType)
             {
-                auto* ch = AudioChans::GetChannel(i);
+                auto ch = AudioChans::GetAtChannel(i);
                 if (ch)
                     ch->SetVolume100(volume);
             }
@@ -1691,7 +1691,7 @@ void stop_fast_forwarding() {
     // Restore actual volume of sounds
     for (int aa = 0; aa < TOTAL_AUDIO_CHANNELS; aa++)
     {
-        auto* ch = AudioChans::GetChannelIfPlaying(aa);
+        auto ch = AudioChans::GetAtChannelIfPlaying(aa);
         if (ch)
         {
             ch->SetMute(false);
@@ -1820,7 +1820,7 @@ void display_switch_out_suspend()
     video_single_pause();
     // Pause all the sounds
     for (int i = 0; i < TOTAL_AUDIO_CHANNELS; i++) {
-        auto* ch = AudioChans::GetChannelIfPlaying(i);
+        auto ch = AudioChans::GetAtChannelIfPlaying(i);
         if (ch) {
             ch->Pause();
         }
@@ -1848,7 +1848,7 @@ void display_switch_in_resume()
 
     // Resume all the sounds
     for (int i = 0; i < TOTAL_AUDIO_CHANNELS; i++) {
-        auto* ch = AudioChans::GetChannelIfPlaying(i);
+        auto ch = AudioChans::GetAtChannelIfPlaying(i);
         if (ch) {
             ch->Resume();
         }

@@ -154,17 +154,13 @@ bool PlayViewFrameSound(int view, int loop, int frame, int sound_volume, int sou
         return false;
 
     // play this sound (eg. footstep)
-    ScriptAudioChannel *channel = play_audio_clip_by_index(views[view].loops[loop].frames[frame].sound);
-    if (channel)
+    auto aplay = play_audio_clip_by_index(views[view].loops[loop].frames[frame].sound);
+    if (aplay)
     {
-        auto *ch = AudioChans::GetChannel(channel->id);
-        if (ch)
-        {
-            ch->SetVolume100(ch->GetVolume100() * Math::Clamp(sound_volume, 0, 100) / 100);
-            ch->SetPanning(sound_pan);
-            ch->SetSpeed(sound_speed);
-        }
-        return true; // return positive if sound is linked, regardless of the playback success
+        aplay->SetVolume100(aplay->GetVolume100() * Math::Clamp(sound_volume, 0, 100) / 100);
+        aplay->SetPanning(sound_pan);
+        aplay->SetSpeed(sound_speed);
+        return true;
     }
     return false;
 }

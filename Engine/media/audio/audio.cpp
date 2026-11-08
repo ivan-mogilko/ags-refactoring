@@ -26,6 +26,7 @@
 #include "ac/view.h"
 #include "ac/dynobj/cc_dynamicobjectref.h"
 #include "ac/dynobj/dynobj_manager.h"
+#include "ac/dynobj/scriptaudioplayback.h"
 #include "media/audio/sound.h"
 #include "debug/debug_log.h"
 #include "debug/debugger.h"
@@ -39,42 +40,115 @@
 #include "media/audio/audio_core.h"
 #include "platform/base/sys_main.h"
 #include "script/script_runtime.h"
+#include "util/indexedobjectpool.h"
 
 using namespace AGS::Common;
 using namespace AGS::Engine;
 
-//-----------------------
-//sound channel management
+//
+// Sound playbacks and channels management.
+//
+typedef IndexedObjectPool<std::shared_ptr<SoundClip>, int32_t, -1> AudioPlaybackPool;
+static AudioPlaybackPool _playbacks;
+static std::array<std::shared_ptr<SoundClip>, TOTAL_AUDIO_CHANNELS> _channels;
+static std::array<int, TOTAL_AUDIO_CHANNELS> _chanIDToPlaybackID;
+static std::unordered_map<int, int> _playbackIDToChanID;
 
-static std::array<std::unique_ptr<SoundClip>, TOTAL_AUDIO_CHANNELS> _channels;
-
-SoundClip *AudioChans::GetChannel(int index)
+std::shared_ptr<SoundClip> AudioPlays::AddPlayback(std::unique_ptr<SoundClip> &&clip)
 {
-    return _channels[index].get();
+    std::shared_ptr<SoundClip> clip_shptr(clip.release());
+    int playback_id = _playbacks.Add(clip_shptr);
+    clip_shptr->SetPlaybackID(playback_id);
+    return clip_shptr;
 }
 
-SoundClip *AudioChans::GetChannelIfPlaying(int index)
+std::shared_ptr<SoundClip> AudioPlays::AddPlaybackToChannel(std::unique_ptr<SoundClip> &&clip, int chan_id)
 {
-    auto *ch = _channels[index].get();
-    return (ch != nullptr && ch->IsReady()) ? ch : nullptr;
+    auto clip_shptr = AddPlayback(std::move(clip));
+    AudioChans::SetToChannel(chan_id, clip_shptr);
+    return clip_shptr;
 }
 
-SoundClip *AudioChans::SetChannel(int index, std::unique_ptr<SoundClip> &&ch)
+std::shared_ptr<SoundClip> AudioPlays::GetPlayback(int playback_id)
 {
-    if ((ch != nullptr) && (_channels[index] != nullptr))
+    return _playbacks.IsInUse(playback_id) ? _playbacks[playback_id] : nullptr;
+}
+
+void AudioPlays::RemovePlayback(int playback_id)
+{
+    if (_playbacks.IsInUse(playback_id))
+    {
+        int chan_id = _playbackIDToChanID[playback_id];
+        if (chan_id >= 0 && static_cast<uint32_t>(chan_id) < _channels.size())
+        {
+            _channels[chan_id] = nullptr;
+            _chanIDToPlaybackID[chan_id] = -1;
+        }
+        _playbackIDToChanID.erase(playback_id);
+        _playbacks.Free(playback_id);
+    }
+}
+
+ScriptAudioPlayback *AudioPlays::CreateEmptyScriptPlayback()
+{
+    ScriptAudioPlayback *sc_aplay = new ScriptAudioPlayback();
+    ccRegisterManagedObject(sc_aplay, sc_aplay);
+    return sc_aplay;
+}
+
+std::shared_ptr<SoundClip> AudioChans::GetAtChannel(int index)
+{
+    return (index >= 0 && static_cast<uint32_t>(index) < _channels.size()) ? _channels[index] : nullptr;
+}
+
+std::shared_ptr<SoundClip> AudioChans::GetAtChannelIfPlaying(int index)
+{
+    auto clip = GetAtChannel(index);
+    return (clip != nullptr && clip->IsReady()) ? clip : nullptr;
+}
+
+int AudioChans::GetPlaybackIDFromChan(int index)
+{
+    return (index >= 0 && static_cast<uint32_t>(index) < _channels.size()) ?
+        _chanIDToPlaybackID[index] : -1;
+}
+
+int AudioChans::GetChannelIDFromPlayback(int index)
+{
+    return (_playbackIDToChanID.count(index) > 0) ?
+        _playbackIDToChanID[index] : -1;
+}
+
+static void SetClipOnChannel(int index, std::shared_ptr<SoundClip> &clip)
+{
+    if ((clip != nullptr) && (_channels[index]))
         Debug::Printf(kDbgMsg_Warn, "WARNING: channel %d - clip overwritten", index);
-    _channels[index] = std::move(ch);
-    return _channels[index].get();
+
+    _channels[index] = clip;
+    _playbackIDToChanID[clip->GetAudioPlaybackID()] = index;
+    _chanIDToPlaybackID[index] = clip->GetAudioPlaybackID();
 }
 
-SoundClip *AudioChans::MoveChannel(int to, int from)
+void AudioChans::SetToChannel(int index, std::shared_ptr<SoundClip> &clip)
 {
-    return SetChannel(to, std::move(_channels[from]));
+    SetClipOnChannel(index, clip);
+}
+
+std::shared_ptr<SoundClip> AudioChans::MoveChannel(int from, int to)
+{
+    auto clip = _channels[from];
+    _channels[from].reset();
+    SetClipOnChannel(to, clip);
+    return clip;
 }
 
 void AudioChans::DeleteClipOnChannel(int index)
 {
-    _channels[index].reset();
+    if (_channels[index])
+    {
+        AudioPlays::RemovePlayback(_channels[index]->GetAudioPlaybackID());
+        _channels[index].reset();
+    }
 }
 
 extern GameSetupStruct game;
@@ -122,7 +196,7 @@ void start_fading_in_new_track_if_applicable(int fadeInChannel, const AudioPlayS
 static void move_track_to_crossfade_channel(int currentChannel, int crossfadeSpeed, int fadeInChannel, const AudioPlaySetup &newSound)
 {
     stop_and_destroy_channel(SPECIAL_CROSSFADE_CHANNEL);
-    auto *cfade_clip = AudioChans::MoveChannel(SPECIAL_CROSSFADE_CHANNEL, currentChannel);
+    auto cfade_clip = AudioChans::MoveChannel(currentChannel, SPECIAL_CROSSFADE_CHANNEL);
     if (!cfade_clip)
         return;
 
@@ -181,7 +255,7 @@ static int find_free_audio_channel(const AudioPlaySetup &aplay, int priority, bo
 
     for (int i = startAtChannel; i < endBeforeChannel; i++)
     {
-        auto* ch = AudioChans::GetChannelIfPlaying(i);
+        auto ch = AudioChans::GetAtChannelIfPlaying(i);
         if (ch == nullptr)
         {
             channelToUse = i;
@@ -239,7 +313,7 @@ std::unique_ptr<SoundClip> load_sound_clip(const AudioPlaySetup &aplay, bool rep
     AssetPath asset_name = get_audio_clip_assetpath(audioClip->bundlingType, audioClip->fileName);
     const char *ext = ScriptAudioClip::GetExtFromAudioFileType(audioClip->fileType);
 
-    std::unique_ptr<SoundClip> soundClip = load_sound_clip(asset_name, ext, repeat);
+    auto soundClip = load_sound_clip(asset_name, ext, repeat);
     if (soundClip != nullptr)
     {
         soundClip->SetClipInfo(audioClip->id, aplay.AudioType, asset_name.Name, audioClip->bundlingType);
@@ -251,7 +325,7 @@ std::unique_ptr<SoundClip> load_sound_clip(const AudioPlaySetup &aplay, bool rep
 std::unique_ptr<SoundClip> load_sound_clip(const String &filename, AudioClipBundle bundleType, bool repeat)
 {
     AssetPath asset_name = get_audio_clip_assetpath(bundleType, filename);
-    std::unique_ptr<SoundClip> soundClip = load_sound_clip(asset_name, nullptr, repeat);
+    auto soundClip = load_sound_clip(asset_name, nullptr, repeat);
     if (soundClip != nullptr)
     {
         soundClip->SetClipInfo(-1, AUDIOTYPE_UNDEFINED, asset_name.Name, bundleType);
@@ -271,12 +345,12 @@ static void audio_update_polled_stuff()
     // Do crossfade
     play.crossfade_step++;
 
-    if (play.crossfading_out_channel > 0 && !AudioChans::GetChannelIfPlaying(play.crossfading_out_channel))
+    if (play.crossfading_out_channel > 0 && !AudioChans::GetAtChannelIfPlaying(play.crossfading_out_channel))
         play.crossfading_out_channel = 0;
 
     if (play.crossfading_out_channel > 0)
     {
-        SoundClip* ch = AudioChans::GetChannel(play.crossfading_out_channel);
+        auto ch = AudioChans::GetAtChannel(play.crossfading_out_channel);
         int newVolume = ch ? ch->GetVolume100() - play.crossfade_out_volume_per_step : 0;
         if (newVolume > 0)
         {
@@ -289,12 +363,12 @@ static void audio_update_polled_stuff()
         }
     }
 
-    if (play.crossfading_in_channel > 0 && !AudioChans::GetChannelIfPlaying(play.crossfading_in_channel))
+    if (play.crossfading_in_channel > 0 && !AudioChans::GetAtChannelIfPlaying(play.crossfading_in_channel))
         play.crossfading_in_channel = 0;
 
     if (play.crossfading_in_channel > 0)
     {
-        SoundClip* ch = AudioChans::GetChannel(play.crossfading_in_channel);
+        auto ch = AudioChans::GetAtChannel(play.crossfading_in_channel);
         int newVolume = ch ? ch->GetVolume100() + play.crossfade_in_volume_per_step : 0;
         if (newVolume > play.crossfade_final_volume_in)
         {
@@ -361,8 +435,8 @@ static void queue_audio_clip_to_play(const ScriptAudioClip *clip, int priority, 
         return;
     }
 
-    std::unique_ptr<SoundClip> cachedClip = load_sound_clip(clip, (repeat != 0));
-    if (cachedClip != nullptr) 
+    auto cachedClip = load_sound_clip(clip, (repeat != 0));
+    if (cachedClip != nullptr)
     {
         play.new_music_queue[play.new_music_queue_size].audioClipIndex = clip->id;
         play.new_music_queue[play.new_music_queue_size].priority = priority;
@@ -372,12 +446,12 @@ static void queue_audio_clip_to_play(const ScriptAudioClip *clip, int priority, 
     }
 }
 
-ScriptAudioChannel *play_audio_clip_on_channel(const ScriptAudioClip *clip, int channel, int priority, int repeat, int fromOffset, std::unique_ptr<SoundClip> &&cachedClip)
+std::shared_ptr<SoundClip> play_audio_clip_on_channel(const ScriptAudioClip *clip, int channel, int priority, int repeat, int fromOffset, std::unique_ptr<SoundClip> &&cachedClip)
 {
     return play_audio_clip_direct(AudioPlaySetup(clip, clip->type), channel, priority, repeat, fromOffset, std::move(cachedClip));
 }
 
-ScriptAudioChannel *play_audio_clip_direct(const AudioPlaySetup &aplay, int channel, int priority, int repeat, int fromOffset, std::unique_ptr<SoundClip> &&soundfx)
+std::shared_ptr<SoundClip> play_audio_clip_direct(const AudioPlaySetup &aplay, int channel, int priority, int repeat, int fromOffset, std::unique_ptr<SoundClip> &&soundfx)
 {
     assert(aplay.Clip);
     assert(aplay.AudioType != AUDIOTYPE_UNDEFINED);
@@ -395,7 +469,6 @@ ScriptAudioChannel *play_audio_clip_direct(const AudioPlaySetup &aplay, int chan
         }
         return nullptr;
     }
-    soundfx->SetPriority(priority);
 
     if (play.crossfading_in_channel == channel)
     {
@@ -431,11 +504,11 @@ ScriptAudioChannel *play_audio_clip_direct(const AudioPlaySetup &aplay, int chan
     if (!play.fast_forward && play.speech_has_voice)
         apply_volume_drop_to_clip(soundfx.get());
 
-    AudioChans::SetChannel(channel, std::move(soundfx));
-    return &scrAudioChannel[channel];
+    soundfx->SetPriority(priority);
+    return AudioPlays::AddPlaybackToChannel(std::move(soundfx), channel);
 }
 
-ScriptAudioChannel *play_sound_on_channel(std::unique_ptr<SoundClip> &&sound, int channel, int priority, int repeat, int fromOffset)
+std::shared_ptr<SoundClip> play_audio_clip_on_channel(std::unique_ptr<SoundClip> &&sound, int channel, int priority, int repeat, int fromOffset)
 {
     if (sound->PlayFrom(fromOffset) == 0)
     {
@@ -443,10 +516,9 @@ ScriptAudioChannel *play_sound_on_channel(std::unique_ptr<SoundClip> &&sound, in
         return nullptr;
     }
 
-    sound->SetRepeat(repeat);
     sound->SetPriority(priority);
-    AudioChans::SetChannel(channel, std::move(sound));
-    return &scrAudioChannel[channel];
+    sound->SetRepeat(repeat);
+    return AudioPlays::AddPlaybackToChannel(std::move(sound), channel);
 }
 
 void remove_clips_of_type_from_queue(int audioType) 
@@ -480,7 +552,7 @@ void update_queued_clips_volume(int audioType, int new_vol)
     }
 }
 
-ScriptAudioChannel *play_audio_clip_as_type(const AudioPlaySetup &aplay, int channel, int priority, int repeat, int fromOffset, bool queueIfNoChannel)
+std::shared_ptr<SoundClip> play_audio_clip_as_type(const AudioPlaySetup &aplay, int channel, int priority, int repeat, int fromOffset, bool queueIfNoChannel)
 {
     assert(aplay.Clip);
     assert(aplay.AudioType != AUDIOTYPE_UNDEFINED);
@@ -510,20 +582,20 @@ ScriptAudioChannel *play_audio_clip_as_type(const AudioPlaySetup &aplay, int cha
     return play_audio_clip_direct(aplay, channel, priority, repeat, fromOffset);
 }
 
-ScriptAudioChannel *play_audio_clip(const ScriptAudioClip *clip, int priority, int repeat, int fromOffset, bool queueIfNoChannel)
+std::shared_ptr<SoundClip> play_audio_clip(const ScriptAudioClip *clip, int priority, int repeat, int fromOffset, bool queueIfNoChannel)
 {
     return play_audio_clip_as_type(AudioPlaySetup(clip, clip->type), -1, priority, repeat, fromOffset, queueIfNoChannel);
 }
 
-ScriptAudioChannel *play_audio_clip(const AudioPlaySetup &aplay, int channel, int priority, int repeat, int fromOffset, bool queueIfNoChannel)
+std::shared_ptr<SoundClip> play_audio_clip(const AudioPlaySetup &aplay, int channel, int priority, int repeat, int fromOffset, bool queueIfNoChannel)
 {
     return play_audio_clip_as_type(aplay, channel, priority, repeat, fromOffset, queueIfNoChannel);
 }
 
-ScriptAudioChannel* play_audio_clip_by_index(int audioClipIndex)
+std::shared_ptr<SoundClip> play_audio_clip_by_index(int audioClipIndex)
 {
     if ((audioClipIndex >= 0) && ((size_t)audioClipIndex < game.audioClips.size()))
-        return AudioClip_Play(&game.audioClips[audioClipIndex], SCR_NO_VALUE, SCR_NO_VALUE);
+        return play_audio_clip(&game.audioClips[audioClipIndex], SCR_NO_VALUE, SCR_NO_VALUE);
     else 
         return nullptr;
 }
@@ -568,7 +640,7 @@ void update_directional_sound_vol()
 {
     for (int chnum = NUM_SPEECH_CHANS; chnum < game.numGameChannels; chnum++)
     {
-        auto* ch = AudioChans::GetChannelIfPlaying(chnum);
+        auto ch = AudioChans::GetAtChannelIfPlaying(chnum);
         if ((ch != nullptr) && (ch->GetEmitterPosition().X >= 0)) 
         {
             ch->ApplyDirectionalModifier(
@@ -579,20 +651,6 @@ void update_directional_sound_vol()
                 ch->GetVolume255());
         }
     }
-}
-
-std::unique_ptr<SoundClip> load_sound_and_play(const ScriptAudioClip *aclip, bool repeat)
-{
-    std::unique_ptr<SoundClip> soundfx = load_sound_clip(aclip, repeat);
-    if (!soundfx)
-        return nullptr;
-
-    if (!soundfx->Play())
-    {
-        return nullptr;
-    }
-
-    return soundfx;
 }
 
 void stop_all_sound_and_music() 
@@ -649,11 +707,11 @@ void apply_volume_drop_modifier(bool applyModifier)
 {
     for (int i = NUM_SPEECH_CHANS; i < game.numGameChannels; i++)
     {
-        auto* ch = AudioChans::GetChannelIfPlaying(i);
+        auto ch = AudioChans::GetAtChannelIfPlaying(i);
         if (ch && ch->GetSourceClipID() >= 0)
         {
             if (applyModifier)
-                apply_volume_drop_to_clip(ch);
+                apply_volume_drop_to_clip(ch.get());
             else
                 ch->ApplyVolumeModifier(0); // reset modifier
         }
@@ -672,7 +730,7 @@ void sync_audio_playback()
 {
     for (int i = 0; i < TOTAL_AUDIO_CHANNELS; ++i)
     { // update the playing channels, and dispose the finished / invalid ones
-        auto *ch = AudioChans::GetChannelIfPlaying(i);
+        auto ch = AudioChans::GetAtChannelIfPlaying(i);
         if (ch && !ch->Update())
         {
             AudioChans::DeleteClipOnChannel(i);

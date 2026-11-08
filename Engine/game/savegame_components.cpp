@@ -491,7 +491,7 @@ HSaveError WriteAudio(Stream *out)
     // Audio playbacks (from channels)
     for (int i = 0; i < TOTAL_AUDIO_CHANNELS; i++)
     {
-        auto* ch = AudioChans::GetChannelIfPlaying(i);
+        auto ch = AudioChans::GetAtChannelIfPlaying(i);
         if (ch)
         {
             out->WriteInt32(ch->GetSourceClipID());

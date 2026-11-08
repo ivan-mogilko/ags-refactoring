@@ -20,6 +20,7 @@
 
 extern void RegisterAudioChannelAPI();
 extern void RegisterAudioClipAPI();
+extern void RegisterAudioPlaybackAPI();
 extern void RegisterButtonAPI();
 extern void RegisterCharacterAPI(ScriptAPIVersion base_api, ScriptAPIVersion compat_api);
 extern void RegisterContainerAPI();
@@ -71,6 +72,7 @@ void setup_script_exports(ScriptAPIVersion base_api, ScriptAPIVersion compat_api
 {
     RegisterAudioChannelAPI();
     RegisterAudioClipAPI();
+    RegisterAudioPlaybackAPI();
     RegisterButtonAPI();
     RegisterCharacterAPI(base_api, compat_api);
     RegisterContainerAPI();

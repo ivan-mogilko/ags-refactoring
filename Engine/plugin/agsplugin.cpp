@@ -554,15 +554,15 @@ void IAGSEngine::PlaySoundChannel (int32 channel, int32 soundType, int32 volume,
         return;
     }
 
-    std::unique_ptr<SoundClip> newcha(load_sound_clip(asset_name, ext, (loop != 0)));
-    if (!newcha)
+    auto clip = load_sound_clip(asset_name, ext, (loop != 0));
+    if (!clip)
     {
         debug_script_warn("IAGSEngine::PlaySoundChannel: failed to load %s", filename);
         return;
     }
 
-    newcha->SetVolume255(volume);
-    AudioChans::SetChannel(channel, std::move(newcha));
+    clip->SetVolume255(volume);
+    AudioPlays::AddPlaybackToChannel(std::move(clip), channel);
 }
 // Engine interface 12 and above are below
 void IAGSEngine::MarkRegionDirty(int32 left, int32 top, int32 right, int32 bottom) {

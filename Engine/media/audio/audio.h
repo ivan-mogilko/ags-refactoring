@@ -24,30 +24,6 @@
 #include "util/string.h"
 #include "util/time_util.h"
 
-class AudioChans
-{
-public:
-    // Gets a clip from the channel
-    static SoundClip *GetChannel(int index);
-    // Gets a clip from the channel but only if it's in playback state
-    static SoundClip *GetChannelIfPlaying(int index);
-    // Assign new clip to the channel
-    static SoundClip *SetChannel(int index, std::unique_ptr<SoundClip> &&clip);
-    // Move clip from one channel to another, clearing the first channel
-    static SoundClip *MoveChannel(int to, int from);
-    // Deletes any clip and frees the channel
-    static void       DeleteClipOnChannel(int index);
-
-    // Tells if channel has got a clip; does not care about its state
-    static inline bool ChannelHasClip(int index) { return GetChannel(index) != nullptr; }
-    // Tells if channel has got a clip and clip is in playback state
-    static inline bool ChannelIsPlaying(int index) { return GetChannelIfPlaying(index) != nullptr; }
-
-private:
-    AudioChans() = delete;
-    ~AudioChans() = delete;
-};
-
 // Helper struct, pairing audio clip and play start setting overrides
 struct AudioPlaySetup
 {
@@ -61,6 +37,46 @@ struct AudioPlaySetup
         : Clip(clip), AudioType(audio_type) {}
 };
 
+namespace AudioPlays
+{
+    // Adds a clip to the list of active playbacks
+    std::shared_ptr<SoundClip> AddPlayback(std::unique_ptr<SoundClip> &&clip);
+    // Adds a clip to the list of active playbacks,
+    // and immediately puts it on the given channel
+    std::shared_ptr<SoundClip> AddPlaybackToChannel(std::unique_ptr<SoundClip> &&clip, int chan_id);
+    // Gets a clip of this playback index
+    std::shared_ptr<SoundClip> GetPlayback(int playback_id);
+    // Removes a clip from the list of active playbacks.
+    // This also invalidates the connected AudioPlayback script object, if one was created.
+    void RemovePlayback(int playback_id);
+    // Creates and registers an empty (stub) script audio playback object.
+    // This is useful if you want to return a non-working playback to script in case of failure.
+    ScriptAudioPlayback *CreateEmptyScriptPlayback();
+}
+
+namespace AudioChans
+{
+    // Gets a clip from the channel
+    std::shared_ptr<SoundClip> GetAtChannel(int index);
+    // Gets a clip from the channel but only if it's in playback state
+    std::shared_ptr<SoundClip> GetAtChannelIfPlaying(int index);
+    // Gets playback index from channel's index, or -1 if there's no playback
+    int GetPlaybackIDFromChan(int index);
+    // Gets channel index from playback's index, or -1 if playback is not on channel
+    int GetChannelIDFromPlayback(int index);
+    // Assign new clip to the channel
+    void SetToChannel(int index, std::shared_ptr<SoundClip> &clip);
+    // Move clip from one channel to another, clearing the first channel
+    std::shared_ptr<SoundClip> MoveChannel(int to, int from);
+    // Deletes any clip and frees the channel
+    void DeleteClipOnChannel(int index);
+
+    // Tells if channel has got a clip; does not care about its state
+    inline bool ChannelHasClip(int index) { return GetAtChannel(index) != nullptr; }
+    // Tells if channel has got a clip and clip is in playback state
+    inline bool ChannelIsPlaying(int index) { return GetAtChannelIfPlaying(index) != nullptr; }
+};
+
 
 void        calculate_reserved_channel_count();
 int         get_playback_start_volume(const AudioPlaySetup &aplay);
@@ -69,16 +85,16 @@ void        stop_or_fade_out_channel(int fadeOutChannel, int fadeInChannel = -1,
 std::unique_ptr<SoundClip> load_sound_clip(const ScriptAudioClip *audioClip, bool repeat);
 std::unique_ptr<SoundClip> load_sound_clip(const AGS::Common::String &filename, AudioClipBundle bundleType, bool repeat);
 std::unique_ptr<SoundClip> load_sound_clip(const AudioPlaySetup &aplay, bool repeat);
-ScriptAudioChannel *play_audio_clip_on_channel(const ScriptAudioClip *clip, int channel, int priority, int repeat, int fromOffset = 0, std::unique_ptr<SoundClip> &&cachedClip = nullptr);
-ScriptAudioChannel *play_sound_on_channel(std::unique_ptr<SoundClip> &&sound, int channel, int priority, int repeat, int fromOffset);
-ScriptAudioChannel *play_audio_clip_direct(const AudioPlaySetup &aplay, int channel, int priority, int repeat, int fromOffset = 0, std::unique_ptr<SoundClip> &&cachedClip = nullptr);
 void        remove_clips_of_type_from_queue(int audioType);
 void        update_queued_clips_volume(int audioType, int new_vol);
 // Checks if speech voice-over is currently playing, and reapply volume drop to all other active clips
 void        update_volume_drop_if_voiceover();
-ScriptAudioChannel* play_audio_clip(const ScriptAudioClip *clip, int priority, int repeat, int fromOffset = 0, bool queueIfNoChannel = false);
-ScriptAudioChannel* play_audio_clip_by_index(int audioClipIndex);
-ScriptAudioChannel *play_audio_clip(const AudioPlaySetup &aplay, int channel, int priority, int repeat, int fromOffset = 0, bool queueIfNoChannel = false);
+std::shared_ptr<SoundClip> play_audio_clip(const ScriptAudioClip *clip, int priority, int repeat, int fromOffset = 0, bool queueIfNoChannel = false);
+std::shared_ptr<SoundClip> play_audio_clip(const AudioPlaySetup &aplay, int channel, int priority, int repeat, int fromOffset = 0, bool queueIfNoChannel = false);
+std::shared_ptr<SoundClip> play_audio_clip_by_index(int audioClipIndex);
+std::shared_ptr<SoundClip> play_audio_clip_on_channel(const ScriptAudioClip *clip, int channel, int priority, int repeat, int fromOffset = 0, std::unique_ptr<SoundClip> &&cachedClip = nullptr);
+std::shared_ptr<SoundClip> play_audio_clip_on_channel(std::unique_ptr<SoundClip> &&sound, int channel, int priority, int repeat, int fromOffset);
+std::shared_ptr<SoundClip> play_audio_clip_direct(const AudioPlaySetup &aplay, int channel, int priority, int repeat, int fromOffset = 0, std::unique_ptr<SoundClip> &&cachedClip = nullptr);
 void        stop_and_destroy_channel (int chid);
 
 //=============================================================================
@@ -87,9 +103,6 @@ int         get_volume_adjusted_for_distance(int volume, int sndX, int sndY, int
 void        update_directional_sound_vol();
 // Tells if the audio type is allowed to play with regards to current sound config
 bool        is_audiotype_allowed_to_play(AudioFileType type);
-// Loads sound data referenced by audio clip item, and starts playback;
-// returns NULL on failure
-std::unique_ptr<SoundClip> load_sound_and_play(const ScriptAudioClip *aclip, bool repeat);
 void        stop_all_sound_and_music();
 void        shutdown_sound();
 

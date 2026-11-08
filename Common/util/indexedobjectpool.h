@@ -45,10 +45,12 @@
 // This class is suggested to be used as a parent for the actual storage
 // class.
 //
-template <typename TIndex, TIndex NoIndexValue = 0>
+template <typename TIndex, TIndex _NoIndexValue = 0>
 class IndexedPoolBase
 {
 public:
+    static const TIndex NoIndexValue = _NoIndexValue;
+
     // Constructs a default object pool.
     IndexedPoolBase()
         // no-index value of 0 is turned into a fixed slot, for the ease of implementation
@@ -83,6 +85,24 @@ public:
     bool IsFree(TIndex index) const { return _isFree[index]; }
     // Tells if particular index is being used
     bool IsInUse(TIndex index) const { return !_isFree[index]; }
+
+    // Returns the next free index without changing the Pool's inner state.
+    // This function guarantees that the returned index will be the one used
+    // when adding next object to the pool.
+    TIndex GetFreeIndex()
+    {
+        if (_freeIds.empty())
+        {
+            if (!CanAllocMore())
+                return NoIndexValue;
+
+            return static_cast<TIndex>(_isFree.size());
+        }
+        else
+        {
+            return _freeIds.top();
+        }
+    }
 
     // Requests an index to use for the new element, marks that index as "in use"
     TIndex Add()
@@ -141,8 +161,8 @@ protected:
         return (_isFree.size() != SIZE_MAX) && (static_cast<TIndex>(_isFree.size()) < std::numeric_limits<TIndex>::max());
     }
 
-    // Returns the next free index, allocates more if necessary
-    TIndex GetFreeIndex()
+    // Returns the next free index, removes one from queue or allocates more if necessary
+    TIndex AllocFreeIndex()
     {
         if (_freeIds.empty())
         {
@@ -164,7 +184,7 @@ protected:
     // Finds a free index, marks it as used, increments valid elements count
     TIndex AcquireFreeSlot()
     {
-        const TIndex index = GetFreeIndex();
+        const TIndex index = AllocFreeIndex();
         assert(static_cast<size_t>(index) >= _fixedCount);
         if (index != NoIndexValue)
         {
@@ -255,12 +275,13 @@ protected:
 // IndexedObjectPool provides a element storage and keeps record of free
 // and used indexes.
 //
-template <typename TElem, typename TIndex = size_t, TIndex NoIndexValue = 0>
-class IndexedObjectPool : protected IndexedPoolBase<TIndex, NoIndexValue>
+template <typename TElem, typename TIndex = size_t, TIndex _NoIndexValue = 0>
+class IndexedObjectPool : protected IndexedPoolBase<TIndex, _NoIndexValue>
 {
 public:
-    using BaseType = IndexedPoolBase<TIndex, NoIndexValue>;
+    using BaseType = IndexedPoolBase<TIndex, _NoIndexValue>;
     using ContainerType = std::vector<TElem>;
+    using BaseType::NoIndexValue;
 
     // Constructs a default object pool.
     IndexedObjectPool()
@@ -300,9 +321,11 @@ public:
     // Tells if particular index is registered
     bool IndexExists(TIndex index) const { return index >= 0 && static_cast<size_t>(index) < BaseType::_isFree.size(); }
     // Tells if particular index is free
-    bool IsFree(TIndex index) const { return BaseType::_isFree[index]; }
+    bool IsFree(TIndex index) const { return IndexExists(index) ? BaseType::_isFree[index] : false; }
     // Tells if particular index is being used
-    bool IsInUse(TIndex index) const { return !BaseType::_isFree[index]; }
+    bool IsInUse(TIndex index) const { return IndexExists(index) ? !BaseType::_isFree[index] : false; }
+
+    using BaseType::GetFreeIndex;
 
     // Adds new element, initialized with default value; returns its index
     TIndex Add()

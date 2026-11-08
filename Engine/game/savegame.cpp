@@ -559,10 +559,10 @@ static HSaveError RestoreAudio(const RestoredData &r_data)
         {
             auto sound = load_sound_clip(chan_info.FileName, chan_info.BundlingType, chan_info.Repeat);
             if (sound)
-                play_sound_on_channel(std::move(sound), i, chan_info.Priority, chan_info.Repeat, chan_info.Pos);
+                play_audio_clip_on_channel(std::move(sound), i, chan_info.Priority, chan_info.Repeat, chan_info.Pos);
         }
 
-        auto* ch = AudioChans::GetChannel(i);
+        auto ch = AudioChans::GetAtChannel(i);
         if (ch != nullptr)
         {
             ch->SetVolumeDirect(chan_info.VolAsPercent, chan_info.Vol);
@@ -574,16 +574,16 @@ static HSaveError RestoreAudio(const RestoredData &r_data)
                 ch->Pause();
         }
     }
-    if ((cf_in_chan > 0) && (AudioChans::GetChannel(cf_in_chan) != nullptr))
+    if ((cf_in_chan > 0) && (AudioChans::GetAtChannel(cf_in_chan) != nullptr))
         play.crossfading_in_channel = cf_in_chan;
-    if ((cf_out_chan > 0) && (AudioChans::GetChannel(cf_out_chan) != nullptr))
+    if ((cf_out_chan > 0) && (AudioChans::GetAtChannel(cf_out_chan) != nullptr))
         play.crossfading_out_channel = cf_out_chan;
 
     // If there were synced audio tracks, the time taken to load in the
     // different channels will have thrown them out of sync, so re-time it
     for (int i = 0; i < TOTAL_AUDIO_CHANNELS; ++i)
     {
-        auto* ch = AudioChans::GetChannelIfPlaying(i);
+        auto ch = AudioChans::GetAtChannelIfPlaying(i);
         int pos = r_data.AudioChans[i].Pos;
         if ((pos > 0) && (ch != nullptr))
         {

@@ -14,6 +14,7 @@
 #include <cmath>
 #include "ac/common_defines.h"
 #include "ac/dynobj/scriptaudioclip.h"
+#include "ac/dynobj/dynobj_manager.h"
 #include "media/audio/soundclip.h"
 #include "media/audio/audio_core.h"
 
@@ -35,6 +36,26 @@ SoundClip::~SoundClip()
 {
     if (_slot >= 0)
         audio_core_slot_stop(_slot);
+
+    if (_scHandle > 0)
+    {
+        ScriptAudioPlayback *sc_aplay = reinterpret_cast<ScriptAudioPlayback*>(ccGetObjectAddressFromHandle(_scHandle));
+        if (sc_aplay)
+            sc_aplay->Invalidate();
+        ccReleaseObjectReference(_scHandle);
+    }
+}
+
+ScriptAudioPlayback *SoundClip::GetScriptPlayback()
+{
+    if (_scHandle > 0)
+        return reinterpret_cast<ScriptAudioPlayback*>(ccGetObjectAddressFromHandle(_scHandle));
+
+    // We generate a script object here even if this SoundClip does not have a audio playback ID assigned,
+    // in which case the script object will begin invalidated.
+    auto *sc_aplay = new ScriptAudioPlayback(_audioPlaybackID);
+    _scHandle = ccRegisterManagedObject(sc_aplay, sc_aplay);
+    return sc_aplay;
 }
 
 void SoundClip::SetClipInfo(int clip_id, int audio_type, const String &filename, AudioClipBundle bundle_type)
@@ -43,6 +64,19 @@ void SoundClip::SetClipInfo(int clip_id, int audio_type, const String &filename,
     _sourceClipType = audio_type;
     _fileName = filename;
     _bundlingType = bundle_type;
+}
+
+void SoundClip::SetPlaybackID(int playback_id)
+{
+    _audioPlaybackID = playback_id;
+    // If there is a script object already created, then update playback id there too
+    // (normally this should not happen, as playback id is assigned once when the SoundClip is created)
+    if (_scHandle > 0)
+    {
+        ScriptAudioPlayback *sc_aplay = reinterpret_cast<ScriptAudioPlayback*>(ccGetObjectAddressFromHandle(_scHandle));
+        if (sc_aplay)
+            sc_aplay->SetID(_audioPlaybackID);
+    }
 }
 
 bool SoundClip::Play()

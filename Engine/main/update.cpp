@@ -173,7 +173,7 @@ void update_speech_and_messages()
   bool is_voice_playing = false;
   if (play.speech_voice_blocking)
   {
-      auto *ch = AudioChans::GetChannel(SCHAN_SPEECH);
+      auto ch = AudioChans::GetAtChannel(SCHAN_SPEECH);
       is_voice_playing = ch && ch->IsReady();
   }
   // determine if speech text should be removed
@@ -234,7 +234,7 @@ int update_voice_lipsync(int frame)
     if (!has_voice_lipsync())
         return frame; // no change
 
-    auto *ch = AudioChans::GetChannel(SCHAN_SPEECH);
+    auto ch = AudioChans::GetAtChannel(SCHAN_SPEECH);
     const int voice_pos_ms = ch ? ch->GetPosMs() : -1;
     if (voice_pos_ms < 0)
         return frame; // no change
