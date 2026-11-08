@@ -561,7 +561,7 @@ void IAGSEngine::PlaySoundChannel (int32 channel, int32 soundType, int32 volume,
         return;
     }
 
-    newcha->set_volume255(volume);
+    newcha->SetVolume255(volume);
     AudioChans::SetChannel(channel, std::move(newcha));
 }
 // Engine interface 12 and above are below

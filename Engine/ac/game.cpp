@@ -312,7 +312,7 @@ void Game_SetAudioTypeVolume(int audioType, int volume, int changeType)
             {
                 auto* ch = AudioChans::GetChannel(i);
                 if (ch)
-                    ch->set_volume100(volume);
+                    ch->SetVolume100(volume);
             }
         }
     }
@@ -1694,7 +1694,7 @@ void stop_fast_forwarding() {
         auto* ch = AudioChans::GetChannelIfPlaying(aa);
         if (ch)
         {
-            ch->set_mute(false);
+            ch->SetMute(false);
         }
     }
 }
@@ -1822,7 +1822,7 @@ void display_switch_out_suspend()
     for (int i = 0; i < TOTAL_AUDIO_CHANNELS; i++) {
         auto* ch = AudioChans::GetChannelIfPlaying(i);
         if (ch) {
-            ch->pause();
+            ch->Pause();
         }
     }
 
@@ -1850,7 +1850,7 @@ void display_switch_in_resume()
     for (int i = 0; i < TOTAL_AUDIO_CHANNELS; i++) {
         auto* ch = AudioChans::GetChannelIfPlaying(i);
         if (ch) {
-            ch->resume();
+            ch->Resume();
         }
     }
     video_single_resume();

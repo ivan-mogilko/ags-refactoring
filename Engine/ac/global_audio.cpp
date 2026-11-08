@@ -44,7 +44,7 @@ void SetSpeechVolume(int newvol) {
 
     auto* ch = AudioChans::GetChannel(SCHAN_SPEECH);
     if (ch)
-        ch->set_volume255(newvol);
+        ch->SetVolume255(newvol);
     play.speech_volume = newvol;
 }
 
@@ -113,10 +113,9 @@ static bool play_voice_clip_on_channel(const String &voice_name)
 
     std::unique_ptr<SoundClip> voice_clip(load_sound_clip(apath, "", false));
     if (voice_clip != nullptr) {
-        voice_clip->fileName = apath.Name;
-        voice_clip->bundlingType = kAudioBundle_SpeechVox;
-        voice_clip->set_volume255(play.speech_volume);
-        if (!voice_clip->play())
+        voice_clip->SetClipInfo(-1, AUDIOTYPE_SPEECH, apath.Name, kAudioBundle_SpeechVox);
+        voice_clip->SetVolume255(play.speech_volume);
+        if (!voice_clip->Play())
             voice_clip.reset();
     }
 
@@ -216,7 +215,7 @@ const ScriptAudioChannel *play_voice_clip_as_type(int charid, int sndid, int typ
     sc_clip.fileName = apath.Name;
     sc_clip.fileType = ScriptAudioClip::GetAudioFileTypeFromExt(Path::GetFileExtension(apath.Name).GetCStr());
     sc_clip.bundlingType = kAudioBundle_SpeechVox;
-    return play_audio_clip(AudioPlayback(&sc_clip, type), chan, priority, repeat, 0, false);
+    return play_audio_clip(AudioPlaySetup(&sc_clip, type), chan, priority, repeat, 0, false);
 }
 
 void stop_voice_speech()

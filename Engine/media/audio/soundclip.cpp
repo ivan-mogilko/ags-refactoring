@@ -18,73 +18,66 @@
 #include "media/audio/audio_core.h"
 
 SoundClip::SoundClip(int slot, AudioFileType snd_type, bool loop)
-    : slot_(slot)
-    , soundType(snd_type)
-    , repeat(loop)
+    : _slot(slot)
+    , _soundType(snd_type)
+    , _repeat(loop)
 {
-    sourceClipID = -1;
-    sourceClipType = AUDIOTYPE_UNDEFINED;
-    bundlingType = kAudioBundle_Undefined;
-    priority = 50;
-    vol255 = 0;
-    vol100 = 0;
-    volModifier = 0;
-    xSource = -1;
-    ySource = -1;
-    maximumPossibleDistanceAway = 0;
-    directionalVolModifier = 0;
-    muted = false;
-    panning = 0;
-    speed = 1000;
-
-    state = PlaybackState::PlayStateInitial;
-    pos = posMs = -1;
-    paramsChanged = true;
+    _state = PlaybackState::PlayStateInitial;
+    _pos = _posMs = -1;
+    _paramsChanged = true;
 
     const auto player = audio_core_get_player(slot);
-    lengthMs = (int)std::round(player->GetDurationMs());
+    _lengthMs = (int)std::round(player->GetDurationMs());
     freq = static_cast<int>(player->GetFrequency());
 }
 
 SoundClip::~SoundClip()
 {
-    if (slot_ >= 0)
-        audio_core_slot_stop(slot_);
+    if (_slot >= 0)
+        audio_core_slot_stop(_slot);
 }
 
-bool SoundClip::play()
+void SoundClip::SetClipInfo(int clip_id, int audio_type, const String &filename, AudioClipBundle bundle_type)
 {
-    if (!is_ready())
+    _sourceClipID = clip_id;
+    _sourceClipType = audio_type;
+    _fileName = filename;
+    _bundlingType = bundle_type;
+}
+
+bool SoundClip::Play()
+{
+    if (!IsReady())
         return false;
-    state = PlaybackState::PlayStatePlaying;
+    _state = PlaybackState::PlayStatePlaying;
     return true;
 }
 
-bool SoundClip::play_from(int position)
+bool SoundClip::PlayFrom(int position)
 {
-    seek(position);
-    return play();
+    Seek(position);
+    return Play();
 }
 
-void SoundClip::pause()
+void SoundClip::Pause()
 {
-    if (!is_ready())
+    if (!IsReady())
         return;
-    auto player = audio_core_get_player(slot_);
+    auto player = audio_core_get_player(_slot);
     player->Pause();
-    state = player->GetPlayStateNormal();
+    _state = player->GetPlayStateNormal();
 }
 
-void SoundClip::resume()
+void SoundClip::Resume()
 {
-    if (!is_ready())
+    if (!IsReady())
         return;
-    state = PlaybackState::PlayStatePlaying;
+    _state = PlaybackState::PlayStatePlaying;
 }
 
-int SoundClip::posms_to_pos(int pos_ms)
+int SoundClip::PosmsToPos(int pos_ms)
 {
-    switch (soundType)
+    switch (_soundType)
     {
     case eAudioFileWAV: // Pos is in samples
         return static_cast<int>((static_cast<int64_t>(pos_ms) * freq) / 1000);
@@ -96,9 +89,9 @@ int SoundClip::posms_to_pos(int pos_ms)
     }
 }
 
-int SoundClip::pos_to_posms(int pos_)
+int SoundClip::PosToPosms(int pos_)
 {
-    switch (soundType)
+    switch (_soundType)
     {
     case eAudioFileWAV: // Pos is in samples
         return static_cast<int>((static_cast<int64_t>(pos_) * 1000) / freq);
@@ -110,69 +103,69 @@ int SoundClip::pos_to_posms(int pos_)
     }
 }
 
-void SoundClip::seek(int pos_)
+void SoundClip::Seek(int pos_)
 {
     // TODO: we probably would need a separate implementation eventually
-    seek_ms(pos_to_posms(pos_));
+    SeekMs(PosToPosms(pos_));
 }
 
-void SoundClip::seek_ms(int pos_ms)
+void SoundClip::SeekMs(int pos_ms)
 {
-    if (slot_ < 0) { return; }
-    auto player = audio_core_get_player(slot_);
+    if (_slot < 0) { return; }
+    auto player = audio_core_get_player(_slot);
     player->Pause();
     // TODO: for backward compatibility and MOD/XM music support
     // need to reimplement seeking to a position which units
     // are defined according to the sound type
     player->Seek((float)pos_ms);
     float posms_f = player->GetPositionMs();
-    posMs = static_cast<int>(posms_f);
-    pos = posms_to_pos(posMs);
+    _posMs = static_cast<int>(posms_f);
+    _pos = PosmsToPos(_posMs);
 }
 
-bool SoundClip::update()
+bool SoundClip::Update()
 {
-    if (!is_ready()) return false;
+    if (!IsReady()) return false;
 
-    auto player = audio_core_get_player(slot_);
-    if (paramsChanged)
+    auto player = audio_core_get_player(_slot);
+    if (_paramsChanged)
     {
-        auto vol_f = static_cast<float>(get_final_volume()) / 255.0f;
+        auto vol_f = static_cast<float>(GetFinalVolume()) / 255.0f;
         if (vol_f < 0.0f) { vol_f = 0.0f; }
         if (vol_f > 1.0f) { vol_f = 1.0f; }
 
-        auto speed_f = static_cast<float>(speed) / 1000.0f;
+        auto speed_f = static_cast<float>(_speed) / 1000.0f;
         if (speed_f <= 0.0) { speed_f = 1.0f; }
 
         // Sets the pan position, ranging from -100 (left) to +100 (right)
-        auto panning_f = (static_cast<float>(panning) / 100.0f);
+        auto panning_f = (static_cast<float>(_panning) / 100.0f);
         if (panning_f < -1.0f) { panning_f = -1.0f; }
         if (panning_f > 1.0f) { panning_f = 1.0f; }
 
         player->SetVolume(vol_f);
         player->SetSpeed(speed_f);
         player->SetPanning(panning_f);
-        paramsChanged = false;
+        _paramsChanged = false;
     }
 
     PlaybackState core_state = player->GetPlayStateNormal();
     float posms_f = player->GetPositionMs();
-    posMs = static_cast<int>(posms_f);
-    pos = posms_to_pos(posMs);
-    if (state == core_state || IsPlaybackDone(core_state))
+    _posMs = static_cast<int>(posms_f);
+    _pos = PosmsToPos(_posMs);
+    if (_state == core_state || IsPlaybackDone(core_state))
     {
-        state = core_state;
-        return is_ready();
+        _state = core_state;
+        return IsReady();
     }
 
-    switch (state)
+    switch (_state)
     {
     case PlaybackState::PlayStatePlaying:
         player->Play();
-        state = player->GetPlayStateNormal();
+        _state = player->GetPlayStateNormal();
         break;
     default: /* do nothing */
         break;
     }
-    return is_ready();
+    return IsReady();
 }

@@ -552,7 +552,7 @@ static HSaveError RestoreAudio(const RestoredData &r_data)
             }
 
             int audio_type = chan_info.AudioType != AUDIOTYPE_UNDEFINED ? chan_info.AudioType : game.audioClips[chan_info.ClipID].type;
-            play_audio_clip(AudioPlayback(&game.audioClips[chan_info.ClipID], audio_type), i,
+            play_audio_clip(AudioPlaySetup(&game.audioClips[chan_info.ClipID], audio_type), i,
                 chan_info.Priority, chan_info.Repeat, chan_info.Pos, true /* HACK: pass "queue" to avoid deleting existing queue */);
         }
         else
@@ -565,15 +565,13 @@ static HSaveError RestoreAudio(const RestoredData &r_data)
         auto* ch = AudioChans::GetChannel(i);
         if (ch != nullptr)
         {
-            ch->set_volume_direct(chan_info.VolAsPercent, chan_info.Vol);
-            ch->set_speed(chan_info.Speed);
-            ch->set_panning(chan_info.Pan);
-            ch->xSource = chan_info.XSource;
-            ch->ySource = chan_info.YSource;
-            ch->maximumPossibleDistanceAway = chan_info.MaxDist;
+            ch->SetVolumeDirect(chan_info.VolAsPercent, chan_info.Vol);
+            ch->SetSpeed(chan_info.Speed);
+            ch->SetPanning(chan_info.Pan);
+            ch->SetEmitterPosition(chan_info.XSource, chan_info.YSource, chan_info.MaxDist);
 
             if ((chan_info.Flags & kSvgAudioPaused) != 0)
-                ch->pause();
+                ch->Pause();
         }
     }
     if ((cf_in_chan > 0) && (AudioChans::GetChannel(cf_in_chan) != nullptr))
@@ -589,7 +587,7 @@ static HSaveError RestoreAudio(const RestoredData &r_data)
         int pos = r_data.AudioChans[i].Pos;
         if ((pos > 0) && (ch != nullptr))
         {
-            ch->seek(pos);
+            ch->Seek(pos);
         }
     }
  
