@@ -25,27 +25,11 @@ const char *ScriptVideoPlayer::GetType()
 
 int ScriptVideoPlayer::Dispose(void* /*address*/, bool /*force*/)
 {
-    if (_id >= 0)
+    if (IsValid())
     {
-        video_stop(_id);
+        video_stop(_objID);
     }
 
     delete this;
     return 1;
-}
-
-size_t ScriptVideoPlayer::CalcSerializeSize(const void* /*address*/)
-{
-    return sizeof(int32_t);
-}
-
-void ScriptVideoPlayer::Serialize(const void* /*address*/, Stream *out)
-{
-    out->WriteInt32(_id);
-}
-
-void ScriptVideoPlayer::Unserialize(int index, Stream *in, size_t /*data_sz*/)
-{
-    _id = in->ReadInt32();
-    ccRegisterUnserializedObject(index, this, this);
 }

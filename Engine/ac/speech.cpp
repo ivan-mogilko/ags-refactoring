@@ -175,7 +175,7 @@ String get_voice_assetpath()
 #include "ac/gamestate.h"
 #include "ac/global_audio.h"
 #include "ac/global_display.h"
-#include "ac/dynobj/cc_dynobjreftypes.h"
+#include "ac/dynobj/cc_dynamicobjectref.h"
 #include "ac/dynobj/cc_scriptobject.h"
 #include "ac/dynobj/dynobj_manager.h"
 #include "debug/out.h"

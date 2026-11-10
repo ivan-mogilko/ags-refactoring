@@ -340,7 +340,7 @@ void *Overlay_GetGraphicBoundBox(ScriptOverlay *scover)
 
 int Overlay_GetValid(ScriptOverlay *scover)
 {
-    return get_overlay(scover->GetOverlayID()) != nullptr;
+    return get_overlay(scover->GetID()) != nullptr;
 }
 
 ScreenOverlay *Overlay_CreateGraphicCore(bool room_layer, int x, int y, int slot, bool clone)

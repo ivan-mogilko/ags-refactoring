@@ -18,7 +18,7 @@
 #include "ac/viewframe.h"
 #include "ac/spritecache.h"
 #include "ac/string.h"
-#include "ac/dynobj/cc_dynobjreftypes.h"
+#include "ac/dynobj/cc_dynamicobjectref.h"
 #include "ac/dynobj/scriptstring.h"
 #include "debug/debug_log.h"
 #include "gfx/bitmap.h"

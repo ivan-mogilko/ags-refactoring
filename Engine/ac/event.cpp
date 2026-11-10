@@ -24,7 +24,7 @@
 #include "ac/roomstatus.h"
 #include "ac/screen.h"
 #include "ac/dynobj/scriptobjects.h"
-#include "ac/dynobj/cc_dynobjreftypes.h"
+#include "ac/dynobj/cc_dynamicobjectref.h"
 #include "debug/debug_log.h"
 #include "main/game_run.h"
 #include "script/cc_common.h"

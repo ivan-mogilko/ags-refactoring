@@ -23,8 +23,17 @@ const char *ScriptTouchPointer::GetType()
     return "TouchPointer";
 }
 
-int ScriptTouchPointer::Dispose(void * /*address*/, bool /*force*/)
+size_t ScriptTouchPointer::CalcSerializeSize(const void* /*address*/)
 {
-    delete this;
-    return 1;
+    return 0;
+}
+
+void ScriptTouchPointer::Serialize(const void *address, Stream *out)
+{
+}
+
+void ScriptTouchPointer::Unserialize(int index, Stream *in, size_t data_sz)
+{
+    this->Invalidate();
+    ccRegisterUnserializedObject(index, this, this);
 }

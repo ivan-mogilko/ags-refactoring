@@ -14,22 +14,21 @@
 #ifndef __AGS_EE_DYNOBJ__SCRIPTTOUCHPOINTER_H
 #define __AGS_EE_DYNOBJ__SCRIPTTOUCHPOINTER_H
 
-#include "ac/dynobj/cc_agsdynamicobject.h"
+#include "ac/dynobj/cc_dynamicautoobjectref.h"
 
-struct ScriptTouchPointer final : CCBasicObject
+struct ScriptTouchPointer final : public CCDynamicAutoObjectRef
 {
 public:
-    ScriptTouchPointer(int pointer_id)
-        : _pointerID(pointer_id) {}
-
-    int GetPointerID() const { return _pointerID; }
-    void Invalidate() { _pointerID = -1; }
+    ScriptTouchPointer(int pointer_id) : CCDynamicAutoObjectRef(pointer_id) {}
 
     const char *GetType() override;
-    int Dispose(void *address, bool force);
+    void Unserialize(int index, AGS::Common::Stream *in, size_t data_sz) override;
 
-private:
-    int _pointerID = -1;
+protected:
+    // Calculate and return required space for serialization, in bytes
+    size_t CalcSerializeSize(const void *address) override;
+    // Write object data into the provided stream
+    void Serialize(const void *address, AGS::Common::Stream *out) override;
 };
 
 #endif // __AGS_EE_DYNOBJ__SCRIPTTOUCHPOINTER_H

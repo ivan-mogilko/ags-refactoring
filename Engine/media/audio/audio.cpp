@@ -24,7 +24,7 @@
 #include "ac/gamesetup.h"
 #include "ac/path_helper.h"
 #include "ac/view.h"
-#include "ac/dynobj/cc_dynobjreftypes.h"
+#include "ac/dynobj/cc_dynamicobjectref.h"
 #include "ac/dynobj/dynobj_manager.h"
 #include "media/audio/sound.h"
 #include "debug/debug_log.h"

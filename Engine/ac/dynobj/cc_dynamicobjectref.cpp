@@ -11,7 +11,7 @@
 // https://opensource.org/license/artistic-2-0/
 //
 //=============================================================================
-#include "ac/dynobj/cc_dynobjreftypes.h"
+#include "ac/dynobj/cc_dynamicobjectref.h"
 #include "ac/gamesetupstruct.h"
 #include "ac/dynobj/dynobj_manager.h"
 #include "ac/dynobj/scriptobjects.h"
@@ -38,11 +38,6 @@ extern std::vector<int> StaticHotspotArray;
 extern std::vector<int> StaticInventoryArray;
 extern std::vector<int> StaticObjectArray;
 
-
-CCDynamicObjectRef::CCDynamicObjectRef(std::vector<int> *const arr_of_handles)
-    : _arrOfHandles(arr_of_handles)
-{
-}
 
 size_t CCDynamicObjectRef::CalcSerializeSize(const void* /*address*/)
 {

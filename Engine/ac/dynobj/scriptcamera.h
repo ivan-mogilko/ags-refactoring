@@ -14,32 +14,15 @@
 #ifndef __AC_SCRIPTCAMERA_H
 #define __AC_SCRIPTCAMERA_H
 
-#include "ac/dynobj/cc_agsdynamicobject.h"
+#include "ac/dynobj/cc_dynamicautoobjectref.h"
 
 // ScriptCamera keeps a reference to actual room Camera in script.
-struct ScriptCamera final : AGSCCDynamicObject
+struct ScriptCamera final : public CCDynamicAutoObjectRef
 {
 public:
-    ScriptCamera(int id);
-
-    // Get camera index; negative means the camera was deleted
-    int GetID() const { return _id; }
-    void SetID(int id) { _id = id; }
-    // Reset camera index to indicate that this reference is no longer valid
-    void Invalidate() { _id = -1; }
+    ScriptCamera(int id) : CCDynamicAutoObjectRef(id) {}
 
     const char *GetType() override;
-    int Dispose(void *address, bool force) override;
-    void Unserialize(int index, AGS::Common::Stream *in, size_t data_sz) override;
-
-protected:
-    // Calculate and return required space for serialization, in bytes
-    size_t CalcSerializeSize(const void *address) override;
-    // Write object data into the provided stream
-    void Serialize(const void *address, AGS::Common::Stream *out) override;
-
-private:
-    int _id = -1; // index of camera in the game state array
 };
 
 // Unserialize camera from the memory stream

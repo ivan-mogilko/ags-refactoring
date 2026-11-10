@@ -37,7 +37,7 @@
 #include "ac/timer.h"
 #include "ac/dynobj/cc_serializer.h"
 #include "ac/dynobj/dynobj_manager.h"
-#include "ac/dynobj/cc_dynobjreftypes.h"
+#include "ac/dynobj/cc_dynamicobjectref.h"
 #include "ac/dynobj/cc_dynamicarray.h"
 #include "ac/dynobj/managedobjectpool.h"
 #include "ac/dynobj/scriptrestoredsaveinfo.h"

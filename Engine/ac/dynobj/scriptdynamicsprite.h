@@ -16,19 +16,23 @@
 
 #include "ac/dynobj/cc_agsdynamicobject.h"
 
+// TODO: consider inheriting CCDynamicAutoObjectRef,
+// because it matches the ScriptDynamicSprite's behavior;
+// there's just one thing: the "invalidated" ScriptDynamicSprite
+// currently resets its "slot" id to 0, not -1... can we work around that?
 struct ScriptDynamicSprite final  : AGSCCDynamicObject
 {
 public:
     static const char *TypeID;
+
+    ScriptDynamicSprite() = default;
+    ScriptDynamicSprite(int slot);
 
     int slot = 0; // 0 is a "safety placeholder" sprite id
 
     int Dispose(void *address, bool force) override;
     const char *GetType() override;
     void Unserialize(int index, AGS::Common::Stream *in, size_t data_sz) override;
-
-    ScriptDynamicSprite() = default;
-    ScriptDynamicSprite(int slot);
 
 protected:
     // Calculate and return required space for serialization, in bytes

@@ -26,7 +26,7 @@
 #include "ac/spritecache.h"
 #include "ac/sys_events.h"
 #include "ac/timer.h"
-#include "ac/dynobj/cc_dynobjreftypes.h"
+#include "ac/dynobj/cc_dynamicobjectref.h"
 #include "debug/debug_log.h"
 #include "gui/guidialog.h"
 #include "gui/guimain.h"

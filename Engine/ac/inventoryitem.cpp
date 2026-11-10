@@ -24,7 +24,7 @@
 #include "ac/properties.h"
 #include "ac/runtime_defines.h"
 #include "ac/string.h"
-#include "ac/dynobj/cc_dynobjreftypes.h"
+#include "ac/dynobj/cc_dynamicobjectref.h"
 #include "debug/debug_log.h"
 #include "gui/guidefines.h"
 #include "script/runtimescriptvalue.h"

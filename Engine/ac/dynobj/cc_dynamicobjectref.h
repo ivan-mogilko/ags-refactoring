@@ -12,12 +12,16 @@
 //
 //=============================================================================
 //
-// A collection of dynamic object managers, which handle a trivial
-// ScriptSimpleRef type of script object. ScriptSimpleRef contains strictly
-// a ID reference to the internal object instance, and its managed handles
-// may be stored in a array of handles which is also exported to script.
+// CCDynamicObjectRef is parent class for dynamic object managers that:
+// - handle persistent game objects, using a trivial ScriptObjectRef type.
+// - serialize only ID (ScriptObjectRef's member).
+// - on deserialization may optionally store the object's handle in the array
+//   of handles which is also exported to script as a variable
+//   (e.g. "character", "inventory" etc).
 //
-// CCDynamicObjectRef is a parent class for such managers.
+// The only managed or persistent objects that is currently not a child of
+// CCDynamicObjectRef - is CCGUIControl, because it unserializes 2 IDs
+// (parent gui id and control's id).
 // 
 //=============================================================================
 #ifndef __AGS_EE_DYNOBJ__DYNOBJREFTYPES_H
@@ -29,7 +33,9 @@
 class CCDynamicObjectRef : public AGSCCDynamicObject
 {
 public:
-    CCDynamicObjectRef(std::vector<int> *const arr_of_handles = nullptr);
+    CCDynamicObjectRef() = default;
+    CCDynamicObjectRef(std::vector<int> *const arr_of_handles)
+        : _arrOfHandles(arr_of_handles) {}
 
     void Unserialize(int index, AGS::Common::Stream *in, size_t data_sz) override;
 
