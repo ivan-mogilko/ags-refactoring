@@ -24,7 +24,7 @@
 #include "ac/spritecache.h"
 #include "ac/string.h"
 #include "ac/system.h"
-#include "ac/dynobj/cc_dynobjreftypes.h"
+#include "ac/dynobj/cc_dynamicobjectref.h"
 #include "ac/dynobj/scriptsystem.h"
 #include "debug/debug_log.h"
 #include "debug/debugger.h"

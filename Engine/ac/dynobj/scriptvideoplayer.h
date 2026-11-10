@@ -14,28 +14,15 @@
 #ifndef __AC_SCRIPTVIDEOPLAYER_H
 #define __AC_SCRIPTVIDEOPLAYER_H
 
-#include "ac/dynobj/cc_agsdynamicobject.h"
+#include "ac/dynobj/cc_dynamicautoobjectref.h"
 
-struct ScriptVideoPlayer final : AGSCCDynamicObject
+struct ScriptVideoPlayer final : public CCDynamicAutoObjectRef
 {
 public:
-    ScriptVideoPlayer(int id) : _id(id) {}
-    // Get videoplayer's index; negative means the video was removed
-    int GetID() const { return _id; }
-    // Reset videoplayer's index to indicate that this reference is no longer valid
-    void Invalidate() { _id = -1; }
+    ScriptVideoPlayer(int id) : CCDynamicAutoObjectRef(id) {}
 
     const char *GetType() override;
     int Dispose(void *address, bool force) override;
-    void Unserialize(int index, AGS::Common::Stream *in, size_t data_sz) override;
-
-private:
-    // Calculate and return required space for serialization, in bytes
-    size_t CalcSerializeSize(const void *address) override;
-    // Write object data into the provided stream
-    void Serialize(const void *address, AGS::Common::Stream *out) override;
-
-    int _id = -1; // index of videoplayer in the video subsystem
 };
 
 #endif // __AC_SCRIPTVIDEOPLAYER_H

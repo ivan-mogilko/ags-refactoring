@@ -33,7 +33,7 @@ ScreenOverlay *GetOverlayValidate(const char *apiname, int over_id);
 // Gets an actual ScreenOverlay object from its ScriptOverlay reference;
 // validate object, send an error to the logging system on failure
 inline ScreenOverlay *GetOverlayValidate(const char *apiname, ScriptOverlay *scover)
-    { return GetOverlayValidate(apiname, scover->GetOverlayID()); }
+    { return GetOverlayValidate(apiname, scover->GetID()); }
 
 void Overlay_Remove(ScriptOverlay *sco);
 void Overlay_SetText(ScriptOverlay *scover, int width, int fontid, int text_color, const char *text);

@@ -256,7 +256,7 @@ ScriptJoystick* Joystick_GetiJoysticks(int i)
 
 bool Joystick_IsAnyButtonDown(ScriptJoystick* joy)
 {
-    if (joy->IsInvalid()) return 0;
+    if (!joy->IsValid()) return 0;
     auto const& joy_impl = _joysticks[joy->GetID()];
     if (joy_impl.sdlGameController != nullptr)
     {
@@ -284,18 +284,18 @@ bool Joystick_IsAnyButtonDown(ScriptJoystick* joy)
 
 int Joystick_IsConnected(ScriptJoystick* joy)
 {
-    if(joy->IsInvalid()) return 0;
+    if(!joy->IsValid()) return 0;
     return SDL_JoystickGetAttached(_joysticks[joy->GetID()].sdlJoystick) ? 1 : 0;
 }
 
 int Joystick_IsGamepad(ScriptJoystick* joy)
 {
-    if (joy->IsInvalid()) return 0;
+    if (!joy->IsValid()) return 0;
     return _joysticks[joy->GetID()].sdlGameController != nullptr;
 }
 
 const char* Joystick_GetName(ScriptJoystick* joy) {
-    if (joy->IsInvalid()) return nullptr;
+    if (!joy->IsValid()) return nullptr;
     auto const& joy_impl = _joysticks[joy->GetID()];
     const char* name_str = SDL_JoystickName(joy_impl.sdlJoystick);
     if (!name_str) return nullptr;
@@ -304,14 +304,14 @@ const char* Joystick_GetName(ScriptJoystick* joy) {
 
 int Joystick_IsGamepadButtonDown(ScriptJoystick* joy, int butt)
 {
-    if (joy->IsInvalid()) return 0;
+    if (!joy->IsValid()) return 0;
     auto const& joy_impl = _joysticks[joy->GetID()];
     return SDL_GameControllerGetButton(joy_impl.sdlGameController, Gamepad_Button_AGStoSDL(static_cast<eAGSGamepad_Button>(butt)));
 }
 
 float Joystick_GetGamepadAxis(ScriptJoystick* joy, int axis, float dead_zone)
 {
-    if (joy->IsInvalid()) return 0;
+    if (!joy->IsValid()) return 0;
     auto const& joy_impl = _joysticks[joy->GetID()];
     int axis_val_int = SDL_GameControllerGetAxis(joy_impl.sdlGameController, Gamepad_Axis_AGStoSDL(static_cast<eAGSGamepad_Axis>(axis)));
     return axis_to_float_with_deadzone(axis_val_int, dead_zone);
@@ -319,7 +319,7 @@ float Joystick_GetGamepadAxis(ScriptJoystick* joy, int axis, float dead_zone)
 
 float Joystick_GetAxis(ScriptJoystick* joy, int axis, float dead_zone)
 {
-    if (joy->IsInvalid()) return 0;
+    if (!joy->IsValid()) return 0;
     auto const& joy_impl = _joysticks[joy->GetID()];
     int axis_count = SDL_JoystickNumAxes(joy_impl.sdlJoystick);
     if (axis < 0 || axis >= axis_count) {
@@ -334,7 +334,7 @@ float Joystick_GetAxis(ScriptJoystick* joy, int axis, float dead_zone)
 
 int Joystick_IsButtonDown(ScriptJoystick* joy, int butt)
 {
-    if (joy->IsInvalid()) return 0;
+    if (!joy->IsValid()) return 0;
     auto const& joy_impl = _joysticks[joy->GetID()];
     int button_count = joy_impl.ButtonCount;
     if (butt < 0 || butt >= button_count) {
@@ -348,7 +348,7 @@ int Joystick_IsButtonDown(ScriptJoystick* joy, int butt)
 
 int Joystick_GetHat(ScriptJoystick* joy, int hat)
 {
-    if (joy->IsInvalid()) return eAGSJoystick_Hat::eAGSJoystick_HatCentered;
+    if (!joy->IsValid()) return eAGSJoystick_Hat::eAGSJoystick_HatCentered;
     auto const& joy_impl = _joysticks[joy->GetID()];
     int hat_count = SDL_JoystickNumHats(joy_impl.sdlJoystick);
     if (hat < 0 || hat >= hat_count) {
@@ -361,21 +361,21 @@ int Joystick_GetHat(ScriptJoystick* joy, int hat)
 
 int Joystick_GetAxisCount(ScriptJoystick* joy)
 {
-    if (joy->IsInvalid()) return 0;
+    if (!joy->IsValid()) return 0;
     auto const& joy_impl = _joysticks[joy->GetID()];
     return SDL_JoystickNumAxes(joy_impl.sdlJoystick);
 }
 
 int Joystick_GetButtonCount(ScriptJoystick* joy)
 {
-    if (joy->IsInvalid()) return 0;
+    if (!joy->IsValid()) return 0;
     auto const& joy_impl = _joysticks[joy->GetID()];
     return joy_impl.ButtonCount;
 }
 
 int Joystick_GetHatCount(ScriptJoystick* joy)
 {
-    if (joy->IsInvalid()) return 0;
+    if (!joy->IsValid()) return 0;
     auto const& joy_impl = _joysticks[joy->GetID()];
     return SDL_JoystickNumHats(joy_impl.sdlJoystick);
 }

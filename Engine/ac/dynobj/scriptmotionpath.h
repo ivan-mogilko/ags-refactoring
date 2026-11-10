@@ -14,34 +14,24 @@
 #ifndef __AGS_EE_DYNOBJ__SCRIPTMOTIONPATH_H
 #define __AGS_EE_DYNOBJ__SCRIPTMOTIONPATH_H
 
-#include <memory>
-#include "ac/dynobj/cc_agsdynamicobject.h"
-#include "ac/movelist.h"
-#include "ac/runtime_defines.h"
+#include "ac/dynobj/cc_dynamicautoobjectref.h"
 
+class MoveList;
 
-class ScriptMotionPath : public AGSCCDynamicObject
+class ScriptMotionPath : public CCDynamicAutoObjectRef
 {
 public:
     ScriptMotionPath() = default;
-    ScriptMotionPath(uint32_t mlist_id);
-    bool IsValid() const;
+    // NOTE: move lists are identified using uint32_t in game data,
+    // however character and objects reference them as int16 and int32 respectively.
+    // this might need a revision.
+    ScriptMotionPath(int mlist_id) : CCDynamicAutoObjectRef(mlist_id) {}
+    
     MoveList *GetMoveList() const;
-    void Invalidate();
 
     const char *GetType() override;
-    int Dispose(void *address, bool force) override;
-    void Unserialize(int index, AGS::Common::Stream *in, size_t data_sz) override;
 
-    static DynObjectRef Create(uint32_t mlist_id);
-
-private:
-    // Calculate and return required space for serialization, in bytes
-    size_t CalcSerializeSize(const void *address) override;
-    // Write object data into the provided stream
-    void Serialize(const void *address, AGS::Common::Stream *out) override;
-
-    uint32_t _moveListID = 0u;
+    static DynObjectRef Create(int mlist_id);
 };
 
 #endif // __AGS_EE_DYNOBJ__SCRIPTMOTIONPATH_H

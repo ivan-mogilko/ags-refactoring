@@ -14,32 +14,12 @@
 #include "ac/dynobj/scriptmotionpath.h"
 #include "ac/dynobj/dynobj_manager.h"
 #include "ac/game.h"
-#include "ac/route_finder.h"
-#include "util/stream.h"
 
 using namespace AGS::Common;
-using namespace AGS::Engine;
-
-ScriptMotionPath::ScriptMotionPath(uint32_t mlist_id)
-    : _moveListID(mlist_id)
-{
-}
-
-bool ScriptMotionPath::IsValid() const
-{
-    return _moveListID > 0;
-}
 
 MoveList *ScriptMotionPath::GetMoveList() const
 {
-    return _moveListID == 0 ?
-        nullptr :
-        get_movelist(_moveListID);
-}
-
-void ScriptMotionPath::Invalidate()
-{
-    _moveListID = 0u;
+    return IsValid() ? get_movelist(_objID) : nullptr;
 }
 
 const char *ScriptMotionPath::GetType()
@@ -47,29 +27,7 @@ const char *ScriptMotionPath::GetType()
     return "MotionPath";
 }
 
-int ScriptMotionPath::Dispose(void *address, bool force)
-{
-    delete this;
-    return 1;
-}
-
-void ScriptMotionPath::Unserialize(int index, Stream *in, size_t data_sz)
-{
-    _moveListID = in->ReadInt32();
-    ccRegisterUnserializedObject(index, this, this);
-}
-
-size_t ScriptMotionPath::CalcSerializeSize(const void *address)
-{
-    return sizeof(uint32_t);
-}
-
-void ScriptMotionPath::Serialize(const void *address, Stream *out)
-{
-    out->WriteInt32(_moveListID);
-}
-
-DynObjectRef ScriptMotionPath::Create(uint32_t mlist_id)
+DynObjectRef ScriptMotionPath::Create(int mlist_id)
 {
     ScriptMotionPath *motion_path = new ScriptMotionPath(mlist_id);
     int handle = ccRegisterManagedObject(motion_path, motion_path);

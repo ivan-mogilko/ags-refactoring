@@ -585,7 +585,8 @@
     <ClCompile Include="..\..\Engine\ac\dynamicsprite.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\cc_agsdynamicobject.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\cc_dynamicarray.cpp" />
-    <ClCompile Include="..\..\Engine\ac\dynobj\cc_dynobjreftypes.cpp" />
+    <ClCompile Include="..\..\Engine\ac\dynobj\cc_dynamicautoobjectref.cpp" />
+    <ClCompile Include="..\..\Engine\ac\dynobj\cc_dynamicobjectref.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\cc_staticarray.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\dynobj_manager.cpp" />
     <ClCompile Include="..\..\Engine\ac\dynobj\cc_guicontrol.cpp" />
@@ -821,12 +822,13 @@
     <ClInclude Include="..\..\Engine\ac\dynobj\all_dynamicclasses.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\all_scriptclasses.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\cc_agsdynamicobject.h" />
+    <ClInclude Include="..\..\Engine\ac\dynobj\cc_dynamicautoobjectref.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\cc_dynamicarray.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\cc_scriptobject.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\cc_guicontrol.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\cc_pluginobject.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\cc_serializer.h" />
-    <ClInclude Include="..\..\Engine\ac\dynobj\cc_dynobjreftypes.h" />
+    <ClInclude Include="..\..\Engine\ac\dynobj\cc_dynamicobjectref.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\cc_staticarray.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\dynobj_manager.h" />
     <ClInclude Include="..\..\Engine\ac\dynobj\managedobjectpool.h" />

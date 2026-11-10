@@ -14,28 +14,21 @@
 #ifndef __AC_SCRIPTOVERLAY_H
 #define __AC_SCRIPTOVERLAY_H
 
-#include "ac/dynobj/cc_agsdynamicobject.h"
+#include "ac/dynobj/cc_dynamicautoobjectref.h"
 
-struct ScriptOverlay : AGSCCDynamicObject
+struct ScriptOverlay : public CCDynamicAutoObjectRef
 {
 public:
     ScriptOverlay() = default;
-    ScriptOverlay(int over_id) : _overlayID(over_id) {}
+    ScriptOverlay(int over_id) : CCDynamicAutoObjectRef(over_id) {}
+
     const char *GetType() override;
     int Dispose(void *address, bool force) override;
-    void Unserialize(int index, AGS::Common::Stream *in, size_t data_sz) override;
+
+    // TODO: find out why this has to be in ScriptOverlay
+    // perhaps we may avoid having this in a public interface here,
+    // and replace with another existing function call where it's used.
     void Remove();
-
-    int GetOverlayID() const { return _overlayID; }
-    void Invalidate() { _overlayID = -1; }
-
-protected:
-    // Calculate and return required space for serialization, in bytes
-    size_t CalcSerializeSize(const void *address) override;
-    // Write object data into the provided stream
-    void Serialize(const void *address, AGS::Common::Stream *out) override;
-
-    int _overlayID = -1;
 };
 
 struct ScriptAnimatedOverlay final : ScriptOverlay

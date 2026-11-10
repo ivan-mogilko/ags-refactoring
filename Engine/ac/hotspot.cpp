@@ -23,7 +23,7 @@
 #include "ac/room.h"
 #include "ac/roomstatus.h"
 #include "ac/string.h"
-#include "ac/dynobj/cc_dynobjreftypes.h"
+#include "ac/dynobj/cc_dynamicobjectref.h"
 #include "debug/debug_log.h"
 #include "game/roomstruct.h"
 #include "gfx/bitmap.h"

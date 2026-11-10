@@ -32,9 +32,9 @@ int ScriptOverlay::Dispose(void* /*address*/, bool force)
     // since the managed object is being deleted, remove the
     // reference so it doesn't try and dispose something else
     // with that handle later
-    if (_overlayID >= 0)
+    if (IsValid())
     {
-        auto *over = get_overlay(_overlayID);
+        auto *over = get_overlay(static_cast<int>(_objID));
         if (over)
         {
             over->DetachScriptObject();
@@ -53,32 +53,15 @@ int ScriptOverlay::Dispose(void* /*address*/, bool force)
     return 1;
 }
 
-size_t ScriptOverlay::CalcSerializeSize(const void* /*address*/)
-{
-    return sizeof(int32_t);
-}
-
-void ScriptOverlay::Serialize(const void* /*address*/, Stream *out)
-{
-    out->WriteInt32(_overlayID);
-}
-
-void ScriptOverlay::Unserialize(int index, Stream *in, size_t /*data_sz*/)
-{
-    _overlayID = in->ReadInt32();
-    // NOTE: some older formats had 3 more int32 here, which we exclude now
-    ccRegisterUnserializedObject(index, this, this);
-}
-
 void ScriptOverlay::Remove()
 {
-    if (_overlayID < 0)
+    if (!IsValid())
     {
         debug_script_warn("Overlay.Remove: overlay is invalid, could have been removed earlier.");
         return;
     }
-    remove_screen_overlay(_overlayID);
-    _overlayID = -1;
+    remove_screen_overlay(static_cast<int>(_objID));
+    _objID = UINT32_MAX;
 }
 
 const char *ScriptAnimatedOverlay::GetType()
@@ -88,9 +71,9 @@ const char *ScriptAnimatedOverlay::GetType()
 
 int ScriptAnimatedOverlay::Dispose(void *address, bool force)
 {
-    if (!force && _overlayID >= 0)
+    if (!force && IsValid())
     {
-        RemoveAnimatedOverlay(_overlayID);
+        RemoveAnimatedOverlay(_objID);
     }
 
     return ScriptOverlay::Dispose(address, force);

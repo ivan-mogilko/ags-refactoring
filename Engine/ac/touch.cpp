@@ -130,7 +130,7 @@ ScriptTouchPointer *Touch_GetTouchPointers(int pointer_id)
 
 bool ValidateTouchPointer(ScriptTouchPointer *tp, const char *apiname)
 {
-    if (tp->GetPointerID() < 0 || static_cast<size_t>(tp->GetPointerID()) >= g_TouchPointers.size())
+    if (tp->GetID() < 0 || static_cast<size_t>(tp->GetID()) >= g_TouchPointers.size())
     {
         debug_script_warn("%s: TouchPointer is not valid", apiname);
         return false;
@@ -142,28 +142,28 @@ int TouchPointer_GetID(ScriptTouchPointer *tp)
 {
     if (!ValidateTouchPointer(tp, "TouchPointer.ID"))
         return -1;
-    return tp->GetPointerID();
+    return tp->GetID();
 }
 
 bool TouchPointer_GetIsDown(ScriptTouchPointer *tp)
 {
     if (!ValidateTouchPointer(tp, "TouchPointer.IsDown"))
         return false;
-    return g_TouchPointers[tp->GetPointerID()].Phase != TouchPhase::Up;
+    return g_TouchPointers[tp->GetID()].Phase != TouchPhase::Up;
 }
 
 int TouchPointer_GetX(ScriptTouchPointer *tp)
 {
     if (!ValidateTouchPointer(tp, "TouchPointer.X"))
         return 0;
-    return g_TouchPointers[tp->GetPointerID()].Position.X;
+    return g_TouchPointers[tp->GetID()].Position.X;
 }
 
 int TouchPointer_GetY(ScriptTouchPointer *tp)
 {
     if (!ValidateTouchPointer(tp, "TouchPointer.Y"))
         return 0;
-    return g_TouchPointers[tp->GetPointerID()].Position.Y;
+    return g_TouchPointers[tp->GetID()].Position.Y;
 }
 
 //=============================================================================

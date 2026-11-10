@@ -18,35 +18,9 @@
 
 using namespace AGS::Common;
 
-ScriptViewport::ScriptViewport(int id) : _id(id) {}
-
 const char *ScriptViewport::GetType()
 {
     return "Viewport";
-}
-
-int ScriptViewport::Dispose(void* /*address*/, bool /*force*/)
-{
-    // Note that ScriptViewport is a reference to actual Viewport object,
-    // and this deletes the reference, while viewport may remain in GameState.
-    delete this;
-    return 1;
-}
-
-size_t ScriptViewport::CalcSerializeSize(const void* /*address*/)
-{
-    return sizeof(int32_t);
-}
-
-void ScriptViewport::Serialize(const void* /*address*/, Stream *out)
-{
-    out->WriteInt32(_id);
-}
-
-void ScriptViewport::Unserialize(int index, Stream *in, size_t /*data_sz*/)
-{
-    _id = in->ReadInt32();
-    ccRegisterUnserializedObject(index, this, this);
 }
 
 ScriptViewport *Viewport_Unserialize(int handle, Stream *in, size_t /*data_sz*/)

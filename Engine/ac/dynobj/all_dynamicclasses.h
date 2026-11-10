@@ -19,7 +19,7 @@
 #define __AGS_EE_DYNOBJ__ALLDYNAMICCLASSES_H
 
 #include "ac/dynobj/cc_agsdynamicobject.h"
-#include "ac/dynobj/cc_dynobjreftypes.h"
+#include "ac/dynobj/cc_dynamicobjectref.h"
 #include "ac/dynobj/cc_guicontrol.h"
 #include "ac/dynobj/cc_serializer.h"
 

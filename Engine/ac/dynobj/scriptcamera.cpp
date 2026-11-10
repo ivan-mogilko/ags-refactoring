@@ -18,35 +18,9 @@
 
 using namespace AGS::Common;
 
-ScriptCamera::ScriptCamera(int id) : _id(id) {}
-
 const char *ScriptCamera::GetType()
 {
     return "Camera";
-}
-
-int ScriptCamera::Dispose(void* /*address*/, bool /*force*/)
-{
-    // Note that ScriptCamera is a reference to actual Camera object,
-    // and this deletes the reference, while camera may remain in GameState.
-    delete this;
-    return 1;
-}
-
-size_t ScriptCamera::CalcSerializeSize(const void* /*address*/)
-{
-    return sizeof(int32_t);
-}
-
-void ScriptCamera::Serialize(const void* /*address*/, Stream *out)
-{
-    out->WriteInt32(_id);
-}
-
-void ScriptCamera::Unserialize(int index, Stream *in, size_t /*data_sz*/)
-{
-    _id = in->ReadInt32();
-    ccRegisterUnserializedObject(index, this, this);
 }
 
 ScriptCamera *Camera_Unserialize(int handle, Stream *in, size_t /*data_sz*/)

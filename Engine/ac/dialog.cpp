@@ -43,7 +43,7 @@
 #include "ac/dynobj/dynobj_manager.h"
 #include "ac/dynobj/scriptdialogoptionsrendering.h"
 #include "ac/dynobj/scriptdrawingsurface.h"
-#include "ac/dynobj/cc_dynobjreftypes.h"
+#include "ac/dynobj/cc_dynamicobjectref.h"
 #include "debug/debug_log.h"
 #include "font/fonts.h"
 #include "main/game_run.h"
