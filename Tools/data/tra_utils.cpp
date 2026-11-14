@@ -13,6 +13,7 @@
 //=============================================================================
 #include "data/tra_utils.h"
 #include <map>
+#include <set>
 #include "ac/wordsdictionary.h"
 #include "util/string_utils.h"
 #include "util/textstreamreader.h"
@@ -199,79 +200,83 @@ static bool ParseFontOverride(const String &line, FontOverride &fover)
     return true;
 }
 
-static void ReadSpecialTags(Translation &tra, const String &line)
+static void ReadSpecialTags(TranslationSource &trs, const String &line)
 {
     const auto key_value = StrUtil::GetKeyValue(line, OPTION_SEPARATOR);
     const String key = key_value.first;
     const String value = key_value.second;
+    auto &opts = trs.Options;
     if (key == GAMEID_TAG)
     {
-        tra.GameUid = StrUtil::StringToInt(value);
+        opts.GameUid = StrUtil::StringToInt(value);
     }
     else if (key == GAMENAME_TAG)
     {
-        tra.GameName = value;
+        opts.GameName = value;
     }
     else if (key == NORMAL_FONT_TAG)
     {
-        tra.NormalFont = ReadOptionalInt(value);
+        opts.NormalFont = ReadOptionalInt(value);
     }
     else if (key == SPEECH_FONT_TAG)
     {
-        tra.SpeechFont = ReadOptionalInt(value);
+        opts.SpeechFont = ReadOptionalInt(value);
     }
     else if (key == TEXT_DIRECTION_TAG)
     {
         String directionText = value;
         if (directionText == TAG_DIRECTION_LEFT)
         {
-            tra.RightToLeft = kTextDirection_LTR;
+            opts.RightToLeft = kTextDirection_LTR;
         }
         else if (directionText == TAG_DIRECTION_RIGHT)
         {
-            tra.RightToLeft = kTextDirection_RTL;
+            opts.RightToLeft = kTextDirection_RTL;
         }
         else
         {
-            tra.RightToLeft = kTextDirection_Default;
+            opts.RightToLeft = kTextDirection_Default;
         }
     }
     else if (key == AUTO_PARSERSAID_TAG)
     {
-        tra.OptFlags |= kTraOpt_AutoTranslateSaid;
+        opts.OptFlags |= kTraOpt_AutoTranslateSaid;
     }
     else if (key == ENCODING_TAG)
     {
-        tra.EncodingHint = value;
-        tra.StrOptions["encoding"] = value;
+        opts.EncodingHint = value;
+        opts.StrOptions["encoding"] = value;
     }
     else if (key == GAMEENCODING_TAG)
     {
-        tra.GameEncodingHint = value;
-        tra.StrOptions["gameencoding"] = value;
+        opts.GameEncodingHint = value;
+        opts.StrOptions["gameencoding"] = value;
     }
     else if (key == LANGUAGE_TAG)
     {
-        tra.LanguageHint = value;
-        tra.StrOptions["language"] = value;
+        opts.LanguageHint = value;
+        opts.StrOptions["language"] = value;
     }
     else if (key.StartsWith(FONT_OVERRIDE_TAG))
     {
         int font_id = ParseFontN(key);
-        if ((font_id >= 0) && (tra.FontOverrides.count(font_id) == 0))
+        if ((font_id >= 0) && (opts.FontOverrides.count(font_id) == 0))
         {
             FontOverride fover;
             if (ParseFontOverride(value, fover))
             {
-                tra.FontOverrides[font_id] = fover;
+                opts.FontOverrides[font_id] = fover;
             }
         }
     }
 }
 
-static void WriteFontOverrides(const Translation &tra, TextStreamWriter &sw)
+static void WriteFontOverrides(const TranslationSource &trs, TextStreamWriter &sw)
 {
-    for (const auto &font_over : tra.FontOverrides)
+    std::vector<std::pair<int, FontOverride>> sorted_fonts(
+        trs.Options.FontOverrides.begin(), trs.Options.FontOverrides.end());
+    std::sort(sorted_fonts.begin(), sorted_fonts.end(), [](const auto &fo1, const auto &fo2) { return fo1.first < fo2.first; });
+    for (const auto &font_over : sorted_fonts)
     {
         String font_line;
         int fontIndex = font_over.first;
@@ -382,7 +387,7 @@ void AddParserWords(WordsDictionary &dict, const String &line, uint16_t word_id)
     }
 }
 
-HError ReadTRS(Translation &tra, std::unique_ptr<Stream> &&in)
+HError ReadTRS(TranslationSource &trs, std::unique_ptr<Stream> &&in)
 {
     // TODO: We meed a separate struct for representing TRS contents, including
     // list of annotations per trs item, user comments, etc. This would allow
@@ -390,6 +395,7 @@ HError ReadTRS(Translation &tra, std::unique_ptr<Stream> &&in)
 
     TextStreamReader sr(std::move(in));
     std::vector<String> annotate_next_line;
+    std::set<String> keys;
 
     for (String line = sr.ReadLine(); !sr.EOS(); line = sr.ReadLine())
     {
@@ -397,7 +403,7 @@ HError ReadTRS(Translation &tra, std::unique_ptr<Stream> &&in)
         {
             if (line.GetLength() > 2 && line[2] == '#')
             {
-                ReadSpecialTags(tra, line.Mid(3));
+                ReadSpecialTags(trs, line.Mid(3));
             }
             else if (line.GetLength() > 2 && line[2] == '$')
             {
@@ -421,10 +427,15 @@ HError ReadTRS(Translation &tra, std::unique_ptr<Stream> &&in)
             }
 
             if (options.ParserWordID >= 0)
-                AddParserWords(tra.ParserDict, dst, options.ParserWordID);
+            {
+                AddParserWords(trs.ParserDict, dst, options.ParserWordID);
+            }
             // TODO: warn about duplicates
-            else if (tra.Dict.count(src) == 0)
-                tra.Dict.insert(std::make_pair(src, dst));
+            else if (keys.count(src) == 0)
+            {
+                trs.Entries.push_back(std::make_pair(src, dst));
+                keys.insert(src);
+            }
         }
     }
 
@@ -458,18 +469,18 @@ struct TranslationSection
 // there's enough data to make only 2 sections:
 // - general
 // - parser words
-static void MakeSections(const Translation &translation, std::vector<TranslationSection> &sectionLists)
+static void MakeSections(const TranslationSource &trs, std::vector<TranslationSection> &sectionLists)
 {
     TranslationSection general_section;
-    for (const auto &entry : translation.Dict)
+    for (const auto &entry : trs.Entries)
         general_section.Entries.push_back(TranslationEntry(entry.first, entry.second));
     sectionLists.push_back(std::move(general_section));
 
-    if (translation.ParserDict.GetWords().size() > 0)
+    if (trs.ParserDict.GetWords().size() > 0)
     {
         TranslationSection parser_section(SECTION_TEXTPARSER);
         std::multimap<uint16_t, String> words_by_id;
-        for (const auto &word : translation.ParserDict.GetWords())
+        for (const auto &word : trs.ParserDict.GetWords())
             words_by_id.insert(std::make_pair(word.second, word.first));
 
         for (const auto &word : words_by_id)
@@ -487,9 +498,10 @@ static void MakeSections(const Translation &translation, std::vector<Translation
     }
 }
 
-static HError WriteTRS(const Translation &tra, const std::vector<TranslationSection> &sectionLists, std::unique_ptr<Stream> &&out)
+static HError WriteTRS(const TranslationSource &trs, const std::vector<TranslationSection> &sectionLists, std::unique_ptr<Stream> &&out)
 {
     TextStreamWriter sw(std::move(out));
+    const TranslationOptions &opts = trs.Options;
 
     sw.WriteLine("// AGS TRANSLATION SOURCE FILE");
     sw.WriteLine("// Format is alternating lines with original game text and replacement");
@@ -500,27 +512,27 @@ static HError WriteTRS(const Translation &tra, const std::vector<TranslationSect
     sw.WriteLine("// ");
     sw.WriteLine("// Game identification: this lets game to detect a translation meant");
     sw.WriteLine("// for another game. These may be left blank too.");
-    sw.WriteLineFormat("//#GameID=%s", (tra.GameUid != 0 ? String::FromFormat("%d", tra.GameUid).GetCStr() : ""));
-    sw.WriteLineFormat("//#GameName=%s", tra.GameName.GetCStr());
+    sw.WriteLineFormat("//#GameID=%s", (opts.GameUid != 0 ? String::FromFormat("%d", opts.GameUid).GetCStr() : ""));
+    sw.WriteLineFormat("//#GameName=%s", opts.GameName.GetCStr());
     sw.WriteLine("// ** Translation settings are below");
     sw.WriteLine("// ** Leave them as \"DEFAULT\" to use the game settings");
     sw.WriteLine("// The normal font to use - DEFAULT or font number");
-    sw.WriteLineFormat("//#NormalFont=%s", WriteOptionalInt(tra.NormalFont).GetCStr());
+    sw.WriteLineFormat("//#NormalFont=%s", WriteOptionalInt(opts.NormalFont).GetCStr());
     sw.WriteLine("// The speech font to use - DEFAULT or font number");
-    sw.WriteLineFormat("//#SpeechFont=%s", WriteOptionalInt(tra.SpeechFont).GetCStr());
+    sw.WriteLineFormat("//#SpeechFont=%s", WriteOptionalInt(opts.SpeechFont).GetCStr());
     sw.WriteLine("// Text direction - DEFAULT, LEFT or RIGHT");
-    sw.WriteLineFormat("//#TextDirection=%s", ((tra.RightToLeft == kTextDirection_RTL) ? TAG_DIRECTION_RIGHT.GetCStr() : ((tra.RightToLeft == kTextDirection_Default) ? TAG_DEFAULT.GetCStr() : TAG_DIRECTION_LEFT.GetCStr())));
+    sw.WriteLineFormat("//#TextDirection=%s", ((opts.RightToLeft == kTextDirection_RTL) ? TAG_DIRECTION_RIGHT.GetCStr() : ((opts.RightToLeft == kTextDirection_Default) ? TAG_DEFAULT.GetCStr() : TAG_DIRECTION_LEFT.GetCStr())));
     sw.WriteLine("// Text encoding hint - ASCII or UTF-8");
-    sw.WriteLineFormat("//#Encoding=%s", (tra.EncodingHint.IsEmpty() ? "ASCII" : tra.EncodingHint.GetCStr()));
+    sw.WriteLineFormat("//#Encoding=%s", (opts.EncodingHint.IsEmpty() ? "ASCII" : opts.EncodingHint.GetCStr()));
     sw.WriteLine("// Text language, use standard locale strings, like 'en', 'en_US', etc");
-    String lang_hint = tra.LanguageHint;
+    String lang_hint = opts.LanguageHint;
     lang_hint.Replace('-', '_');
     sw.WriteLineFormat("//#Language=%s", lang_hint.GetCStr());
     sw.WriteLine("// Whether engine should translate Parser.Said strings automatically - ON or OFF");
-    sw.WriteLineFormat("//#AutoTranslateParserSaid=%s", ((tra.OptFlags & kTraOpt_AutoTranslateSaid) != 0) ? TAG_ON.GetCStr() : TAG_OFF.GetCStr());
-    if (tra.FontOverrides.size() != 0)
+    sw.WriteLineFormat("//#AutoTranslateParserSaid=%s", ((opts.OptFlags & kTraOpt_AutoTranslateSaid) != 0) ? TAG_ON.GetCStr() : TAG_OFF.GetCStr());
+    if (opts.FontOverrides.size() != 0)
     {
-        WriteFontOverrides(tra, sw);
+        WriteFontOverrides(trs, sw);
     }
     sw.WriteLine("//  ");
     sw.WriteLine("// ** REMEMBER, WRITE YOUR TRANSLATION IN THE EMPTY LINES, DO");
@@ -555,11 +567,11 @@ static HError WriteTRS(const Translation &tra, const std::vector<TranslationSect
     return HError::None();
 }
 
-HError WriteTRS(const Translation &tra, std::unique_ptr<Stream> &&out)
+HError WriteTRS(const TranslationSource &trs, std::unique_ptr<Stream> &&out)
 {
     std::vector<TranslationSection> sectionLists;
-    MakeSections(tra, sectionLists);
-    WriteTRS(tra, sectionLists, std::move(out));
+    MakeSections(trs, sectionLists);
+    WriteTRS(trs, sectionLists, std::move(out));
     return HError::None();
 }
 
@@ -567,11 +579,11 @@ HError WriteTRS(const Translation &tra, std::unique_ptr<Stream> &&out)
 // TRA - compiled translation in a binary format
 //-----------------------------------------------------------------------------
 
-HError WriteTRA(const Translation &tra, std::unique_ptr<Stream> &&out)
+HError WriteTRA(const TranslationSource &trs, std::unique_ptr<Stream> &&out)
 {
-    // Check if translation object is meaningful
+    // Check if translation object has meaningful contents
     bool has_translation = false;
-    for (const auto &kv : tra.Dict)
+    for (const auto &kv : trs.Entries)
     {
         has_translation |= !kv.first.IsEmpty() && !kv.second.IsEmpty();
     }
@@ -579,7 +591,7 @@ HError WriteTRA(const Translation &tra, std::unique_ptr<Stream> &&out)
         printf("WARNING: input translation did not appear to have any translated lines.\n");
 
     // Write translation
-    WriteTraData(tra, std::move(out));
+    WriteTraData(trs, std::move(out));
     return HError::None();
 }
 

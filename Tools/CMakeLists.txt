@@ -312,6 +312,7 @@ if(AGS_TESTS)
       test/include_utils_test.cpp
       test/pipedprocess_test.cpp
       test/spriteimport_test.cpp
+      test/tra_trs_utils_test.cpp
       test/gtest_main.cc # need to use our own, cannot link one from gtest
    )
    set_target_properties(tools_test PROPERTIES

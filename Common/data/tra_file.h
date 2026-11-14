@@ -98,15 +98,11 @@ struct FontOverride
     FontFieldFlags Fields = kFontField_None;
 };
 
-struct Translation
+struct TranslationOptions
 {
     // Game identifiers, for matching the translation file with the game
     int GameUid = 0;
     String GameName;
-    // Translation dictionary in source/dest pairs
-    StringMap Dict;
-    // Optional text parser's words dictionary (translation for text parser)
-    WordsDictionary ParserDict;
     // Localization parameters
     String EncodingHint;
     String GameEncodingHint;
@@ -119,13 +115,41 @@ struct Translation
     std::unordered_map<int, FontOverride> FontOverrides;
 };
 
+// Runtime Translation object
+struct Translation
+{
+    // Various Translation options and overrides
+    TranslationOptions Options;
+    // Translation dictionary in source/dest pairs
+    StringMap Dict;
+    // Optional text parser's words dictionary (translation for text parser)
+    WordsDictionary ParserDict;
+};
 
+// TranslationSource is a helper struct used when reading or writing
+// compiled translations. It serves to keep entries in the order in which
+// they appear in the translation source file (TRS).
+struct TranslationSource
+{
+    // Various Translation options and overrides
+    TranslationOptions Options;
+    // Translation entries (original, translated)
+    std::vector<std::pair<String, String>> Entries;
+    // Optional text parser's words dictionary (translation for text parser)
+    WordsDictionary ParserDict;
+    // Optional text parser source reference
+    std::unordered_map<uint16_t, String> ParserDictSourceRef;
+};
+
+
+// Converts TranslationSource to runtime purposed Translation object
+void TranslationFromSource(const TranslationSource &trs, Translation &tra);
 // Parses translation data and tests whether it matches the given game
 HError TestTraGameID(int game_uid, const String &game_name, std::unique_ptr<Stream> &&in);
 // Reads full translation data from the provided stream
-HError ReadTraData(Translation &tra, std::unique_ptr<Stream> &&in);
+HError ReadTraData(TranslationSource &trs, std::unique_ptr<Stream> &&in);
 // Writes all translation data to the stream
-void WriteTraData(const Translation &tra, std::unique_ptr<Stream> &&out);
+void WriteTraData(const TranslationSource &trs, std::unique_ptr<Stream> &&out);
 
 } // namespace Common
 } // namespace AGS

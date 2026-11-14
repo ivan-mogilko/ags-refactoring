@@ -12,6 +12,7 @@
 //
 //=============================================================================
 #include "data/tra_file.h"
+#include <set>
 #include <string.h>
 #include "ac/game_version.h"
 #include "data/data_ext.h"
@@ -71,7 +72,7 @@ HError OpenTraFile(Stream *in)
     return HError::None();
 }
 
-static HError ReadFontOverrides(Translation &tra, Stream *in)
+static HError ReadFontOverrides(TranslationSource &trs, Stream *in)
 {
     const uint32_t override_count = static_cast<uint32_t>(in->ReadInt32());
     // The following font data corresponds to particular game data version;
@@ -106,18 +107,19 @@ static HError ReadFontOverrides(Translation &tra, Stream *in)
         // This is matching the 4.* font extension ("v400_fontfiles" ext)
         finfo.FileName = StrUtil::ReadString(in);
 
-        tra.FontOverrides[override_index] = FontOverride(finfo, fields);
+        trs.Options.FontOverrides[override_index] = FontOverride(finfo, fields);
     }
     return HError::None();
 }
 
-HError ReadTraBlock(Translation &tra, Stream *in, TraFileBlock block, const String &ext_id, soff_t block_len)
+HError ReadTraBlock(TranslationSource &trs, Stream *in, TraFileBlock block, const String &ext_id, soff_t block_len)
 {
     switch (block)
     {
     case kTraFblk_Dict:
         {
             std::vector<char> buf;
+            std::set<String> keys;
             // Read lines until we find zero-length key & value
             while (true)
             {
@@ -126,26 +128,29 @@ HError ReadTraBlock(Translation &tra, Stream *in, TraFileBlock block, const Stri
                 if (src_line.IsEmpty() && dst_line.IsEmpty())
                     break;
                 // Skip empty keys, skip key repeats
-                if (src_line.IsEmpty() || (tra.Dict.find(src_line) != tra.Dict.end()))
+                if (src_line.IsEmpty() || (keys.count(src_line) != 0))
                     continue;
-                tra.Dict.insert(std::make_pair(src_line, dst_line));
+                trs.Entries.push_back(std::make_pair(src_line, dst_line));
+                keys.insert(src_line);
             }
         }
         return HError::None();
     case kTraFblk_GameID:
         {
-            tra.GameUid = in->ReadInt32();
-            tra.GameName = ReadStringDecrypt(in);
+            trs.Options.GameUid = in->ReadInt32();
+            trs.Options.GameName = ReadStringDecrypt(in);
         }
         return HError::None();
     case kTraFblk_TextOpts:
-        tra.NormalFont = in->ReadInt32();
-        tra.SpeechFont = in->ReadInt32();
-        tra.RightToLeft = static_cast<TextDirectionMode>(in->ReadInt32());
-        // 3.6.3.10 expansion
-        if (block_len > (3 * sizeof(int32_t)))
         {
-            tra.OptFlags = in->ReadInt32();
+            trs.Options.NormalFont = in->ReadInt32();
+            trs.Options.SpeechFont = in->ReadInt32();
+            trs.Options.RightToLeft = static_cast<TextDirectionMode>(in->ReadInt32());
+            // 3.6.3.10 expansion
+            if (block_len > (3 * sizeof(int32_t)))
+            {
+                trs.Options.OptFlags = in->ReadInt32();
+            }
         }
         return HError::None();
     case kTraFblk_None:
@@ -158,19 +163,19 @@ HError ReadTraBlock(Translation &tra, Stream *in, TraFileBlock block, const Stri
 
     if (ext_id.CompareNoCase("ext_sopts") == 0)
     {
-        StrUtil::ReadStringMap(tra.StrOptions, in);
-        tra.GameEncodingHint = tra.StrOptions["gameencoding"];
-        tra.EncodingHint = tra.StrOptions["encoding"];
-        tra.LanguageHint = tra.StrOptions["language"];
+        StrUtil::ReadStringMap(trs.Options.StrOptions, in);
+        trs.Options.GameEncodingHint = trs.Options.StrOptions["gameencoding"];
+        trs.Options.EncodingHint = trs.Options.StrOptions["encoding"];
+        trs.Options.LanguageHint = trs.Options.StrOptions["language"];
         return HError::None();
     }
     else if (ext_id.CompareNoCase("ext_fonts") == 0)
     {
-        return ReadFontOverrides(tra, in);
+        return ReadFontOverrides(trs, in);
     }
     else if (ext_id.CompareNoCase("ext_parserdict") == 0)
     {
-        tra.ParserDict.ReadFromFile(in);
+        trs.ParserDict.ReadFromFile(in);
         return HError::None();
     }
     
@@ -183,9 +188,9 @@ HError ReadTraBlock(Translation &tra, Stream *in, TraFileBlock block, const Stri
 class TRABlockReader : public DataExtReader
 {
 public:
-    TRABlockReader(Translation &tra, std::unique_ptr<Stream> &&in)
+    TRABlockReader(TranslationSource &trs, std::unique_ptr<Stream> &&in)
         : DataExtReader(std::move(in), kDataExt_NumID32 | kDataExt_File32)
-        , _tra(tra) {}
+        , _trs(trs) {}
 
     // Reads only the Game ID block and stops
     HError ReadGameID()
@@ -193,7 +198,7 @@ public:
         HError err = FindOne(kTraFblk_GameID);
         if (!err)
             return err;
-        return ReadTraBlock(_tra, _in.get(), kTraFblk_GameID, "", _block.Length);
+        return ReadTraBlock(_trs, _in.get(), kTraFblk_GameID, "", _block.Length);
     }
 
 private:
@@ -209,12 +214,19 @@ private:
         soff_t block_len, bool &read_next) override
     {
         read_next = true;
-        return ReadTraBlock(_tra, _in.get(), (TraFileBlock)block_id, ext_id, block_len);
+        return ReadTraBlock(_trs, _in.get(), (TraFileBlock)block_id, ext_id, block_len);
     }
 
-    Translation &_tra;
+    TranslationSource &_trs;
 };
 
+void TranslationFromSource(const TranslationSource &trs, Translation &tra)
+{
+    tra.Options = trs.Options;
+    for (const auto &entry : trs.Entries)
+        tra.Dict.insert(entry);
+    tra.ParserDict = trs.ParserDict;
+}
 
 HError TestTraGameID(int game_uid, const String &game_name, std::unique_ptr<Stream> &&in)
 {
@@ -222,40 +234,40 @@ HError TestTraGameID(int game_uid, const String &game_name, std::unique_ptr<Stre
     if (!err)
         return err;
 
-    Translation tra;
-    TRABlockReader reader(tra, std::move(in));
+    TranslationSource trs;
+    TRABlockReader reader(trs, std::move(in));
     err = reader.ReadGameID();
     if (!err)
         return err;
     // Test the identifiers, if they are not present then skip the test
-    if ((tra.GameUid != 0 && (game_uid != tra.GameUid)) ||
-        (!tra.GameName.IsEmpty() && (game_name != tra.GameName)))
+    if ((trs.Options.GameUid != 0 && (game_uid != trs.Options.GameUid)) ||
+        (!trs.Options.GameName.IsEmpty() && (game_name != trs.Options.GameName)))
         return new TraFileError(kTraFileErr_GameIDMismatch,
-            "The translation is designed for '%s'", tra.GameName.GetCStr());
+            "The translation is designed for '%s'", trs.Options.GameName.GetCStr());
     return HError::None();
 }
 
-HError ReadTraData(Translation &tra, std::unique_ptr<Stream> &&in)
+HError ReadTraData(TranslationSource &trs, std::unique_ptr<Stream> &&in)
 {
     HError err = OpenTraFile(in.get());
     if (!err)
         return err;
 
-    TRABlockReader reader(tra, std::move(in));
+    TRABlockReader reader(trs, std::move(in));
     return reader.Read();
 }
 
-void WriteGameID(const Translation &tra, Stream *out)
+void WriteGameID(const TranslationSource &trs, Stream *out)
 {
     std::vector<char> en_buf;
-    out->WriteInt32(tra.GameUid);
-    StrUtil::WriteString(EncryptText(en_buf, tra.GameName), tra.GameName.GetLength() + 1, out);
+    out->WriteInt32(trs.Options.GameUid);
+    StrUtil::WriteString(EncryptText(en_buf, trs.Options.GameName), trs.Options.GameName.GetLength() + 1, out);
 }
 
-void WriteDict(const Translation &tra, Stream *out)
+void WriteDict(const TranslationSource &trs, Stream *out)
 {
     std::vector<char> en_buf;
-    for (const auto &kv : tra.Dict)
+    for (const auto &kv : trs.Entries)
     {
         const String &src = kv.first;
         const String &dst = kv.second;
@@ -272,32 +284,35 @@ void WriteDict(const Translation &tra, Stream *out)
     StrUtil::WriteString(EncryptEmptyString(en_buf), 1, out);
 }
 
-void WriteParserDict(const Translation &tra, Stream *out)
+void WriteParserDict(const TranslationSource &trs, Stream *out)
 {
-    tra.ParserDict.WriteToFile(out);
+    trs.ParserDict.WriteToFile(out);
 }
 
-void WriteTextOpts(const Translation &tra, Stream *out)
+void WriteTextOpts(const TranslationSource &trs, Stream *out)
 {
-    out->WriteInt32(tra.NormalFont);
-    out->WriteInt32(tra.SpeechFont);
-    out->WriteInt32(tra.RightToLeft);
+    out->WriteInt32(trs.Options.NormalFont);
+    out->WriteInt32(trs.Options.SpeechFont);
+    out->WriteInt32(trs.Options.RightToLeft);
     // 3.6.3.10 expansion
-    out->WriteInt32(tra.OptFlags);
+    out->WriteInt32(trs.Options.OptFlags);
 }
 
-void WriteStrOptions(const Translation &tra, Stream *out)
+void WriteStrOptions(const TranslationSource &trs, Stream *out)
 {
-    StrUtil::WriteStringMap(tra.StrOptions, out);
+    StrUtil::WriteStringMap(trs.Options.StrOptions, out);
 }
 
-void WriteFontOverrides(const Translation &tra, Stream *out)
+void WriteFontOverrides(const TranslationSource &trs, Stream *out)
 {
-    out->WriteInt32(tra.FontOverrides.size());
+    out->WriteInt32(trs.Options.FontOverrides.size());
     // data version (matches current game data); determines which font info extensions are written
     out->WriteInt32(kGameVersion_Current);
 
-    for (const auto &font_override : tra.FontOverrides)
+    std::vector<std::pair<int, FontOverride>> sorted_fonts(
+        trs.Options.FontOverrides.begin(), trs.Options.FontOverrides.end());
+    std::sort(sorted_fonts.begin(), sorted_fonts.end(), [](const auto &fo1, const auto &fo2) { return fo1.first < fo2.first; });
+    for (const auto &font_override : sorted_fonts)
     {
         const FontOverride &fover = font_override.second;
         const FontInfo &finfo = fover.Finfo;
@@ -329,37 +344,37 @@ void WriteFontOverrides(const Translation &tra, Stream *out)
     }
 }
 
-inline void WriteTraBlock(const Translation &tra, TraFileBlock block,
-    void(*writer)(const Translation &tra, Stream *out), Stream *out)
+inline void WriteTraBlock(const TranslationSource &trs, TraFileBlock block,
+    void(*writer)(const TranslationSource &trs, Stream *out), Stream *out)
 {
-    WriteExtBlock(block, [&tra, writer](Stream *out){ writer(tra, out); },
+    WriteExtBlock(block, [&trs, writer](Stream *out){ writer(trs, out); },
         kDataExt_NumID32 | kDataExt_File32, out);
 }
 
-inline void WriteTraBlock(const Translation &tra, const String &ext_id,
-    void(*writer)(const Translation &tra, Stream *out), Stream *out)
+inline void WriteTraBlock(const TranslationSource &trs, const String &ext_id,
+    void(*writer)(const TranslationSource &trs, Stream *out), Stream *out)
 {
-    WriteExtBlock(ext_id, [&tra, writer](Stream *out) { writer(tra, out); },
+    WriteExtBlock(ext_id, [&trs, writer](Stream *out) { writer(trs, out); },
         kDataExt_NumID32 | kDataExt_File32, out);
 }
 
-void WriteTraData(const Translation &tra, std::unique_ptr<Stream> &&out)
+void WriteTraData(const TranslationSource &trs, std::unique_ptr<Stream> &&out)
 {
     // Write header
     out->Write(TRASignature, strlen(TRASignature) + 1);
 
     // Write all blocks
-    WriteTraBlock(tra, kTraFblk_GameID, WriteGameID, out.get());
-    WriteTraBlock(tra, kTraFblk_Dict, WriteDict, out.get());
-    if (tra.ParserDict.GetWords().size() > 0)
+    WriteTraBlock(trs, kTraFblk_GameID, WriteGameID, out.get());
+    WriteTraBlock(trs, kTraFblk_Dict, WriteDict, out.get());
+    if (trs.ParserDict.GetWords().size() > 0)
     {
-        WriteTraBlock(tra, "ext_parserdict", WriteParserDict, out.get());
+        WriteTraBlock(trs, "ext_parserdict", WriteParserDict, out.get());
     }
-    WriteTraBlock(tra, kTraFblk_TextOpts, WriteTextOpts, out.get());
-    WriteTraBlock(tra, "ext_sopts", WriteStrOptions, out.get());
-    if (tra.FontOverrides.size() > 0)
+    WriteTraBlock(trs, kTraFblk_TextOpts, WriteTextOpts, out.get());
+    WriteTraBlock(trs, "ext_sopts", WriteStrOptions, out.get());
+    if (trs.Options.FontOverrides.size() > 0)
     {
-        WriteTraBlock(tra, "ext_fonts", WriteFontOverrides, out.get());
+        WriteTraBlock(trs, "ext_fonts", WriteFontOverrides, out.get());
     }
 
     // Write ending

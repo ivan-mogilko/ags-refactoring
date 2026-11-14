@@ -34,8 +34,8 @@ static int Command_Compile(const String &src, const String &dst, const String *g
         return -1;
     }
 
-    Translation tra;
-    HError err = ReadTRS(tra, std::move(in));
+    TranslationSource trs;
+    HError err = ReadTRS(trs, std::move(in));
     if (!err)
     {
         printf("Error: failed to read source TRS:\n");
@@ -44,9 +44,9 @@ static int Command_Compile(const String &src, const String &dst, const String *g
     }
 
     if (game_uid)
-        tra.GameUid = *game_uid;
+        trs.Options.GameUid = *game_uid;
     if (game_name)
-        tra.GameName = *game_name;
+        trs.Options.GameName = *game_name;
 
     //-----------------------------------------------------------------------//
     // Write TRA
@@ -57,7 +57,7 @@ static int Command_Compile(const String &src, const String &dst, const String *g
         printf("Error: failed to open output TRA for writing.\n");
         return -1;
     }
-    err = WriteTRA(tra, std::move(out));
+    err = WriteTRA(trs, std::move(out));
     if (!err)
     {
         printf("Error: failed to compile TRA:\n");
@@ -83,8 +83,8 @@ static int Command_Decompile(const String &src, const String &dst)
         return -1;
     }
 
-    Translation tra;
-    HError err = ReadTraData(tra, std::move(in));
+    TranslationSource trs;
+    HError err = ReadTraData(trs, std::move(in));
     if (!err)
     {
         printf("Error: failed to read input TRA:\n");
@@ -101,7 +101,7 @@ static int Command_Decompile(const String &src, const String &dst)
         printf("Error: failed to open output TRS for writing.\n");
         return -1;
     }
-    err = WriteTRS(tra, std::move(out));
+    err = WriteTRS(trs, std::move(out));
     if (!err)
     {
         printf("Error: failed to write TRS:\n");

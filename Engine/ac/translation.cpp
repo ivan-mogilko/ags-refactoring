@@ -78,7 +78,7 @@ FontInfo construct_font_override(FontInfo *base_finfo, const FontInfo &finfo, in
 
 void init_font_overrides(const Translation &trans)
 {
-    for (const auto &font_override : trans.FontOverrides)
+    for (const auto &font_override : trans.Options.FontOverrides)
     {
         const int font_id = font_override.first;
         const auto &fover = font_override.second;
@@ -118,7 +118,7 @@ void init_font_overrides(const Translation &trans)
 
 void restore_game_fonts(const Translation &old_trans)
 {
-    for (const auto &font_override : trans.FontOverrides)
+    for (const auto &font_override : trans.Options.FontOverrides)
     {
         const int font_id = font_override.first;
         if (font_id >= 0 && static_cast<uint32_t>(font_id) < game.fonts.size())
@@ -132,7 +132,7 @@ void restore_game_fonts(const Translation &old_trans)
 void close_translation()
 {
     game.options[OPT_AUTOTRANSPARSERSAID] = 0;
-    if (trans.FontOverrides.size() > 0)
+    if (trans.Options.FontOverrides.size() > 0)
     {
         restore_game_fonts(trans);
     }
@@ -171,8 +171,13 @@ bool init_translation(const String &lang, const String &fallback_lang)
     if (err)
     {
         // If successful, then read translation data fully
+        TranslationSource trs;
         in = AssetMgr->OpenAsset(trans_filename);
-        err = ReadTraData(trans, std::move(in));
+        err = ReadTraData(trs, std::move(in));
+        if (!err)
+        {
+            TranslationFromSource(trs, trans);
+        }
     }
 
     // Process errors
@@ -193,34 +198,34 @@ bool init_translation(const String &lang, const String &fallback_lang)
     // Translation read successfully
     Debug::Printf("Translation loaded: %s", trans_filename.GetCStr());
     // Configure new game settings
-    if (trans.NormalFont >= 0)
-        SetNormalFont(trans.NormalFont);
-    if (trans.SpeechFont >= 0)
-        SetSpeechFont(trans.SpeechFont);
-    if (trans.RightToLeft != kTextDirection_Default)
+    if (trans.Options.NormalFont >= 0)
+        SetNormalFont(trans.Options.NormalFont);
+    if (trans.Options.SpeechFont >= 0)
+        SetSpeechFont(trans.Options.SpeechFont);
+    if (trans.Options.RightToLeft != kTextDirection_Default)
     {
-        game.options[OPT_RIGHTLEFTWRITE] = trans.RightToLeft == kTextDirection_LTR ? 0 : 1;
+        game.options[OPT_RIGHTLEFTWRITE] = trans.Options.RightToLeft == kTextDirection_LTR ? 0 : 1;
         HorAlignment align = game.options[OPT_RIGHTLEFTWRITE] ? kHAlignRight : kHAlignLeft;
         play.text_align = (play.text_align != kHAlignCenter) ? align : kHAlignCenter;
         play.speech_text_align = (play.speech_text_align != kHAlignCenter) ? align : kHAlignCenter;
         if (play.GetRBSwitches()[kRBO_ApplyDialogOptionTextAlignment])
             play.dialog_options_textalign = (play.dialog_options_textalign != kHAlignCenter) ? align : kHAlignCenter;
     }
-    game.options[OPT_AUTOTRANSPARSERSAID] = (trans.OptFlags & kTraOpt_AutoTranslateSaid) != 0;
+    game.options[OPT_AUTOTRANSPARSERSAID] = (trans.Options.OptFlags & kTraOpt_AutoTranslateSaid) != 0;
 
     // Font overrides
-    if (trans.FontOverrides.size() > 0)
+    if (trans.Options.FontOverrides.size() > 0)
     {
         init_font_overrides(trans);
     }
 
     // Setup a text encoding mode depending on the translation data hint
-    String encoding = trans.StrOptions["encoding"];
+    String encoding = trans.Options.StrOptions["encoding"];
     if (encoding.CompareNoCase("utf-8") == 0)
         set_uformat(U_UTF8);
     else
         set_uformat(U_ASCII);
-    String language = trans.StrOptions["language"];
+    String language = trans.Options.StrOptions["language"];
 
     String encoding_msg = !encoding.IsEmpty() ? encoding : "presume ASCII";
     Debug::Printf("Translation's encoding: %s, language: %s", encoding_msg.GetCStr(), language.GetCStr());
@@ -235,8 +240,8 @@ bool init_translation(const String &lang, const String &fallback_lang)
     {
         String key_enc = (game_codepage > 0) ?
             String::FromFormat(".%d", game_codepage) :
-            trans.StrOptions["gameencoding"];
-        Debug::Printf("Game's source encoding hint: own: %d, from TRA: %s", game_codepage, trans.StrOptions["gameencoding"].GetCStr());
+            trans.Options.StrOptions["gameencoding"];
+        Debug::Printf("Game's source encoding hint: own: %d, from TRA: %s", game_codepage, trans.Options.StrOptions["gameencoding"].GetCStr());
         if (!key_enc.IsEmpty())
         {
             StringMap conv_map;
