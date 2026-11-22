@@ -1193,10 +1193,11 @@ namespace AGS.Editor
             compileTasks.Add(new CompileTask(dialogScripts, headers));
             _game.ScriptsToCompile.Add(new ScriptAndHeader(null, dialogScripts));
 
-
             bool compileParallel = compiler.DoesSupportParallelBuilds()
-                // && false // uncomment if debugging script compiler; TODO: add Editor preference?
-                ;
+                && _applicationSettings.MultithreadedScriptCompilation;
+            progress.Current = 0;
+            progress.Total = compileTasks.Count;
+            progress.AutoFormatProgress = true;
 
             // Compile the scripts
             if (compileParallel)
@@ -1205,9 +1206,17 @@ namespace AGS.Editor
                 {
                     CompileMessages messages = new CompileMessages();
 
+                    lock (messagesToReturn)
+                    {
+                        // TODO: this does not really work well with parallel,
+                        // might need something else, like a list of current sub-jobs...
+                        progress.Message = ct.Script.FileName;
+                    }
                     CompileScript(compiler, ct.Script, ct.Headers, messages);
                     lock (messagesToReturn)
                     {
+                        progress.Message = ct.Script.FileName;
+                        progress.Current++;
                         if (!messagesToReturn.HasErrors)
                             messagesToReturn.AddRange(messages);
                     }
@@ -1220,7 +1229,9 @@ namespace AGS.Editor
                 foreach (CompileTask ct in compileTasks)
                 {
                     CompileMessages messages = new CompileMessages();
+                    progress.Message = ct.Script.FileName;
                     CompileScript(compiler, ct.Script, ct.Headers, messages);
+                    progress.Current++;
                     messagesToReturn.AddRange(messages);
                     if (messages.HasErrors)
                         break;

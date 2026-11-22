@@ -939,6 +939,24 @@ namespace AGS.Editor.Preferences
         }
 
         [Browsable(true)]
+        [DisplayName("Multi-threaded script compilation")]
+        [Description("Compile game scripts simultaneously on parallel program threads")]
+        [Category("Game compilation")]
+        [UserScopedSettingAttribute()]
+        [DefaultSettingValueAttribute("true")]
+        public bool MultithreadedScriptCompilation
+        {
+            get
+            {
+                return (bool)(this["MultithreadedScriptCompilation"]);
+            }
+            set
+            {
+                this["MultithreadedScriptCompilation"] = value;
+            }
+        }
+
+        [Browsable(true)]
         [DisplayName("JAVA_HOME")]
         [Description("The path to your JRE and JDK directory, usually 'C:\\Program Files\\Android\\Android Studio\\jre'. Leave empty if your JAVA_HOME environment variable is set.")]
         [Category("Android")]
